@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Toaster, toast } from "sonner";
-import { CalendarDays, LayoutList, Refrigerator, UserRound } from "lucide-react";
+import { CalendarDays, ChartColumn, LayoutList, Refrigerator, UserRound } from "lucide-react";
 import { SLOTS, TONIGHT, type SlotKey } from "./data/meals";
 import { Deck, type ExitKind } from "./components/Deck";
 import { TonightSheet } from "./components/Sheets";
@@ -11,6 +11,11 @@ import { Kitchen } from "./components/Kitchen";
 import { Me } from "./components/Me";
 import { WeekScreen } from "./components/Week";
 import { Setup } from "./components/Setup";
+import { Progress } from "./components/Progress";
+import { NewMeals } from "./components/NewMeals";
+import { Sheet } from "./components/Sheets";
+import { targets } from "./core/nutrition";
+import { BUILD_ID, newerBuild, whatsNewOnce, type ReleaseNotes } from "./app/updates";
 import { useApp } from "./app/useApp";
 import { mealMap, supperMap, toCard, foodMap } from "./app/viewModel";
 import { isLow } from "./core/stock";
@@ -20,6 +25,7 @@ const NAV: RadialItem[] = [
   { key: "today", label: "Today", Icon: LayoutList },
   { key: "week", label: "Week", Icon: CalendarDays },
   { key: "kitchen", label: "Kitchen", Icon: Refrigerator },
+  { key: "progress", label: "Progress", Icon: ChartColumn },
   { key: "me", label: "Me", Icon: UserRound },
 ];
 
@@ -47,8 +53,27 @@ export default function App() {
   const [ticks, setTicks] = useState<Record<string, number[]>>({});
   const [checkIn, setCheckIn] = useState(false);
   const [tonightOpen, setTonightOpen] = useState(false);
-  const [screen, setScreen] = useState<"today" | "kitchen" | "week" | "me">("today");
+  const [screen, setScreen] = useState<"today" | "kitchen" | "week" | "progress" | "me">("today");
   const { day, cards, emptySlots, actions } = app;
+  const [reviewing, setReviewing] = useState(false);
+  // Read the release notes only once the main app is showing, so they aren't used up behind Setup.
+  const [whats, setWhats] = useState<ReleaseNotes | null>(null);
+  const mainShowing = app.ready && !app.needsSetup;
+  useEffect(() => { if (mainShowing) setWhats(whatsNewOnce()); }, [mainShowing]);
+
+  // Tell the user when a newer build has been published, and offer to load it.
+  useEffect(() => {
+    if (BUILD_ID === "dev") return;
+    const check = async () => {
+      if (document.visibilityState !== "visible") return;
+      if (await newerBuild()) {
+        toast("A new version is ready", { id: "update", duration: Infinity, action: { label: "Update now", onClick: () => window.location.reload() } });
+      }
+    };
+    void check();
+    document.addEventListener("visibilitychange", check);
+    return () => document.removeEventListener("visibilitychange", check);
+  }, []);
 
   // Every screen opens at the top, however far the last one was scrolled.
   useEffect(() => { window.scrollTo({ top: 0 }); }, [screen]);
@@ -133,6 +158,17 @@ export default function App() {
         />
       )}
 
+      {screen === "progress" && (
+        <Progress
+          days={app.allDays}
+          med={app.med}
+          labs={app.labs}
+          satCap={targets(app.profile).satCap}
+          onSaveLab={actions.saveLab}
+          onDeleteLab={actions.deleteLab}
+        />
+      )}
+
       {screen === "me" && (
         <Me
           profile={app.profile}
@@ -147,7 +183,7 @@ export default function App() {
             actions.devScenario
               ? async (sc) => {
                   await actions.devScenario!(sc);
-                  setScreen(sc === "empty-kitchen" || sc === "stocked" ? "kitchen" : "today");
+                  setScreen(sc === "empty-kitchen" || sc === "stocked" ? "kitchen" : sc === "history" ? "progress" : "today");
                   setFlipped(null);
                   toast("Scenario loaded");
                 }
@@ -188,6 +224,14 @@ export default function App() {
             </motion.button>
           </div>
         </section>
+      )}
+
+      {day && app.newMealIds.length > 0 && (
+        <motion.button className="newmeals" whileTap={{ scale: 0.97 }} onClick={() => setReviewing(true)}>
+          <span className="emoji">✨</span>
+          <span className="kname">{app.newMealIds.length} new {app.newMealIds.length === 1 ? "meal" : "meals"} unlocked<small>Have a look before they join your rotation</small></span>
+          <span className="pill">Preview</span>
+        </motion.button>
       )}
 
       {day && <Deck
@@ -314,7 +358,7 @@ export default function App() {
         current={screen}
         hand={app.profile.hand}
         onSelect={(key) => {
-          if (key === "today" || key === "kitchen" || key === "week" || key === "me") setScreen(key);
+          if (key === "today" || key === "kitchen" || key === "week" || key === "progress" || key === "me") setScreen(key);
           else toast(`${NAV.find((n) => n.key === key)!.label} comes next`);
         }}
       />
@@ -332,6 +376,20 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {reviewing && (
+          <NewMeals key="newmeals" ids={app.newMealIds} stock={app.stock} onDecide={actions.decideNewMeal} onClose={() => setReviewing(false)} />
+        )}
+      </AnimatePresence>
+      <Sheet open={!!whats} onOpenChange={(o) => !o && setWhats(null)} title={whats?.title ?? ""}>
+        {whats && (
+          <>
+            <p className="k-sub">Updated just now.</p>
+            <ul className="reasons">{whats.notes.map((n) => (<li key={n}>{n}</li>))}</ul>
+            <div className="sheet-actions"><button className="btn wide" onClick={() => setWhats(null)}>Got it</button></div>
+          </>
+        )}
+      </Sheet>
       <TonightSheet
         open={tonightOpen}
         current={app.answer?.tonight ?? "normal"}

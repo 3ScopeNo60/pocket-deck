@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as db from "../core/db";
-import { estCost, meals } from "../core/content";
+import { estCost, meals, startingMealIds, suppers } from "../core/content";
+import { addDays } from "./history";
+import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
 import { mealGrams, mealNutrition, targets } from "../core/nutrition";
 import { dayBudget, deal, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
-import type { Day, LastNight, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
+import type { Day, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
 import { addNeeds, addToStock, restockGrams, type Need } from "../core/stock";
 import { needsFor, planWeek, swapInWeek, tagTonight, type WeekPlan } from "../core/week";
 import { DEFAULT_PROFILE, defaultPrefs, starterStock } from "./defaults";
@@ -56,6 +58,8 @@ export function useApp() {
   const [products, setProducts] = useState<Product[]>([]);
   const [weekRow, setWeekRow] = useState<Week | null>(null);
   const [med, setMed] = useState<Med | null>(null);
+  const [allDays, setAllDays] = useState<Day[]>([]);
+  const [labs, setLabs] = useState<Lab[]>([]);
   const [memoryOnly, setMemoryOnly] = useState(false);
   const date = useRef(todayKey()).current;
   const latest = useRef({ profile, prefs, stock, day, shopping, products, weekRow, med });
@@ -81,6 +85,11 @@ export function useApp() {
         const pd = await db.getAll("products");
         const wk = (await db.getAll("week")).sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0] ?? null;
         const md = (await db.getAll("meds"))[0] ?? null;
+        // New meals that arrived with this build wait for a decision before they're ever dealt.
+        const found = discoverMeals(meals.map((m) => m.id), pr);
+        if (found.prefs !== pr) { pr = found.prefs; await db.put("prefs", pr); }
+        setAllDays(await db.getAll("days"));
+        setLabs((await db.getAll("labs")).sort((a, b) => a.date.localeCompare(b.date)));
         setProfile(p); setPrefs(pr); setStock(st); setDay(d); setShopping(sh); setProducts(pd); setWeekRow(wk); setMed(md);
       } catch {
         // Storage unavailable (private mode, blocked frame): run from defaults, in memory only.
@@ -121,6 +130,7 @@ export function useApp() {
   const saveDay = (d: Day): Promise<void> => {
     latest.current.day = d;
     setDay(d);
+    setAllDays((all) => [...all.filter((x) => x.date !== d.date), d]);
     return persist(db.put("days", d));
   };
 
@@ -213,6 +223,25 @@ export function useApp() {
       void persist(db.put("meds", updated));
     }
     await saveDay({ ...cur, dosesTaken: next, tabletAt: next[0] });
+  }, []);
+
+  /** Add a blood result (or replace the one for that date). */
+  const saveLab = useCallback((lab: Lab) => {
+    setLabs((all) => [...all.filter((x) => x.date !== lab.date), lab].sort((a, b) => a.date.localeCompare(b.date)));
+    void persist(db.put("labs", lab));
+  }, []);
+  const deleteLab = useCallback((labDate: string) => {
+    setLabs((all) => all.filter((x) => x.date !== labDate));
+    void persist(db.del("labs", labDate));
+  }, []);
+
+  /** Keep a newly unlocked meal in the rotation, or put it away. */
+  const decideNewMeal = useCallback((id: string, keep: boolean) => {
+    const next = decideMeal(latest.current.prefs, id, keep);
+    if (next === latest.current.prefs) return;
+    latest.current.prefs = next;
+    setPrefs(next);
+    void persist(db.put("prefs", next));
   }, []);
 
   const markBackedUp = useCallback(() => {
@@ -327,7 +356,7 @@ export function useApp() {
   }, []);
 
   /** Preview-only: jump to a state that's slow to reach by tapping. Never wired into the real build. */
-  const devScenario = useCallback(async (name: "fresh-day" | "braai" | "empty-kitchen" | "stocked" | "reset") => {
+  const devScenario = useCallback(async (name: "fresh-day" | "braai" | "empty-kitchen" | "stocked" | "reset" | "history" | "new-meals") => {
     const wipe = async (store: "stock" | "shopping" | "products" | "days") => {
       for (const row of await db.getAll(store).catch(() => [])) {
         const key = store === "stock" ? (row as StockItem).itemId : store === "days" ? (row as Day).date : (row as { id: string }).id;
@@ -340,6 +369,42 @@ export function useApp() {
       setDay(null);
     } else if (name === "braai") {
       await submitAnswer({ lastNight: { supperId: "braai", plate: "Big" }, tonight: "heavy" });
+    } else if (name === "history") {
+      // A month of plausible days, so Progress has something to show. Preview only.
+      let seed = 7;
+      const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+      const pickOne = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)];
+      const sample: Med = latest.current.med ?? { id: "med-1", name: "Sample tablet", dose: "10 mg", time: "20:00", times: ["20:00"], perDose: 1, packSize: 30, pillsLeft: 18, takenLog: [] };
+      if (!latest.current.med) { latest.current.med = sample; setMed(sample); void persist(db.put("meds", sample)); }
+      const made: Day[] = [];
+      for (let k = 1; k <= 34; k++) {
+        const d = addDays(date, -k);
+        const skipped = rnd() < 0.12;
+        const s = pickOne(suppers);
+        made.push({
+          date: d, tonight: "normal", plan: { breakfast: null, lunch: null, snack: null },
+          lastNight: rnd() < 0.1 ? null : { supperId: s.id, plate: pickOne(["Small", "Normal", "Normal", "Big"] as const) },
+          eaten: skipped ? [] : SLOTS.map((slot) => ({ slot, mealId: pickOne(meals.filter((m) => m.slot === slot)).id, at: "12:00" })),
+          extras: [], replaced: [], walk: rnd() < 0.5,
+          dosesTaken: rnd() < 0.78 ? (sample.times ?? ["20:00"]).map(() => "20:00") : [],
+        });
+      }
+      setAllDays((all) => [...all.filter((x) => !made.some((m) => m.date === x.date)), ...made]);
+      for (const m of made) void persist(db.put("days", m));
+      const sampleLabs: Lab[] = [
+        { date: addDays(date, -95), ldl: 4.6, total: 6.7, hdl: 1.1, trig: 1.8 },
+        { date: addDays(date, -48), ldl: 4.1, total: 6.1, hdl: 1.2, trig: 1.6 },
+        { date: addDays(date, -9), ldl: 3.6, total: 5.5, hdl: 1.3, trig: 1.4, note: "After 3 months" },
+      ];
+      setLabs(sampleLabs);
+      for (const l of sampleLabs) void persist(db.put("labs", l));
+    } else if (name === "new-meals") {
+      // Pretend an update just shipped three meals: they wait for a decision.
+      const fresh = meals.filter((m) => !startingMealIds.includes(m.id)).slice(0, 3).map((m) => m.id);
+      const next: Prefs = { ...latest.current.prefs, meals: { ...latest.current.prefs.meals, ...Object.fromEntries(fresh.map((id) => [id, { state: "new" as const }])) } };
+      latest.current.prefs = next;
+      setPrefs(next);
+      void persist(db.put("prefs", next));
     } else if (name === "empty-kitchen") {
       await wipe("stock");
       latest.current.stock = [];
@@ -484,7 +549,7 @@ export function useApp() {
 
   return {
     ready, memoryOnly, profile, stock, day, answer, budget, carry, prefs, shopping, products: productByFood,
-    med, week: (weekRow?.days ?? null) as WeekPlan | null, weekOf: weekRow?.weekOf ?? null,
+    med, allDays, labs, newMealIds: pendingMeals(meals.map((m) => m.id), prefs), week: (weekRow?.days ?? null) as WeekPlan | null, weekOf: weekRow?.weekOf ?? null,
     weekSummary: weekRow ? needsFor(weekRow.days as WeekPlan, weekInput()) : null,
     needsSetup: ready && !prefs.setupDone,
     needsCheckIn: ready && !day,
@@ -492,7 +557,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan) : 0,
     actions: {
       submitAnswer, swap, eat, undo, notFeelingIt, toggleTablet, toggleWalk,
-      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, planTheWeek, tagNight, swapWeek, weekToList,
+      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },
   };

@@ -16,11 +16,13 @@ const ACTIVITY: { key: Profile["activity"]; label: string; hint: string }[] = [
 const num = (v: string) => Number(v.replace(",", "."));
 
 /** Your measurements and a couple of settings. Saved to this phone only. */
-export type Scenario = "fresh-day" | "braai" | "empty-kitchen" | "stocked" | "reset";
+export type Scenario = "fresh-day" | "braai" | "empty-kitchen" | "stocked" | "reset" | "history" | "new-meals";
 
 const SCENARIOS: { key: Scenario; emoji: string; title: string; hint: string }[] = [
   { key: "fresh-day", emoji: "🌅", title: "Start the day again", hint: "Shows the morning check-in once more" },
   { key: "braai", emoji: "🍖", title: "Big braai last night, heavy tonight", hint: "Watch the day lean out and the cards change" },
+  { key: "history", emoji: "📅", title: "A month of history", hint: "Fills Progress with days, summaries and sample blood results" },
+  { key: "new-meals", emoji: "✨", title: "Three new meals unlocked", hint: "As if an update had just shipped them" },
   { key: "empty-kitchen", emoji: "🫙", title: "Empty kitchen", hint: "Near-miss cards and a long Unlock list" },
   { key: "stocked", emoji: "🛒", title: "Fully stocked kitchen", hint: "Every meal ready, empty Unlock list" },
   { key: "reset", emoji: "♻️", title: "Reset everything", hint: "Back to the starter pantry and placeholder profile" },

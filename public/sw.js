@@ -39,7 +39,7 @@ self.addEventListener("fetch", (event) => {
   // Pages and the content files are network-first: that's how app updates and new meals
   // arrive. They fall back to the cached copy offline. Everything else is a hashed build
   // asset (immutable), so cache-first is safe and fast.
-  const isPage = request.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html") || /\/content\/.*\.json$/.test(url.pathname);
+  const isPage = request.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html") || /\/content\/.*\.json$/.test(url.pathname) || /\/version\.json$/.test(url.pathname);
   if (url.origin === location.origin && isPage) {
     event.respondWith(
       fetch(request)

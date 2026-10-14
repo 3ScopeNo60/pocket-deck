@@ -1,0 +1,62 @@
+// Update notice: a newer published build raises a toast, "What's new" shows once. Usage: node scripts/update.mjs <out-dir>
+// Needs a production build in dist/ (npm run build).
+import assert from "node:assert/strict";
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { chromium, devices } from "playwright";
+
+const out = process.argv[2] ?? ".";
+const dist = path.resolve("dist");
+let served = JSON.parse(fs.readFileSync(path.join(dist, "version.json"), "utf8"));
+const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json", ".woff2": "font/woff2", ".ttf": "font/ttf" };
+const server = http.createServer((req, res) => {
+  const u = new URL(req.url, "http://x").pathname;
+  if (u === "/version.json") { res.setHeader("content-type", "application/json"); return res.end(JSON.stringify(served)); }
+  let f = path.join(dist, u === "/" ? "index.html" : u);
+  if (!f.startsWith(dist) || !fs.existsSync(f)) { res.statusCode = 404; return res.end(); }
+  res.setHeader("content-type", types[path.extname(f)] ?? "application/octet-stream");
+  res.end(fs.readFileSync(f));
+});
+await new Promise((r) => server.listen(0, "127.0.0.1", r));
+const url = `http://127.0.0.1:${server.address().port}/`;
+
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ ...devices["iPhone 13"] });
+const p = await ctx.newPage();
+const errors = [];
+p.on("pageerror", (e) => errors.push(String(e)));
+await p.goto(url);
+await p.waitForTimeout(1200);
+await p.getByRole("button", { name: "Skip for now" }).click();
+await p.waitForTimeout(600);
+const noToast = () => p.getByText("A new version is ready").count();
+assert.equal(await noToast(), 0, "same build: no notice");
+
+// A newer build is published; the phone comes back to the app.
+served = { ...served, id: "next-build", title: "Three new meals", notes: ["Three new meals to try", "A progress view"] };
+await p.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+await p.waitForTimeout(1200);
+assert.equal(await noToast(), 1, "newer build: notice shown");
+await p.screenshot({ path: path.join(out, "up1-toast.png") });
+
+// A second return doesn't stack another toast.
+await p.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+await p.waitForTimeout(800);
+assert.equal(await noToast(), 1, "still one notice");
+
+// "What's new" appears once after a build change, never on the very first install.
+assert.equal(await p.getByText("What's new").count(), 0, "first install: no what's-new");
+await p.evaluate(() => localStorage.setItem("pd-last-build", "older-build"));
+await p.reload();
+await p.waitForTimeout(1500);
+assert.ok(await p.getByText("What's new").first().isVisible(), "what's new after an update");
+await p.screenshot({ path: path.join(out, "up2-whatsnew.png") });
+await p.reload();
+await p.waitForTimeout(1200);
+assert.equal(await p.getByText("What's new").count(), 0, "only once");
+
+console.log("errors:", errors.length ? errors : "none");
+assert.equal(errors.length, 0);
+await browser.close();
+server.close();

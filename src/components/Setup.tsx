@@ -33,6 +33,12 @@ interface Props {
   onSkip: () => void;
 }
 
+const SLIDE = {
+  in: (d: number) => ({ opacity: 0, x: 24 * d }),
+  center: { opacity: 1, x: 0 },
+  out: (d: number) => ({ opacity: 0, x: -24 * d }),
+};
+
 /** A few minutes, once. Everything here can be changed later under Me and Kitchen. */
 export function Setup({ profile, prefs, onSaveProfile, onAddToList, onFinish, onSkip }: Props) {
   const [step, setStep] = useState<Step>("welcome");
@@ -48,7 +54,9 @@ export function Setup({ profile, prefs, onSaveProfile, onAddToList, onFinish, on
   const [med, setMed] = useState({ name: "", dose: "", pack: "", per: 1, n: 1, times: ["20:00", "08:00", "14:00"], at: 0 });
 
   const gaps = useMemo(() => anchorGaps(foods, answers), [answers]);
-  const go = (s: Step) => { setStep(s); window.scrollTo({ top: 0 }); };
+  /** 1 when moving on, -1 when going back: the screen slides in from the side you came from. */
+  const [dir, setDir] = useState<1 | -1>(1);
+  const go = (s: Step, d: 1 | -1 = 1) => { setDir(d); setStep(s); window.scrollTo({ top: 0 }); };
   const skipGaps = (s: Step): Step => (s === "gaps" && gaps.length === 0 ? "meds" : s);
   const after = (s: Step): Step => skipGaps(ORDER[ORDER.indexOf(s) + 1]);
   const before = (s: Step): Step => { const p = ORDER[Math.max(1, ORDER.indexOf(s) - 1)]; return p === "gaps" && gaps.length === 0 ? "meals" : p; };
@@ -86,7 +94,7 @@ export function Setup({ profile, prefs, onSaveProfile, onAddToList, onFinish, on
     const target = before(step);
     if (target === "foods") setFi(Math.max(0, foodDeck.length - 1));
     if (target === "meals") setMi(Math.max(0, mealDeck.length - 1));
-    go(target);
+    go(target, -1);
   };
   const previousFood = () => setFi((i) => Math.max(0, i - 1));
   const previousMeal = () => {
@@ -117,9 +125,9 @@ export function Setup({ profile, prefs, onSaveProfile, onAddToList, onFinish, on
         </div>
       )}
 
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="wait" initial={false} custom={dir}>
         <motion.div key={step} className={swipeStep ? "setup-step swipe-step" : "setup-step"}
-          initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.2 }}>
+          custom={dir} variants={SLIDE} initial="in" animate="center" exit="out" transition={{ duration: 0.2 }}>
 
           {step === "welcome" && (
             <>

@@ -88,11 +88,14 @@ export interface MealVersion {
 }
 
 export interface MealPref {
-  state: "kept" | "hidden";
+  /** "new" = shipped in an update and waiting for his decision; it is never dealt until he keeps it. */
+  state: "kept" | "hidden" | "new";
   notFeelingUntil?: string;
 }
 
 export interface Prefs {
+  /** Ids of every shipped meal he has been shown, so an update's additions can be told apart. */
+  seenMeals?: string[];
   /** When the last backup file was made (ISO). */
   lastBackupAt?: string;
   /** True once Setup was finished or skipped, so it isn't offered again. */
@@ -203,12 +206,16 @@ export interface Med {
 }
 
 export interface Lab {
+  /** YYYY-MM-DD the blood was taken; the store key. */
   date: string;
-  total: number;
+  /** LDL cholesterol in mmol/L. */
   ldl: number;
-  hdl: number;
-  trig: number;
+  /** The rest are optional: enter what's on the report. mmol/L, ApoB in g/L. */
+  total?: number;
+  hdl?: number;
+  trig?: number;
   apoB?: number;
+  note?: string;
 }
 
 export interface Note {
