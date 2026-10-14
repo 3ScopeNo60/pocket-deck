@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ANCHOR_WORDS, stateWord, summarise, type DayScore, type DayState } from "../core/score";
 import type { Day, Lab, Med } from "../core/types";
 import { addDays, foodMap, iso, lastDates, mealMap, scoreDate } from "../app/history";
+import { doctorSummary, toText } from "../core/doctor";
 import { Sheet } from "./Sheets";
 
 type Section = "days" | "summary" | "results";
@@ -33,6 +34,7 @@ export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab }: Pr
   const [open, setOpen] = useState<string | null>(null);
   const [period, setPeriod] = useState<"week" | "month">("week");
   const [labSheet, setLabSheet] = useState<Lab | "new" | null>(null);
+  const [doctor, setDoctor] = useState(false);
 
   const today = iso(new Date());
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
@@ -57,13 +59,14 @@ export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab }: Pr
       {section === "days" && <DaysGrid today={today} score={score} onOpen={setOpen} hasMed={!!med} />}
 
       {section === "summary" && (
-        <SummaryView period={period} setPeriod={setPeriod} today={today} score={score} labs={labs} onAddLab={() => setLabSheet("new")} onAllLabs={() => go("results")} />
+        <SummaryView period={period} setPeriod={setPeriod} today={today} score={score} labs={labs} onAddLab={() => setLabSheet("new")} onAllLabs={() => go("results")} onDoctor={() => setDoctor(true)} />
       )}
 
       {section === "results" && (
         <ResultsView labs={labs} onAdd={() => setLabSheet("new")} onOpen={setLabSheet} onBack={() => go("summary")} />
       )}
 
+      <DoctorSheet open={doctor} onClose={() => setDoctor(false)} today={today} score={score} labs={labs} med={med} satCap={satCap} />
       <DaySheet date={open} score={open ? score(open) : null} onClose={() => setOpen(null)} />
       <LabSheet seed={labSheet} onClose={() => setLabSheet(null)} onSave={(l) => { onSaveLab(l); setLabSheet(null); toast("Result saved"); }} onDelete={(d) => { onDeleteLab(d); setLabSheet(null); }} today={today} />
     </div>
@@ -143,7 +146,7 @@ function DaySheet({ date, score, onClose }: { date: string | null; score: DaySco
 
 /* ── summary ───────────────────────────────────────────────── */
 
-function SummaryView({ period, setPeriod, today, score, labs, onAddLab, onAllLabs }: { period: "week" | "month"; setPeriod: (p: "week" | "month") => void; today: string; score: (d: string) => DayScore; labs: Lab[]; onAddLab: () => void; onAllLabs: () => void }) {
+function SummaryView({ period, setPeriod, today, score, labs, onAddLab, onAllLabs, onDoctor }: { period: "week" | "month"; setPeriod: (p: "week" | "month") => void; today: string; score: (d: string) => DayScore; labs: Lab[]; onAddLab: () => void; onAllLabs: () => void; onDoctor: () => void }) {
   const n = period === "week" ? 7 : 30;
   const scores = useMemo(() => lastDates(today, n).map(score), [today, n, score]);
   const sum = useMemo(() => summarise(scores, mealMap, foodMap, period), [scores, period]);
@@ -183,6 +186,12 @@ function SummaryView({ period, setPeriod, today, score, labs, onAddLab, onAllLab
       <p className="k-sub">General guidance from what you've recorded, not medical advice. Your doctor's view comes first.</p>
 
       <BloodCard labs={labs} onAdd={onAddLab} onAll={onAllLabs} />
+
+      <div className="blood-card">
+        <h3 className="section-label">For your doctor</h3>
+        <p>One page with your blood results, eating, tablets and movement, to show or send.</p>
+        <div className="blood-actions"><button className="btn small ghost" onClick={onDoctor}>Make the summary</button></div>
+      </div>
     </section>
   );
 }
@@ -325,3 +334,50 @@ function LabForm({ seed, today, onSave, onDelete }: { seed: Lab | null; today: s
   );
 }
 
+
+/* ── for the doctor ────────────────────────────────────────── */
+
+function DoctorSheet({ open, onClose, today, score, labs, med, satCap }: { open: boolean; onClose: () => void; today: string; score: (d: string) => DayScore; labs: Lab[]; med: Med | null; satCap: number }) {
+  const [days, setDays] = useState<30 | 90>(90);
+  const doc = useMemo(() => {
+    if (!open) return null;
+    const scores = lastDates(today, days).map(score);
+    const summary = summarise(scores, mealMap, foodMap, "month");
+    return doctorSummary({ today, days, summary, labs, med, satCap });
+  }, [open, days, today, score, labs, med, satCap]);
+
+  const share = async () => {
+    if (!doc) return;
+    const text = toText(doc);
+    try {
+      if (navigator.share) await navigator.share({ title: doc.heading, text });
+      else { await navigator.clipboard.writeText(text); toast("Copied"); }
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") { try { await navigator.clipboard.writeText(text); toast("Copied"); } catch { toast("Couldn't share that"); } }
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="For your doctor">
+      {doc && (
+        <>
+          <div className="seg seg-2" role="group" aria-label="Period">
+            <button aria-pressed={days === 30} onClick={() => setDays(30)}>Last 30 days</button>
+            <button aria-pressed={days === 90} onClick={() => setDays(90)}>Last 90 days</button>
+          </div>
+          <div className="doc-page">
+            <b className="doc-head">{doc.heading}</b>
+            {doc.sections.map((s) => (
+              <section key={s.title}>
+                <h3 className="section-label">{s.title}</h3>
+                <ul className="reasons">{s.rows.map((r) => (<li key={r}>{r}</li>))}</ul>
+              </section>
+            ))}
+            <p className="k-sub">{doc.footer}</p>
+          </div>
+          <div className="sheet-actions"><motion.button className="btn" whileTap={{ scale: 0.96 }} onClick={() => void share()}>Share or copy</motion.button></div>
+        </>
+      )}
+    </Sheet>
+  );
+}

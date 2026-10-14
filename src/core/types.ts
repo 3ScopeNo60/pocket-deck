@@ -51,6 +51,8 @@ export interface Product {
   packG: number;
   lastPrice: number;
   estimated: string[];
+  /** True when the numbers were read from a nutrition label rather than the food list. */
+  fromLabel?: boolean;
 }
 
 export interface MealItem {
@@ -98,6 +100,8 @@ export interface Prefs {
   seenMeals?: string[];
   /** When the last backup file was made (ISO). */
   lastBackupAt?: string;
+  /** Quiet prompts he has put away for now. */
+  nudges?: { lookbackOn?: string; backupUntil?: string };
   /** True once Setup was finished or skipped, so it isn't offered again. */
   setupDone?: boolean;
   flavours: string[];

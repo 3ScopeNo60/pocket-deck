@@ -86,8 +86,9 @@ h1, h2, h3, h4 { margin: 0; }
 .pad.scroll { overflow-y: auto; overscroll-behavior: contain; }
 .pad.scroll > * { flex-shrink: 0; }
 .back-title { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; font-size: 1.3rem; line-height: 1.1; text-wrap: balance; }
-.back-actions { margin-top: 4px; padding-bottom: 2px; }
-.back-actions .btn { flex: 1; }
+.back-actions { margin-top: 4px; padding-bottom: 2px; flex-wrap: wrap; }
+.back-actions .btn { flex: 1 1 40%; }
+.back-actions .btn:not(.ghost) { flex-basis: 100%; }
 .card[data-slot="breakfast"] .front { background: var(--breakfast); }
 .card[data-slot="lunch"] .front { background: var(--lunch); }
 .card[data-slot="snack"] .front { background: var(--snack); }
@@ -637,3 +638,29 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Unplanned food */
+.skip-chip { margin-bottom: 4px; }
+.extra-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--surface); border-radius: 14px; padding: 8px 14px; font-size: 0.9rem; }
+.habits > .extra-row, .habits > .cue, .habits > .habit:nth-child(3) { grid-column: 1 / -1; }
+
+/* Quiet prompts on Today */
+.nudge { display: flex; flex-direction: column; gap: 6px; background: var(--surface); border-radius: 22px; padding: 14px 16px; }
+.nudge p { margin: 0; }
+.nudge-head { font-family: var(--display); font-weight: 800; font-size: 1.05rem; line-height: 1.25; }
+.nudge-facts { color: var(--muted); font-size: 0.86rem; }
+.nudge-try { background: var(--breakfast); border-radius: 14px; padding: 10px 12px; font-size: 0.9rem; line-height: 1.4; }
+.nudge-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+/* Add your own meal */
+.emoji-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.emoji-row button { border: none; background: var(--page); border-radius: 14px; width: 44px; height: 44px; display: grid; place-items: center; }
+.emoji-row button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink); }
+.own-row { display: flex; align-items: center; gap: 8px; background: var(--page); border-radius: 16px; padding: 8px 10px; }
+.own-row select { border: none; background: var(--surface); border-radius: 10px; padding: 6px 8px; font: inherit; font-size: 0.85rem; max-width: 40%; }
+.own-find { display: flex; flex-direction: column; gap: 6px; }
+.own-steps { width: 100%; border: none; background: var(--page); border-radius: 14px; padding: 10px 12px; font: inherit; resize: vertical; }
+
+/* For your doctor */
+.doc-page { display: flex; flex-direction: column; gap: 10px; background: var(--page); border-radius: 18px; padding: 14px; }
+.doc-head { font-family: var(--display); font-weight: 800; font-size: 1.05rem; }

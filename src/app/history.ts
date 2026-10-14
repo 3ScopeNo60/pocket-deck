@@ -1,11 +1,11 @@
 // Turning the stored days into scored dots. The supper for a day is recorded the next
 // morning (as that day's "last night"), so each day looks one day ahead for it.
-import { foods, meals, suppers } from "../core/content";
+import { foods, mealIndex, suppers } from "../core/content";
 import { PLATE } from "../core/planner";
 import { scoreDay, type DayScore, type Supper } from "../core/score";
 import type { Day, Med } from "../core/types";
 
-const mealMap = new Map(meals.map((m) => [m.id, m]));
+const mealMap = mealIndex;
 const foodMap = new Map(foods.map((f) => [f.id, f]));
 const supperMap = new Map(suppers.map((s) => [s.id, s]));
 

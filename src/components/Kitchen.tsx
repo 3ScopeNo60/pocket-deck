@@ -8,6 +8,10 @@ import type { Food, Prefs, Product, ShoppingItem, StockItem } from "../core/type
 import { AISLES, FLAVOUR_KIT, aisleOf } from "../app/aisles";
 import { foodMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
+import { OwnMealSheet } from "./OwnMeal";
+import { LabelScanSheet, type LabelResult } from "./LabelScan";
+import { OWN_TAG, type MealDraft } from "../core/custom";
+import type { Meal } from "../core/types";
 
 type Section = "list" | "pantry" | "unlock" | "kit";
 const SECTIONS: { key: Section; label: string }[] = [
@@ -26,6 +30,8 @@ export interface KitchenActions {
   restock: (rows: { foodId: string; packs: number; packG: number; price?: number }[], listIds?: string[]) => void;
   setStockGrams: (foodId: string, grams: number) => void;
   setMealState: (mealId: string, state: "kept" | "hidden") => void;
+  addOwnMeal: (d: MealDraft) => Promise<Meal>;
+  saveLabel: (r: LabelResult) => void;
 }
 
 interface Props {
@@ -44,11 +50,14 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
   const [restock, setRestock] = useState<RestockSeed | null>(null);
   const [adjust, setAdjust] = useState<string | null>(null);
   const [picker, setPicker] = useState<"list" | "restock" | null>(null);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const [scan, setScan] = useState<{ foodId: string | null; product?: Product } | null>(null);
   const [qty, setQty] = useState<{ foodId: string; packs: number; packG: number; editing: boolean } | null>(null);
   const go = (s: Section) => { setSection(s); window.scrollTo({ top: 0 }); };
 
   const have = useMemo(() => new Map(stock.filter((s) => s.kind === "food").map((s) => [s.itemId, s.grams])), [stock]);
   const unlock = useMemo(() => unlockList(meals, foodMap, stock, prefs), [stock, prefs]);
+  const own = useMemo(() => meals.filter((m) => m.tags.includes(OWN_TAG) && prefs.meals[m.id]?.state !== "hidden"), [prefs]);
   const hidden = useMemo(() => meals.filter((m) => prefs.meals[m.id]?.state === "hidden"), [prefs]);
   const onList = useMemo(() => new Set(shopping.map((r) => r.itemId)), [shopping]);
 
@@ -91,8 +100,26 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
         <section className="k-section">
           <div className="k-head">
             <h3 className="section-label">What you have</h3>
-            <button className="btn small" onClick={() => setPicker("restock")}>Restock</button>
+            <div className="blood-actions">
+              <button className="btn small ghost" onClick={() => setScan({ foodId: null })}>Scan a label</button>
+              <button className="btn small" onClick={() => setPicker("restock")}>Restock</button>
+            </div>
           </div>
+          {[...products.values()].some((p) => p.fromLabel) && (
+            <div className="aisle">
+              <div className="aisle-name">Scanned labels</div>
+              {[...products.values()].filter((p) => p.fromLabel).map((p) => {
+                const f = foodMap.get(p.foodId);
+                return (
+                  <div key={p.id} className="krow static">
+                    <span className="emoji">{f?.emoji}</span>
+                    <span className="kname">{p.name}<small>{p.per100.kcal} kcal · {p.per100.sat} g sat fat · {p.per100.na} mg sodium per 100 g</small></span>
+                    <button className="link" onClick={() => setScan({ foodId: p.foodId, product: p })}>Edit</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {foods.filter((f) => (have.get(f.id) ?? 0) > 0).length === 0 ? (
             <p className="k-empty">Nothing recorded yet. Tap Restock after your next shop.</p>
           ) : (
@@ -121,7 +148,10 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
 
       {section === "unlock" && (
         <section className="k-section">
-          <h3 className="section-label">Meals to unlock</h3>
+          <div className="k-head">
+            <h3 className="section-label">Meals to unlock</h3>
+            <button className="btn small" onClick={() => setOwnOpen(true)}>Add your own meal</button>
+          </div>
           {unlock.length === 0 ? (
             <p className="k-empty">Every meal you'd eat is ready to make.</p>
           ) : (
@@ -165,6 +195,19 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
                 </motion.article>
               );
             })
+          )}
+
+          {own.length > 0 && (
+            <div className="aisle">
+              <div className="aisle-name">Your own meals</div>
+              {own.map((m) => (
+                <div key={m.id} className="krow static">
+                  <span className="emoji">{m.emoji}</span>
+                  <span className="kname">{m.name}</span>
+                  <button className="link" onClick={() => actions.setMealState(m.id, "hidden")}>Hide</button>
+                </div>
+              ))}
+            </div>
           )}
 
           {hidden.length > 0 && (
@@ -249,6 +292,8 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
           setAdjust(null);
         }}
       />
+      <OwnMealSheet open={ownOpen} onClose={() => setOwnOpen(false)} onSave={(d) => { setOwnOpen(false); void actions.addOwnMeal(d).then((m) => toast(`${m.name} is in your rotation`)); }} />
+      <LabelScanSheet seed={scan} onClose={() => setScan(null)} onSave={(r) => { actions.saveLabel(r); setScan(null); toast("Label saved. Meals with it use these numbers."); }} />
     </div>
   );
 }

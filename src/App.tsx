@@ -12,6 +12,11 @@ import { Me } from "./components/Me";
 import { WeekScreen } from "./components/Week";
 import { Setup } from "./components/Setup";
 import { Progress } from "./components/Progress";
+import { OffPlanSheet, type OffPlanTarget } from "./components/OffPlan";
+import { BackupNudge, LookBack } from "./components/Nudges";
+import { backupAgeWords, backupDue, lookbackDue } from "./core/nudges";
+import { iso, lastDates, mealMap as histMeals, foodMap as histFoods, scoreDate } from "./app/history";
+import { summarise } from "./core/score";
 import { NewMeals } from "./components/NewMeals";
 import { Sheet } from "./components/Sheets";
 import { targets } from "./core/nutrition";
@@ -56,10 +61,22 @@ export default function App() {
   const [screen, setScreen] = useState<"today" | "kitchen" | "week" | "progress" | "me">("today");
   const { day, cards, emptySlots, actions } = app;
   const [reviewing, setReviewing] = useState(false);
+  const [offPlan, setOffPlan] = useState<OffPlanTarget>(null);
   // Read the release notes only once the main app is showing, so they aren't used up behind Setup.
   const [whats, setWhats] = useState<ReleaseNotes | null>(null);
   const mainShowing = app.ready && !app.needsSetup;
   useEffect(() => { if (mainShowing) setWhats(whatsNewOnce()); }, [mainShowing]);
+
+  // Quiet Sunday look-back and monthly backup reminder.
+  const todayIso = iso(new Date());
+  const recordedDays = useMemo(() => app.allDays.filter((d) => d.eaten.length > 0 || (d.replaced ?? []).length > 0).length, [app.allDays]);
+  const lookBack = useMemo(() => {
+    if (!lookbackDue(todayIso, app.prefs.nudges, recordedDays)) return null;
+    const byDate = new Map(app.allDays.map((d) => [d.date, d]));
+    const cap = targets(app.profile).satCap;
+    return summarise(lastDates(todayIso, 7).map((d) => scoreDate(d, byDate, cap, app.med)), histMeals, histFoods, "week");
+  }, [todayIso, app.prefs.nudges, recordedDays, app.allDays, app.profile, app.med]);
+  const backup = backupDue(todayIso, app.prefs.lastBackupAt, app.prefs.nudges, recordedDays);
 
   // Tell the user when a newer build has been published, and offer to load it.
   useEffect(() => {
@@ -226,6 +243,9 @@ export default function App() {
         </section>
       )}
 
+      {day && lookBack && <LookBack summary={lookBack} onOpen={() => setScreen("progress")} onDismiss={() => actions.dismissNudge("lookback")} />}
+      {day && backup.due && <BackupNudge words={backupAgeWords(backup.ageDays)} onOpen={() => setScreen("me")} onDismiss={() => actions.dismissNudge("backup")} />}
+
       {day && app.newMealIds.length > 0 && (
         <motion.button className="newmeals" whileTap={{ scale: 0.97 }} onClick={() => setReviewing(true)}>
           <span className="emoji">✨</span>
@@ -263,6 +283,10 @@ export default function App() {
             toast("Got it. You'll see that one less often.");
           } else toast("That's the only one that fits today's plan");
         }}
+        onSomethingElse={(slot) => {
+          setFlipped(null);
+          setOffPlan({ mode: "replace", slot, slotLabel: SLOTS.find((x) => x.key === slot)!.label });
+        }}
         onAddToList={(slot) => {
           const c = cards.find((x) => x.slot === slot);
           if (!c) return;
@@ -295,7 +319,7 @@ export default function App() {
       />}
 
       <AnimatePresence initial={false}>
-        {day && day.eaten.length > 0 && (
+        {day && (day.eaten.length > 0 || (day.replaced ?? []).length > 0) && (
           <motion.section key="eaten" className="done" layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <h3 className="section-label">Eaten</h3>
             <AnimatePresence initial={false}>
@@ -317,6 +341,26 @@ export default function App() {
                     <span className="what"><b>{s.label}</b> · {m?.name}</span>
                     <span className="t">{e.at}</span>
                     <button onClick={() => { setExit({ kind: "eat" }); void actions.undo(e.slot); }}>Undo</button>
+                  </motion.div>
+                );
+              })}
+              {(day.replaced ?? []).map((r) => {
+                const s = SLOTS.find((x) => x.key === r.slot)!;
+                return (
+                  <motion.div
+                    key={`r-${r.slot}`}
+                    layout
+                    className="done-row"
+                    initial={{ opacity: 0, y: -24, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -40 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  >
+                    <span className="check" />
+                    <span className="emoji">{r.size === "skipped" ? "⏭️" : "🍽️"}</span>
+                    <span className="what"><b>{s.label}</b> · {r.size === "skipped" ? "Skipped" : r.what}</span>
+                    <span className="t">{r.at}</span>
+                    <button onClick={() => { setExit({ kind: "eat" }); void actions.undoReplaced(r.slot); }}>Undo</button>
                   </motion.div>
                 );
               })}
@@ -346,6 +390,19 @@ export default function App() {
               <span className="emoji">{move.emoji}</span>
               <span className="txt"><span className="h1">{move.label}</span><span className="h2">{day.walk ? "Done today" : move.hint}</span></span>
             </motion.button>
+            <motion.button className="habit" whileTap={{ scale: 0.95 }} onClick={() => setOffPlan({ mode: "extra" })}>
+              <span className="emoji">➕</span>
+              <span className="txt">
+                <span className="h1">Extra</span>
+                <span className="h2">{(day.extras ?? []).length ? `${(day.extras ?? []).length} today · tap to add` : "Cake, chips, a drink…"}</span>
+              </span>
+            </motion.button>
+            {(day.extras ?? []).map((x, i) => (
+              <div key={`${x.at}-${i}`} className="extra-row">
+                <span>{x.kind} · {x.size}</span>
+                <button className="link" onClick={() => void actions.removeExtra(i)}>Remove</button>
+              </div>
+            ))}
             <div className="cue"><span className="emoji">☕</span>Last coffee by 12:00 · filter or instant, not plunger</div>
           </div>
         </section>
@@ -381,6 +438,24 @@ export default function App() {
           <NewMeals key="newmeals" ids={app.newMealIds} stock={app.stock} onDecide={actions.decideNewMeal} onClose={() => setReviewing(false)} />
         )}
       </AnimatePresence>
+      <OffPlanSheet
+        target={offPlan}
+        onClose={() => setOffPlan(null)}
+        onSave={(what, size) => {
+          const t = offPlan;
+          setOffPlan(null);
+          if (!t) return;
+          if (t.mode === "replace") {
+            setExit({ kind: "eat" });
+            void actions.replaceSlot(t.slot as never, what, size);
+            toast(size === "skipped" ? `${t.slotLabel} skipped. The rest of the day carries on.` : "Noted. The rest of the day is rebalanced around it.");
+          } else {
+            void actions.addExtra(what, size);
+            toast("Noted. The rest of the day is rebalanced.");
+          }
+        }}
+      />
+
       <Sheet open={!!whats} onOpenChange={(o) => !o && setWhats(null)} title={whats?.title ?? ""}>
         {whats && (
           <>

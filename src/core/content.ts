@@ -56,3 +56,13 @@ export const startingMealIds: string[] = (mealsJson.meals as unknown as RawMeal[
 
 /** Rough cost per serving until real prices are entered. */
 export const estCost = new Map((mealsJson.meals as unknown as RawMeal[]).map((m) => [m.id, m.estCost ?? 0]));
+
+/** Every meal by id, shipped and his own. Kept in step with `meals` by `addCustomMeal`. */
+export const mealIndex = new Map(meals.map((m) => [m.id, m]));
+
+/** Bring one of his own meals into the library (at load, or when he's just made one). */
+export function addCustomMeal(m: Meal): void {
+  if (mealIndex.has(m.id)) return;
+  meals.push(m);
+  mealIndex.set(m.id, m);
+}

@@ -22,6 +22,13 @@ node scripts/setup.mjs   <shots-dir>   # the first-run Setup flow end to end
 node scripts/me.mjs                    # your numbers replace the placeholders
 node scripts/week.mjs    <shots-dir>   # plan the week, tag nights, swap, shopping from the plan
 node scripts/scenarios.mjs             # preview-only test scenarios
+node scripts/progress.mjs <shots-dir>   # day dots, summaries, blood results, doctor summary
+node scripts/newmeals.mjs <shots-dir>   # "new meals unlocked": preview, decide
+node scripts/offplan.mjs  <shots-dir>   # had something else, extras, skipping
+node scripts/nudges.mjs   <shots-dir>   # Sunday look-back, backup reminder (fixed clock)
+node scripts/ownmeal.mjs  <shots-dir>   # add your own meal
+node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm run build)
+node scripts/label.mjs    <shots-dir>   # label scan: pasted text and a photo (needs npm run build)
 ```
 
 ## Where things are

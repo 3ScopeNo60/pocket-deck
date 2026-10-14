@@ -3,9 +3,10 @@ import { chromium, devices } from "playwright";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 
-export async function launch({ url } = {}) {
+export async function launch({ url, now } = {}) {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ ...devices["iPhone 13"], hasTouch: true });
+  if (now) await ctx.clock.setFixedTime(new Date(now));
   const p = await ctx.newPage();
   const errors = [];
   p.on("pageerror", (e) => errors.push(String(e)));

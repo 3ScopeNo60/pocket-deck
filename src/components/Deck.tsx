@@ -26,6 +26,8 @@ interface BackInfo {
   ticks: number[];
   onTick: (i: number) => void;
   onNotFeelingIt: (slot: SlotKey) => void;
+  /** Opens the "had something else" sheet for this slot. */
+  onSomethingElse: (slot: SlotKey) => void;
   /** For a near-miss card: put its missing ingredients on the shopping list. */
   onAddToList: (slot: SlotKey) => void;
 }
@@ -199,6 +201,7 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back }: Car
                 <p className="rough">Rough figures for the prototype. Real values come from the food database.</p>
                 <div className="actions back-actions">
                   <button className="btn ghost" onClick={() => back.onNotFeelingIt(slot)} tabIndex={flipped ? 0 : -1}>Not feeling it</button>
+                  <button className="btn ghost" onClick={() => back.onSomethingElse(slot)} tabIndex={flipped ? 0 : -1}>Had something else</button>
                   {!meal.missing?.length && (
                     <motion.button className="btn" whileTap={{ scale: 0.92 }} onClick={() => onEat(slot)} tabIndex={flipped ? 0 : -1}>Eaten</motion.button>
                   )}

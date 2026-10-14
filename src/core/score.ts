@@ -3,6 +3,7 @@
 // comes with the reasons, and a day is never marked down for something that wasn't recorded.
 import type { Anchor, Day, Food, Meal, Med } from "./types";
 import { mealNutrition } from "./nutrition";
+import { extraNutrition, replacedNutrition } from "./offplan";
 
 export type DayState = "none" | "partial" | "green" | "yellow" | "red";
 
@@ -71,7 +72,8 @@ function satPoints(used: number, budget: number): number {
 export function scoreDay(i: ScoreInput): DayScore {
   const { day } = i;
   const eatenMeals = day.eaten.map((e) => ({ e, meal: i.meals.get(e.mealId) })).filter((x): x is { e: typeof x.e; meal: Meal } => !!x.meal);
-  const slots = new Set(eatenMeals.map((x) => x.e.slot)).size;
+  // A slot swapped for something else, or deliberately skipped, is still a recorded slot.
+  const slots = new Set([...eatenMeals.map((x) => x.e.slot), ...(day.replaced ?? []).map((r) => r.slot)]).size;
 
   let sat = 0, na = 0, fibre = 0;
   const anchors = new Set<Anchor>();
@@ -80,9 +82,9 @@ export function scoreDay(i: ScoreInput): DayScore {
     sat += n.sat; na += n.na; fibre += n.sol;
     for (const it of meal.items) for (const a of i.foods.get(it.foodId)?.anchors ?? []) anchors.add(a);
   }
-  // A logged "something else" or extra isn't in the library: count it as an average meal rather than ignoring it.
-  for (const r of day.replaced ?? []) { if (r.size !== "skipped") { sat += 4; na += 500; } }
-  for (const x of day.extras ?? []) { sat += x.size === "big" ? 5 : 2.5; na += 250; }
+  // Something else, or an extra, isn't in the library: use the rough estimate for what it was.
+  for (const r of day.replaced ?? []) { const n = replacedNutrition(r); sat += n.sat; na += n.na; }
+  for (const x of day.extras ?? []) { const n = extraNutrition(x); sat += n.sat; na += n.na; }
 
   const withSupper = !!i.supper;
   const satBudget = withSupper ? i.satCap : Math.max(2.5, i.satCap - NORMAL_SUPPER.sat);
@@ -119,6 +121,8 @@ export function scoreDay(i: ScoreInput): DayScore {
   if (naUsed > sodiumBudget) notes.push(`Sodium ${Math.round(naUsed)} mg, above ${sodiumBudget} mg.`);
   const missing = ANCHORS.filter((a) => !anchors.has(a));
   if (missing.length) notes.push(`Missed: ${missing.map((a) => ANCHOR_WORDS[a]).join(", ")}.`);
+  for (const r of day.replaced ?? []) notes.push(r.size === "skipped" ? `${cap(r.slot)} was skipped.` : `${cap(r.slot)}: had ${r.what.toLowerCase()} instead.`);
+  for (const x of day.extras ?? []) notes.push(`Extra: ${x.kind.toLowerCase()}.`);
   if (!withSupper) notes.push("Supper wasn't logged, so a normal one is assumed.");
 
   return { ...base, state, points, notes };
@@ -126,6 +130,7 @@ export function scoreDay(i: ScoreInput): DayScore {
 
 export const ANCHOR_WORDS: Record<Anchor, string> = { betaGlucan: "oats or barley", legume: "beans or lentils", nuts: "nuts or seeds", goodFat: "olive oil, avocado or oily fish" };
 const round1 = (n: number) => Math.round(n * 10) / 10;
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
 export const STATE_WORDS: Record<DayState, string> = { none: "Nothing recorded", partial: "Partly recorded", green: "Went well", yellow: "Mixed", red: "A tough one" };
 export const stateWord = (s: DayScore) => (s.state === "yellow" && s.slots < 2 ? STATE_WORDS.partial : STATE_WORDS[s.state]);

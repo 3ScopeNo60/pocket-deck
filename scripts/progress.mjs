@@ -55,7 +55,7 @@ await p.screenshot({ path: path.join(out, "pr3-summary.png") });
 
 // Results: the sample rows and a trend; add one in mmol/L and one in mg/dL.
 // Results sit in a card at the bottom of the summary, with the full list one tap away.
-assert.match(await p.locator(".blood-card").innerText(), /LDL .* mmol\/L on/);
+assert.match(await p.locator(".blood-card").first().innerText(), /LDL .* mmol\/L on/);
 await p.getByRole("button", { name: "See all 3" }).click();
 await p.waitForTimeout(500);
 assert.equal(await p.locator(".lab-row").count(), 3);
@@ -84,6 +84,20 @@ labs = await rows("labs");
 const mg = labs.find((l) => l.date === "2026-01-05");
 assert.ok(mg && Math.abs(mg.ldl - 3.1) < 0.01, `120 mg/dL is 3.1 mmol/L (got ${mg?.ldl})`);
 await p.screenshot({ path: path.join(out, "pr4-results.png") });
+
+// A page for the doctor, built from the same records.
+await p.getByRole("button", { name: "Back to summary" }).click();
+await p.waitForTimeout(400);
+await p.getByRole("button", { name: "Make the summary" }).click();
+await p.waitForTimeout(700);
+const page = await p.locator(".doc-page").innerText();
+assert.match(page, /Pocket Deck summary/);
+assert.match(page, /LDL 3\.2/);
+assert.match(page, /Moved on \d+ of 90 days/);
+assert.match(page, /Medication/i);
+await p.screenshot({ path: path.join(out, "pr5-doctor.png") });
+await p.keyboard.press("Escape");
+await p.waitForTimeout(500);
 
 // Persists across a reload.
 await p.reload();
