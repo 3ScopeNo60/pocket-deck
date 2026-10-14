@@ -479,7 +479,7 @@ export default function App() {
                     ? `Taken ${taken[taken.length - 1]}${app.med ? ` · ${app.med.pillsLeft} left` : ""}`
                     : doseCount > 1
                       ? `${taken.length} of ${doseCount} · next ${app.med?.times?.[taken.length] ?? ""}`
-                      : `${app.med?.times?.[0] ?? app.med?.time ?? "20:00"} · tap when taken`}
+                      : `Due ${app.med?.times?.[0] ?? app.med?.time ?? "20:00"}`}
                 </span>
               </span>
             </motion.button>
