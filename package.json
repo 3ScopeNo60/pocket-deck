@@ -1,0 +1,32 @@
+{
+  "name": "pocket-deck",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "build:single": "tsc --noEmit && vite build --mode single",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "lucide-react": "0.460.0",
+    "motion": "11.15.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "sonner": "1.7.1",
+    "vaul": "1.1.2"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.3.4",
+    "fake-indexeddb": "6.0.0",
+    "playwright": "1.48.2",
+    "typescript": "5.6.3",
+    "vite": "5.4.11",
+    "vite-plugin-singlefile": "2.0.3",
+    "vitest": "2.1.8"
+  }
+}

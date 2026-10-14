@@ -1,0 +1,17 @@
+import { chromium, devices } from "playwright";
+import { pathToFileURL } from "node:url";
+const b = await chromium.launch();
+const size = process.argv[4] ? { width: 393, height: Number(process.argv[4]) } : undefined;
+const p = await (await b.newContext({ ...devices["iPhone 13"], ...(size ? { viewport: size } : {}) })).newPage();
+await p.goto(pathToFileURL(process.argv[2]).href);
+await p.waitForTimeout(700);
+await p.locator(".supper-opt", { hasText: "Fish" }).click();
+await p.getByRole("button", { name: "Plan my day" }).click();
+await p.waitForTimeout(900);
+const btn = await p.locator('.card[aria-hidden="false"] .front .btn').boundingBox();
+const card = await p.locator('.card[aria-hidden="false"]').boundingBox();
+console.log("card height", Math.round(card.height));
+const nav = await p.locator(".fan-core").boundingBox();
+console.log("viewport", p.viewportSize(), "eaten bottom", Math.round(btn.y + btn.height), "menu button top", Math.round(nav.y));
+await p.screenshot({ path: process.argv[3] });
+await b.close();

@@ -1,0 +1,1842 @@
+{
+ "version": 1,
+ "foods": [
+  {
+   "id": "rolled-oats",
+   "name": "Rolled oats",
+   "emoji": "🌾",
+   "per100": {
+    "kcal": 379.0,
+    "sat": 1.11,
+    "mono": 1.98,
+    "poly": 2.3,
+    "na": 6.0,
+    "fibre": 10.1,
+    "sol": 4.3,
+    "betaGlucan": 4.0
+   },
+   "measures": {
+    "½ cup": 40,
+    "⅓ cup": 27,
+    "1 cup": 81
+   },
+   "keepsDays": 180,
+   "anchors": [
+    "betaGlucan"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    500,
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 173904 (Cereals, oats, regular and quick, not fortified, dry); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "oat-bran",
+   "name": "Oat bran",
+   "emoji": "🌾",
+   "per100": {
+    "kcal": 246.0,
+    "sat": 1.33,
+    "mono": 2.38,
+    "poly": 2.77,
+    "na": 4.0,
+    "fibre": 15.4,
+    "sol": 7.2,
+    "betaGlucan": 7.0
+   },
+   "measures": {
+    "2 tbsp": 12,
+    "¼ cup": 24
+   },
+   "keepsDays": 180,
+   "anchors": [
+    "betaGlucan"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    500
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 168872 (Oat bran, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "barley-cooked",
+   "name": "Cooked barley",
+   "emoji": "🌾",
+   "per100": {
+    "kcal": 123.0,
+    "sat": 0.09,
+    "mono": 0.06,
+    "poly": 0.21,
+    "na": 3.0,
+    "fibre": 3.8,
+    "sol": 1.4,
+    "betaGlucan": 1.2
+   },
+   "measures": {
+    "¾ cup": 120,
+    "½ cup": 80,
+    "1 cup": 157
+   },
+   "keepsDays": 4,
+   "anchors": [
+    "betaGlucan"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    500
+   ],
+   "cookedYield": 3.0,
+   "source": "USDA SR Legacy 170285 (Barley, pearled, cooked); soluble fibre and beta-glucan estimated. Bought dry (pearl barley); cooks to about 3× its weight. Packs refer to dry weight."
+  },
+  {
+   "id": "milk-lowfat",
+   "name": "Low-fat milk",
+   "emoji": "🥛",
+   "per100": {
+    "kcal": 50.0,
+    "sat": 1.26,
+    "mono": 0.56,
+    "poly": 0.07,
+    "na": 47.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 122,
+    "¾ cup": 183,
+    "1 cup": 244,
+    "splash": 30
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000,
+    2000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171267 (Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D); soluble fibre and beta-glucan estimated. SA 'low fat' milk is about 1.5–2% fat; USDA 2% used."
+  },
+  {
+   "id": "almond-milk",
+   "name": "Unsweetened almond milk",
+   "emoji": "🥛",
+   "per100": {
+    "kcal": 15.0,
+    "sat": 0.08,
+    "mono": 0.59,
+    "poly": 0.24,
+    "na": 72.0,
+    "fibre": 0.2,
+    "sol": 0.1,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 cup": 240,
+    "½ cup": 120
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 174832 (Beverages, almond milk, unsweetened, shelf stable); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "yoghurt-lowfat",
+   "name": "Plain low-fat yoghurt",
+   "emoji": "🥛",
+   "per100": {
+    "kcal": 63.0,
+    "sat": 1.0,
+    "mono": 0.43,
+    "poly": 0.04,
+    "na": 70.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 123,
+    "¼ cup": 61,
+    "2 tbsp": 30
+   },
+   "keepsDays": 10,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500,
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170886 (Yogurt, plain, low fat); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "blueberries",
+   "name": "Blueberries",
+   "emoji": "🫐",
+   "per100": {
+    "kcal": 57.0,
+    "sat": 0.03,
+    "mono": 0.05,
+    "poly": 0.15,
+    "na": 1.0,
+    "fibre": 2.4,
+    "sol": 0.5,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "⅓ cup": 50,
+    "½ cup": 74,
+    "small handful": 50
+   },
+   "keepsDays": 5,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    125,
+    250,
+    600
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171711 (Blueberries, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "berries-frozen",
+   "name": "Frozen berries",
+   "emoji": "🍓",
+   "per100": {
+    "kcal": 35.0,
+    "sat": 0.01,
+    "mono": 0.01,
+    "poly": 0.05,
+    "na": 2.0,
+    "fibre": 2.1,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 cup": 150,
+    "½ cup": 75
+   },
+   "keepsDays": 90,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500,
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 168173 (Strawberries, frozen, unsweetened (Includes foods for USDA's Food Distribution Program)); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "apple",
+   "name": "Apple",
+   "emoji": "🍎",
+   "per100": {
+    "kcal": 52.0,
+    "sat": 0.03,
+    "mono": 0.01,
+    "poly": 0.05,
+    "na": 1.0,
+    "fibre": 2.4,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 182,
+    "½": 91,
+    "½ grated": 91
+   },
+   "keepsDays": 21,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1500
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171688 (Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "pear",
+   "name": "Pear",
+   "emoji": "🍐",
+   "per100": {
+    "kcal": 57.0,
+    "sat": 0.02,
+    "mono": 0.08,
+    "poly": 0.09,
+    "na": 1.0,
+    "fibre": 3.1,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 178
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 169118 (Pears, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "orange",
+   "name": "Orange",
+   "emoji": "🍊",
+   "per100": {
+    "kcal": 49.0,
+    "sat": 0.02,
+    "mono": 0.03,
+    "poly": 0.03,
+    "na": 1.0,
+    "fibre": 2.2,
+    "sol": 1.3,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 140
+   },
+   "keepsDays": 14,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1500
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 169917 (Oranges, raw, navels (Includes foods for USDA's Food Distribution Program)); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "banana",
+   "name": "Banana",
+   "emoji": "🍌",
+   "per100": {
+    "kcal": 89.0,
+    "sat": 0.11,
+    "mono": 0.03,
+    "poly": 0.07,
+    "na": 1.0,
+    "fibre": 2.6,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 118,
+    "½": 59
+   },
+   "keepsDays": 5,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 173944 (Bananas, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "avocado",
+   "name": "Avocado",
+   "emoji": "🥑",
+   "per100": {
+    "kcal": 160.0,
+    "sat": 2.13,
+    "mono": 9.8,
+    "poly": 1.82,
+    "na": 7.0,
+    "fibre": 6.7,
+    "sol": 1.9,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½": 68,
+    "¼": 34
+   },
+   "keepsDays": 4,
+   "anchors": [
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    400
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171705 (Avocados, raw, all commercial varieties); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "lemon-juice",
+   "name": "Lemon",
+   "emoji": "🍋",
+   "per100": {
+    "kcal": 22.0,
+    "sat": 0.04,
+    "mono": 0.01,
+    "poly": 0.02,
+    "na": 1.0,
+    "fibre": 0.3,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "squeeze": 10,
+    "1 tbsp": 15
+   },
+   "keepsDays": 21,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 167747 (Lemon juice, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "almonds",
+   "name": "Almonds",
+   "emoji": "🥜",
+   "per100": {
+    "kcal": 579.0,
+    "sat": 3.8,
+    "mono": 31.55,
+    "poly": 12.33,
+    "na": 1.0,
+    "fibre": 12.5,
+    "sol": 1.1,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "12": 14,
+    "10": 12,
+    "small handful": 28
+   },
+   "keepsDays": 120,
+   "anchors": [
+    "nuts"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    100,
+    150,
+    400
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170567 (Nuts, almonds); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "walnuts",
+   "name": "Walnuts",
+   "emoji": "🌰",
+   "per100": {
+    "kcal": 654.0,
+    "sat": 6.13,
+    "mono": 8.93,
+    "poly": 47.17,
+    "na": 2.0,
+    "fibre": 6.7,
+    "sol": 0.5,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tbsp chopped": 7,
+    "4 halves": 8,
+    "small handful": 28
+   },
+   "keepsDays": 90,
+   "anchors": [
+    "nuts",
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    100,
+    150
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170187 (Nuts, walnuts, english); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "pumpkin-seeds",
+   "name": "Pumpkin seeds",
+   "emoji": "🌱",
+   "per100": {
+    "kcal": 559.0,
+    "sat": 8.66,
+    "mono": 16.24,
+    "poly": 20.98,
+    "na": 7.0,
+    "fibre": 6.0,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tbsp": 9,
+    "2 tbsp": 18
+   },
+   "keepsDays": 90,
+   "anchors": [
+    "nuts"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    100,
+    200
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170556 (Seeds, pumpkin and squash seed kernels, dried); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "chia",
+   "name": "Chia seeds",
+   "emoji": "🌱",
+   "per100": {
+    "kcal": 486.0,
+    "sat": 3.33,
+    "mono": 2.31,
+    "poly": 23.66,
+    "na": 16.0,
+    "fibre": 34.4,
+    "sol": 5.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tbsp": 12,
+    "1 tsp": 4
+   },
+   "keepsDays": 180,
+   "anchors": [
+    "nuts",
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    200,
+    500
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170554 (Seeds, chia seeds, dried); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "flax",
+   "name": "Ground flaxseed",
+   "emoji": "🌱",
+   "per100": {
+    "kcal": 534.0,
+    "sat": 3.66,
+    "mono": 7.53,
+    "poly": 28.73,
+    "na": 30.0,
+    "fibre": 27.3,
+    "sol": 7.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tbsp": 7
+   },
+   "keepsDays": 60,
+   "anchors": [
+    "nuts",
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    250
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 169414 (Seeds, flaxseed); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "peanut-butter",
+   "name": "Peanut butter (100% peanuts)",
+   "emoji": "🥜",
+   "per100": {
+    "kcal": 598.0,
+    "sat": 10.32,
+    "mono": 25.94,
+    "poly": 12.54,
+    "na": 17.0,
+    "fibre": 5.0,
+    "sol": 0.8,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 5,
+    "1 tbsp": 16
+   },
+   "keepsDays": 90,
+   "anchors": [
+    "nuts"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    400
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 172470 (Peanut butter, smooth style, without salt); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "tahini",
+   "name": "Tahini",
+   "emoji": "🥄",
+   "per100": {
+    "kcal": 595.0,
+    "sat": 7.53,
+    "mono": 20.3,
+    "poly": 23.56,
+    "na": 115.0,
+    "fibre": 9.3,
+    "sol": 1.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tbsp": 15,
+    "1 tsp": 5
+   },
+   "keepsDays": 120,
+   "anchors": [
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    300
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170189 (Seeds, sesame butter, tahini, from roasted and toasted kernels (most common type)); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "psyllium",
+   "name": "Psyllium husk",
+   "emoji": "🌾",
+   "per100": {
+    "kcal": 200,
+    "sat": 0.1,
+    "mono": 0.1,
+    "poly": 0.3,
+    "na": 50,
+    "fibre": 85,
+    "sol": 71,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 5
+   },
+   "keepsDays": 365,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    200,
+    500
+   ],
+   "cookedYield": null,
+   "source": "Typical psyllium husk label (not in USDA SR Legacy). Soluble fibre estimated."
+  },
+  {
+   "id": "egg",
+   "name": "Egg",
+   "emoji": "🥚",
+   "per100": {
+    "kcal": 143.0,
+    "sat": 3.13,
+    "mono": 3.66,
+    "poly": 1.91,
+    "na": 142.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 50,
+    "2": 100
+   },
+   "keepsDays": 21,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    300,
+    900
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171287 (Egg, whole, raw, fresh); soluble fibre and beta-glucan estimated. Packs are 6 and 18 eggs at about 50 g each."
+  },
+  {
+   "id": "chicken-thigh",
+   "name": "Skinless chicken thigh, grilled",
+   "emoji": "🍗",
+   "per100": {
+    "kcal": 179.0,
+    "sat": 2.31,
+    "mono": 3.36,
+    "poly": 1.7,
+    "na": 106.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 100,
+    "1 small": 80
+   },
+   "keepsDays": 3,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 172388 (Chicken, broilers or fryers, thigh, meat only, cooked, roasted); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "chicken-breast",
+   "name": "Chicken breast, grilled",
+   "emoji": "🍗",
+   "per100": {
+    "kcal": 165.0,
+    "sat": 1.01,
+    "mono": 1.24,
+    "poly": 0.77,
+    "na": 74.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 small": 120,
+    "½": 85
+   },
+   "keepsDays": 3,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500,
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171477 (Chicken, broilers or fryers, breast, meat only, cooked, roasted); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "tuna-water",
+   "name": "Tuna in water",
+   "emoji": "🐟",
+   "per100": {
+    "kcal": 86.0,
+    "sat": 0.21,
+    "mono": 0.11,
+    "poly": 0.28,
+    "na": 247.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tin": 120,
+    "½ tin": 60
+   },
+   "keepsDays": 2,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    120
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 173709 (Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)); soluble fibre and beta-glucan estimated. SA tins are about 170 g with about 120 g drained. Keeps 2 days once opened."
+  },
+  {
+   "id": "pilchards-tomato",
+   "name": "Pilchards in tomato sauce",
+   "emoji": "🐟",
+   "per100": {
+    "kcal": 185.0,
+    "sat": 2.68,
+    "mono": 4.82,
+    "poly": 2.11,
+    "na": 414.0,
+    "fibre": 0.1,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ tin": 200,
+    "2 pieces": 120
+   },
+   "keepsDays": 2,
+   "anchors": [
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    400
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 175140 (Fish, sardine, Pacific, canned in tomato sauce, drained solids with bone); soluble fibre and beta-glucan estimated. USDA Pacific sardine in tomato sauce stands in for SA pilchards (Lucky Star / Glenryck). Scan the label for exact sodium."
+  },
+  {
+   "id": "mackerel-tin",
+   "name": "Tinned mackerel",
+   "emoji": "🐟",
+   "per100": {
+    "kcal": 156.0,
+    "sat": 1.86,
+    "mono": 2.23,
+    "poly": 1.65,
+    "na": 379.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ tin": 120
+   },
+   "keepsDays": 2,
+   "anchors": [
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    240
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 175121 (Fish, mackerel, jack, canned, drained solids); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "chickpeas",
+   "name": "Chickpeas, rinsed",
+   "emoji": "🫘",
+   "per100": {
+    "kcal": 138.0,
+    "sat": 0.21,
+    "mono": 0.48,
+    "poly": 0.96,
+    "na": 212.0,
+    "fibre": 6.3,
+    "sol": 1.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 82,
+    "¼ cup": 41,
+    "1 cup": 164
+   },
+   "keepsDays": 3,
+   "anchors": [
+    "legume"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    240
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 173801 (Chickpeas (garbanzo beans, bengal gram), mature seeds, canned, drained, rinsed in tap water); soluble fibre and beta-glucan estimated. One 400 g tin is about 240 g drained."
+  },
+  {
+   "id": "black-beans",
+   "name": "Black beans",
+   "emoji": "🫘",
+   "per100": {
+    "kcal": 91.0,
+    "sat": 0.07,
+    "mono": 0.03,
+    "poly": 0.12,
+    "na": 384.0,
+    "fibre": 6.9,
+    "sol": 2.4,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 120,
+    "¼ cup": 60
+   },
+   "keepsDays": 3,
+   "anchors": [
+    "legume"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    240
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 175188 (Beans, black turtle, mature seeds, canned); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "kidney-beans",
+   "name": "Red kidney beans",
+   "emoji": "🫘",
+   "per100": {
+    "kcal": 124.0,
+    "sat": 0.18,
+    "mono": 0.03,
+    "poly": 0.19,
+    "na": 231.0,
+    "fibre": 5.5,
+    "sol": 1.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 128
+   },
+   "keepsDays": 3,
+   "anchors": [
+    "legume"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    240
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 174285 (Beans, kidney, red, mature seeds, canned, drained solids); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "butter-beans",
+   "name": "Butter beans",
+   "emoji": "🫘",
+   "per100": {
+    "kcal": 79.0,
+    "sat": 0.04,
+    "mono": 0.01,
+    "poly": 0.07,
+    "na": 336.0,
+    "fibre": 4.8,
+    "sol": 2.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 120
+   },
+   "keepsDays": 3,
+   "anchors": [
+    "legume"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    240
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 174254 (Lima beans, large, mature seeds, canned); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "lentils",
+   "name": "Cooked lentils",
+   "emoji": "🫘",
+   "per100": {
+    "kcal": 116.0,
+    "sat": 0.05,
+    "mono": 0.06,
+    "poly": 0.17,
+    "na": 2.0,
+    "fibre": 7.9,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 99,
+    "1 cup": 198
+   },
+   "keepsDays": 4,
+   "anchors": [
+    "legume"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    500
+   ],
+   "cookedYield": 2.5,
+   "source": "USDA SR Legacy 172421 (Lentils, mature seeds, cooked, boiled, without salt); soluble fibre and beta-glucan estimated. Bought dry; cooks to about 2.5× its weight. Packs refer to dry weight."
+  },
+  {
+   "id": "baked-beans",
+   "name": "Baked beans",
+   "emoji": "🫘",
+   "per100": {
+    "kcal": 94.0,
+    "sat": 0.07,
+    "mono": 0.1,
+    "poly": 0.12,
+    "na": 343.0,
+    "fibre": 4.1,
+    "sol": 1.2,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 127,
+    "¼ cup": 64
+   },
+   "keepsDays": 3,
+   "anchors": [
+    "legume"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    410
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 175182 (Beans, baked, canned, plain or vegetarian); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "hummus",
+   "name": "Hummus",
+   "emoji": "🫘",
+   "per100": {
+    "kcal": 237.0,
+    "sat": 2.56,
+    "mono": 5.34,
+    "poly": 8.81,
+    "na": 426.0,
+    "fibre": 5.5,
+    "sol": 1.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "2 tbsp": 30,
+    "1 tbsp": 15,
+    "¼ cup": 62
+   },
+   "keepsDays": 5,
+   "anchors": [
+    "legume"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    200,
+    250
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 174289 (Hummus, commercial); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "wholewheat-bread",
+   "name": "Wholewheat bread",
+   "emoji": "🍞",
+   "per100": {
+    "kcal": 252.0,
+    "sat": 0.72,
+    "mono": 0.62,
+    "poly": 1.59,
+    "na": 455.0,
+    "fibre": 6.0,
+    "sol": 1.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 slice": 32,
+    "2 slices": 64
+   },
+   "keepsDays": 5,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    700
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 172688 (Bread, whole-wheat, commercially prepared); soluble fibre and beta-glucan estimated. SA bread falls under national sodium limits; scan your loaf's label."
+  },
+  {
+   "id": "rye-bread",
+   "name": "Rye bread",
+   "emoji": "🍞",
+   "per100": {
+    "kcal": 259.0,
+    "sat": 0.63,
+    "mono": 1.31,
+    "poly": 0.8,
+    "na": 603.0,
+    "fibre": 5.8,
+    "sol": 1.8,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 slice": 32,
+    "2 slices": 64
+   },
+   "keepsDays": 6,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    600
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 172684 (Bread, rye); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "wholewheat-wrap",
+   "name": "Wholewheat wrap",
+   "emoji": "🫓",
+   "per100": {
+    "kcal": 310.0,
+    "sat": 4.88,
+    "mono": 3.06,
+    "poly": 0.99,
+    "na": 617.0,
+    "fibre": 9.8,
+    "sol": 1.0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 45
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    270
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 174081 (Tortillas, ready-to-bake or -fry, whole wheat); soluble fibre and beta-glucan estimated. Packs of 6. USDA's US wrap uses shortening (high saturated fat); SA wraps are usually lower, so scan your pack's label."
+  },
+  {
+   "id": "brown-rice",
+   "name": "Cooked brown rice",
+   "emoji": "🍚",
+   "per100": {
+    "kcal": 123.0,
+    "sat": 0.26,
+    "mono": 0.37,
+    "poly": 0.37,
+    "na": 4.0,
+    "fibre": 1.6,
+    "sol": 0.1,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 cup": 195,
+    "½ cup": 98,
+    "¾ cup": 146
+   },
+   "keepsDays": 4,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000,
+    2000
+   ],
+   "cookedYield": 2.7,
+   "source": "USDA SR Legacy 169704 (Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)); soluble fibre and beta-glucan estimated. Bought dry; cooks to about 2.7× its weight. Packs refer to dry weight."
+  },
+  {
+   "id": "wholewheat-pasta",
+   "name": "Cooked wholewheat pasta",
+   "emoji": "🍝",
+   "per100": {
+    "kcal": 149.0,
+    "sat": 0.24,
+    "mono": 0.18,
+    "poly": 0.57,
+    "na": 4.0,
+    "fibre": 3.9,
+    "sol": 0.5,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 cup": 140,
+    "¾ cup": 105
+   },
+   "keepsDays": 4,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500
+   ],
+   "cookedYield": 2.4,
+   "source": "USDA SR Legacy 168910 (Pasta, whole-wheat, cooked (Includes foods for USDA's Food Distribution Program)); soluble fibre and beta-glucan estimated. Bought dry; cooks to about 2.4× its weight."
+  },
+  {
+   "id": "greens",
+   "name": "Mixed greens",
+   "emoji": "🥬",
+   "per100": {
+    "kcal": 15.0,
+    "sat": 0.02,
+    "mono": 0.01,
+    "poly": 0.08,
+    "na": 28.0,
+    "fibre": 1.3,
+    "sol": 0.3,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 handful": 30,
+    "2 handfuls": 60
+   },
+   "keepsDays": 4,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    100,
+    150
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 169249 (Lettuce, green leaf, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "spinach",
+   "name": "Baby spinach",
+   "emoji": "🥬",
+   "per100": {
+    "kcal": 23.0,
+    "sat": 0.06,
+    "mono": 0.01,
+    "poly": 0.17,
+    "na": 79.0,
+    "fibre": 2.2,
+    "sol": 0.5,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 handful": 30
+   },
+   "keepsDays": 4,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    150,
+    250
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 168462 (Spinach, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "tomato",
+   "name": "Tomato",
+   "emoji": "🍅",
+   "per100": {
+    "kcal": 18.0,
+    "sat": 0.03,
+    "mono": 0.03,
+    "poly": 0.08,
+    "na": 5.0,
+    "fibre": 1.2,
+    "sol": 0.2,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 123,
+    "5–6 cherry": 85,
+    "½": 62
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170457 (Tomatoes, red, ripe, raw, year round average); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "tinned-tomatoes",
+   "name": "Tinned tomatoes",
+   "emoji": "🥫",
+   "per100": {
+    "kcal": 16.0,
+    "sat": 0.03,
+    "mono": 0.04,
+    "poly": 0.1,
+    "na": 115.0,
+    "fibre": 1.9,
+    "sol": 0.2,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ tin": 200,
+    "1 tin": 400
+   },
+   "keepsDays": 3,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    400
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170051 (Tomatoes, red, ripe, canned, packed in tomato juice); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "cucumber",
+   "name": "Cucumber",
+   "emoji": "🥒",
+   "per100": {
+    "kcal": 15.0,
+    "sat": 0.04,
+    "mono": 0.01,
+    "poly": 0.03,
+    "na": 2.0,
+    "fibre": 0.5,
+    "sol": 0.1,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½ cup": 52
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    300
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 168409 (Cucumber, with peel, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "red-pepper",
+   "name": "Red pepper",
+   "emoji": "🫑",
+   "per100": {
+    "kcal": 26.0,
+    "sat": 0.06,
+    "mono": 0.01,
+    "poly": 0.16,
+    "na": 4.0,
+    "fibre": 2.1,
+    "sol": 0.5,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "½": 60,
+    "1": 119
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    450
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170108 (Peppers, sweet, red, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "carrot",
+   "name": "Carrot",
+   "emoji": "🥕",
+   "per100": {
+    "kcal": 41.0,
+    "sat": 0.03,
+    "mono": 0.01,
+    "poly": 0.1,
+    "na": 69.0,
+    "fibre": 2.8,
+    "sol": 1.1,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 61,
+    "½ cup grated": 55
+   },
+   "keepsDays": 21,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500,
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170393 (Carrots, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "onion",
+   "name": "Onion",
+   "emoji": "🧅",
+   "per100": {
+    "kcal": 40.0,
+    "sat": 0.04,
+    "mono": 0.01,
+    "poly": 0.02,
+    "na": 4.0,
+    "fibre": 1.7,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1": 110,
+    "½": 55,
+    "¼": 28
+   },
+   "keepsDays": 30,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000,
+    2000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170000 (Onions, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "garlic",
+   "name": "Garlic",
+   "emoji": "🧄",
+   "per100": {
+    "kcal": 149.0,
+    "sat": 0.09,
+    "mono": 0.01,
+    "poly": 0.25,
+    "na": 17.0,
+    "fibre": 2.1,
+    "sol": 0.3,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 clove": 3
+   },
+   "keepsDays": 30,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    100
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 169230 (Garlic, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "mushrooms",
+   "name": "Mushrooms",
+   "emoji": "🍄",
+   "per100": {
+    "kcal": 22.0,
+    "sat": 0.05,
+    "mono": 0.0,
+    "poly": 0.16,
+    "na": 5.0,
+    "fibre": 1.0,
+    "sol": 0.2,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 cup sliced": 70
+   },
+   "keepsDays": 5,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    250
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 169251 (Mushrooms, white, raw); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "sweetcorn",
+   "name": "Sweetcorn",
+   "emoji": "🌽",
+   "per100": {
+    "kcal": 67.0,
+    "sat": 0.24,
+    "mono": 0.37,
+    "poly": 0.52,
+    "na": 205.0,
+    "fibre": 2.0,
+    "sol": 0.2,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "¼ cup": 41,
+    "½ cup": 82
+   },
+   "keepsDays": 3,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    240
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 169214 (Corn, sweet, yellow, canned, whole kernel, drained solids); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "mixed-veg-frozen",
+   "name": "Frozen stir-fry veg",
+   "emoji": "🥦",
+   "per100": {
+    "kcal": 72.0,
+    "sat": 0.1,
+    "mono": 0.03,
+    "poly": 0.23,
+    "na": 47.0,
+    "fibre": 4.0,
+    "sol": 0.9,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 cup": 135
+   },
+   "keepsDays": 90,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    500,
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170471 (Vegetables, mixed, frozen, unprepared); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "olive-oil",
+   "name": "Olive oil",
+   "emoji": "🫒",
+   "per100": {
+    "kcal": 884.0,
+    "sat": 13.81,
+    "mono": 72.96,
+    "poly": 10.52,
+    "na": 2.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 4.5,
+    "1 tbsp": 13.5
+   },
+   "keepsDays": 365,
+   "anchors": [
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    500,
+    750
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171413 (Oil, olive, salad or cooking); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "canola-oil",
+   "name": "Canola oil",
+   "emoji": "🫒",
+   "per100": {
+    "kcal": 884.0,
+    "sat": 7.37,
+    "mono": 63.28,
+    "poly": 28.14,
+    "na": 0.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 4.5,
+    "1 tbsp": 14
+   },
+   "keepsDays": 365,
+   "anchors": [
+    "goodFat"
+   ],
+   "cuisines": [],
+   "packSizes": [
+    750
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 172336 (Oil, canola); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "feta",
+   "name": "Feta",
+   "emoji": "🧀",
+   "per100": {
+    "kcal": 265.0,
+    "sat": 13.3,
+    "mono": 4.62,
+    "poly": 0.59,
+    "na": 1139.0,
+    "fibre": 0.0,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tbsp crumbled": 10,
+    "2 tbsp crumbled": 20
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    200
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 173420 (Cheese, feta); soluble fibre and beta-glucan estimated. Use as a seasoning: high in salt and saturated fat."
+  },
+  {
+   "id": "soy-sauce-low",
+   "name": "Low-sodium soy sauce",
+   "emoji": "🥢",
+   "per100": {
+    "kcal": 57.0,
+    "sat": 0.04,
+    "mono": 0.04,
+    "poly": 0.14,
+    "na": 3598.0,
+    "fibre": 0.7,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 6
+   },
+   "keepsDays": 365,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    250
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 172473 (Soy sauce made from soy and wheat (shoyu), low sodium); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "salsa",
+   "name": "Salsa",
+   "emoji": "🌶️",
+   "per100": {
+    "kcal": 29.0,
+    "sat": 0.02,
+    "mono": 0.02,
+    "poly": 0.08,
+    "na": 711.0,
+    "fibre": 1.9,
+    "sol": 0.4,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "2 tbsp": 32
+   },
+   "keepsDays": 7,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    300
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 174524 (Sauce, salsa, ready-to-serve); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "smoked-paprika",
+   "name": "Smoked paprika",
+   "emoji": "🌶️",
+   "per100": {
+    "kcal": 282.0,
+    "sat": 2.14,
+    "mono": 1.7,
+    "poly": 7.77,
+    "na": 68.0,
+    "fibre": 34.9,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 2.3,
+    "½ tsp": 1.15,
+    "pinch": 0.4
+   },
+   "keepsDays": 730,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    40,
+    80
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171329 (Spices, paprika); soluble fibre and beta-glucan estimated. USDA paprika stands in for smoked paprika; nutrition is near-identical at these amounts."
+  },
+  {
+   "id": "cumin",
+   "name": "Cumin",
+   "emoji": "🌿",
+   "per100": {
+    "kcal": 375.0,
+    "sat": 1.53,
+    "mono": 14.04,
+    "poly": 3.28,
+    "na": 168.0,
+    "fibre": 10.5,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 2.1,
+    "½ tsp": 1.05,
+    "pinch": 0.4
+   },
+   "keepsDays": 730,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    50,
+    100
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170923 (Spices, cumin seed); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "chilli-flakes",
+   "name": "Chilli flakes",
+   "emoji": "🌶️",
+   "per100": {
+    "kcal": 318.0,
+    "sat": 3.26,
+    "mono": 2.75,
+    "poly": 8.37,
+    "na": 30.0,
+    "fibre": 27.2,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 1.8,
+    "½ tsp": 0.9,
+    "pinch": 0.4
+   },
+   "keepsDays": 730,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    30,
+    60
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170932 (Spices, pepper, red or cayenne); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "curry-powder",
+   "name": "Curry powder",
+   "emoji": "🍛",
+   "per100": {
+    "kcal": 325.0,
+    "sat": 1.65,
+    "mono": 8.78,
+    "poly": 3.06,
+    "na": 52.0,
+    "fibre": 53.2,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 2.0,
+    "½ tsp": 1.0,
+    "pinch": 0.4
+   },
+   "keepsDays": 730,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    50,
+    100
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170924 (Spices, curry powder); soluble fibre and beta-glucan estimated. Check the label: some blends are salty."
+  },
+  {
+   "id": "turmeric",
+   "name": "Turmeric",
+   "emoji": "🟡",
+   "per100": {
+    "kcal": 312.0,
+    "sat": 1.84,
+    "mono": 0.45,
+    "poly": 0.76,
+    "na": 27.0,
+    "fibre": 22.7,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 3.0,
+    "½ tsp": 1.5,
+    "pinch": 0.4
+   },
+   "keepsDays": 730,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    40,
+    80
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 172231 (Spices, turmeric, ground); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "cinnamon",
+   "name": "Cinnamon",
+   "emoji": "🪵",
+   "per100": {
+    "kcal": 247.0,
+    "sat": 0.34,
+    "mono": 0.25,
+    "poly": 0.07,
+    "na": 10.0,
+    "fibre": 53.1,
+    "sol": 0,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 2.6,
+    "½ tsp": 1.3,
+    "pinch": 0.4
+   },
+   "keepsDays": 730,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    40,
+    80
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 171320 (Spices, cinnamon, ground); soluble fibre and beta-glucan estimated."
+  },
+  {
+   "id": "peri-peri-rub",
+   "name": "Salt-free peri-peri rub",
+   "emoji": "🌶️",
+   "per100": {
+    "kcal": 282,
+    "sat": 2.1,
+    "mono": 2.0,
+    "poly": 6.0,
+    "na": 68,
+    "fibre": 35,
+    "sol": 2,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "1 tsp": 2.5,
+    "½ tsp": 1.25
+   },
+   "keepsDays": 730,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    50,
+    100
+   ],
+   "cookedYield": null,
+   "source": "Typical salt-free chilli and paprika blend (not in USDA SR Legacy). Always check the label for salt. Soluble fibre estimated."
+  },
+  {
+   "id": "red-onion",
+   "name": "Red onion",
+   "emoji": "🧅",
+   "per100": {
+    "kcal": 40.0,
+    "sat": 0.04,
+    "mono": 0.01,
+    "poly": 0.02,
+    "na": 4.0,
+    "fibre": 1.7,
+    "sol": 0.6,
+    "betaGlucan": 0
+   },
+   "measures": {
+    "¼": 28,
+    "½": 55,
+    "1": 110
+   },
+   "keepsDays": 30,
+   "anchors": [],
+   "cuisines": [],
+   "packSizes": [
+    1000
+   ],
+   "cookedYield": null,
+   "source": "USDA SR Legacy 170000 (Onions, raw); soluble fibre and beta-glucan estimated. USDA onion stands in for red onion."
+  }
+ ]
+}

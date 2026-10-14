@@ -1,0 +1,50 @@
+# Pocket Deck (app)
+
+A phone-first daytime meal planner. React 18 + TypeScript + Vite, installed as a PWA. All data stays on the phone (IndexedDB). The product spec and design notes are kept outside this repo; the code comments explain the rules that matter.
+
+## Run it
+
+```bash
+npm install
+npm run dev            # http://localhost:5173
+npm test               # vitest: planner, stock, shopping, backup, calendar, content
+npm run build          # type-check + production build into dist/
+npm run build:single   # one self-contained HTML file in dist-single/ (used for the Artifact preview)
+scripts/deploy.sh      # build and publish dist/ to the gh-pages branch (GitHub Pages)
+```
+
+End-to-end checks (need `npm run build:single` first; Playwright's Chromium is installed with the dev deps):
+
+```bash
+node scripts/smoke.mjs   <shots-dir>   # check-in, Today, eat/undo + stock, reload, empty kitchen
+node scripts/kitchen.mjs <shots-dir>   # unlock, list, restock with price, pantry, flavour kit
+node scripts/setup.mjs   <shots-dir>   # the first-run Setup flow end to end
+node scripts/me.mjs                    # your numbers replace the placeholders
+node scripts/week.mjs    <shots-dir>   # plan the week, tag nights, swap, shopping from the plan
+node scripts/scenarios.mjs             # preview-only test scenarios
+```
+
+## Where things are
+
+| Path | What |
+|---|---|
+| `src/core/` | Pure logic with tests: `planner.ts` (budget, dealing, swiping), `setup.ts` (which foods and meals to ask, gaps), `week.ts` (week plan, needs, cook-ahead), `nutrition.ts`, `stock.ts` (pantry, list, unlock), `shopping.ts`, `backup.ts`, `ics.ts`, `db.ts` (IndexedDB). No React. |
+| `src/content/` | Shipped data: `foods.json` (built from USDA), `meals.json`, `suppers.json`. Rebuild foods with `../tools/build-foods.py`; validate meals with `../tools/check-meals.py`. |
+| `src/app/` | `useApp.ts` (state, persistence, actions), `viewModel.ts` (core meal → card), `defaults.ts` (placeholder profile, starter pantry), `aisles.ts`. |
+| `src/components/` | `Deck`, `CheckIn`, `Setup`, `Kitchen`, `Week`, `Me`, `RadialMenu`, `Sheets`. |
+| `src/styles.css` | All styling, driven by the tokens at the top (see DESIGN.md). |
+| `public/` | PWA manifest, service worker (`sw.js`), icons. |
+
+## Rules that are easy to break
+
+- **Planner and stock functions are pure and never modify their inputs.** Add a test with any change.
+- **IndexedDB:** each store's key field is set in `core/db.ts` (`KEY_FIELD`). Queue transaction requests synchronously; don't `await` between them.
+- **Seed only on the very first run** (`useApp.ts`). An empty pantry later is real.
+- **Writes must never break the screen.** The hook falls back to memory if storage is blocked.
+- **Light theme only. No red/amber. No scolding copy.** Kitchen measures on screen; grams only in shop/label/number panels.
+- **Pin every dependency to an exact version.**
+- Prototype leftovers: the Claude-powered label scanner lives in `../prototypes/label-scanner/` and is not part of the app.
+
+## Not built yet
+
+the Week look-back, on-device label OCR, "Had something else" / "+ Extra", new-meal check-in, "Add your own meal". See SPEC.md §6.

@@ -1,0 +1,1326 @@
+{
+ "version": 1,
+ "_about": "Meal library. `items` reference foods.json ids and one of that food's measures. `estCost` is a rough rand cost per serving from typical 2026 Checkers/Woolworths prices, used until the user enters real prices. `mine: true` marks meals the user already eats; they start out kept.",
+ "meals": [
+  {
+   "id": "oats-overnight",
+   "slot": "breakfast",
+   "emoji": "🥣",
+   "name": "Overnight oats, blueberries & almonds",
+   "cuisine": "Everyday",
+   "mine": true,
+   "items": [
+    [
+     "rolled-oats",
+     "½ cup"
+    ],
+    [
+     "milk-lowfat",
+     "¾ cup"
+    ],
+    [
+     "blueberries",
+     "⅓ cup"
+    ],
+    [
+     "almonds",
+     "12"
+    ]
+   ],
+   "tags": [
+    "Make the night before"
+   ],
+   "keepsDays": 2,
+   "prepGroup": "night-before",
+   "estCost": 11,
+   "steps": [
+    "Tip ½ cup oats into a jar",
+    "Pour in ¾ cup low-fat milk and stir",
+    "Add a pinch of cinnamon, lid on, fridge overnight",
+    "In the morning, top with ⅓ cup blueberries and 12 almonds"
+   ],
+   "boosters": [
+    "Stir in 2 tbsp oat bran: gets the bowl to about 2.4 g of beta-glucan, most of the day's 3 g",
+    "Grate in half an apple with the cinnamon",
+    "Swap almonds for toasted pumpkin seeds",
+    "A drop of vanilla in the milk"
+   ]
+  },
+  {
+   "id": "barley-porridge",
+   "slot": "breakfast",
+   "emoji": "🥣",
+   "name": "Barley porridge with apple & cinnamon",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "barley-cooked",
+     "¾ cup"
+    ],
+    [
+     "apple",
+     "½ grated"
+    ],
+    [
+     "walnuts",
+     "1 tbsp chopped"
+    ],
+    [
+     "milk-lowfat",
+     "½ cup"
+    ]
+   ],
+   "tags": [
+    "Cook a batch Sunday"
+   ],
+   "keepsDays": 1,
+   "prepGroup": "barley",
+   "estCost": 8,
+   "steps": [
+    "Warm ¾ cup cooked barley with ½ cup milk",
+    "Grate in half an apple",
+    "Top with walnuts and a pinch of cinnamon"
+   ],
+   "boosters": [
+    "Toast the walnuts in a dry pan first",
+    "A pinch of nutmeg with the cinnamon"
+   ]
+  },
+  {
+   "id": "egg-toast",
+   "slot": "breakfast",
+   "emoji": "🍳",
+   "name": "Poached egg on wholewheat toast",
+   "cuisine": "Everyday",
+   "mine": true,
+   "items": [
+    [
+     "egg",
+     "1"
+    ],
+    [
+     "wholewheat-bread",
+     "2 slices"
+    ],
+    [
+     "tomato",
+     "1"
+    ]
+   ],
+   "tags": [
+    "10 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 8,
+   "steps": [
+    "Toast 2 slices of wholewheat bread",
+    "Poach 1 egg in simmering water for 3 minutes",
+    "Slice a tomato onto the toast, egg on top, black pepper"
+   ],
+   "boosters": [
+    "Chilli flakes and fresh coriander",
+    "Rub the toast with a cut garlic clove"
+   ]
+  },
+  {
+   "id": "berry-smoothie",
+   "slot": "breakfast",
+   "emoji": "🥤",
+   "name": "Berry & chia smoothie",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "berries-frozen",
+     "1 cup"
+    ],
+    [
+     "almond-milk",
+     "1 cup"
+    ],
+    [
+     "chia",
+     "1 tbsp"
+    ],
+    [
+     "banana",
+     "½"
+    ]
+   ],
+   "tags": [
+    "5 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 16,
+   "steps": [
+    "Add berries, banana and almond milk to the blender",
+    "Add 1 tbsp chia seeds",
+    "Blend for 30 seconds and drink within the hour"
+   ],
+   "boosters": [
+    "A thumb of fresh ginger",
+    "Swap the banana for frozen mango"
+   ]
+  },
+  {
+   "id": "oats-warm",
+   "slot": "breakfast",
+   "emoji": "🥣",
+   "name": "Warm oats with banana & walnuts",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "rolled-oats",
+     "½ cup"
+    ],
+    [
+     "milk-lowfat",
+     "1 cup"
+    ],
+    [
+     "banana",
+     "½"
+    ],
+    [
+     "walnuts",
+     "1 tbsp chopped"
+    ]
+   ],
+   "tags": [
+    "5 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 8,
+   "steps": [
+    "Simmer ½ cup oats in 1 cup milk for 4–5 minutes, stirring",
+    "Slice half a banana on top",
+    "Scatter the walnuts and a pinch of cinnamon"
+   ],
+   "boosters": [
+    "Stir in 2 tbsp oat bran: gets the bowl to about 2.4 g of beta-glucan, most of the day's 3 g",
+    "Stir in 1 tsp peanut butter (100% peanuts)",
+    "A pinch of cardamom instead of cinnamon"
+   ]
+  },
+  {
+   "id": "pb-banana-rye",
+   "slot": "breakfast",
+   "emoji": "🍞",
+   "name": "Peanut butter & banana on rye",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "rye-bread",
+     "2 slices"
+    ],
+    [
+     "peanut-butter",
+     "1 tbsp"
+    ],
+    [
+     "banana",
+     "½"
+    ]
+   ],
+   "tags": [
+    "2 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 9,
+   "steps": [
+    "Toast 2 slices of rye",
+    "Spread 1 tbsp peanut butter thinly over both",
+    "Slice half a banana on top"
+   ],
+   "boosters": [
+    "A dusting of cinnamon",
+    "A few chia seeds for crunch"
+   ]
+  },
+  {
+   "id": "avo-chickpea-rye",
+   "slot": "breakfast",
+   "emoji": "🥑",
+   "name": "Smashed avo & chickpeas on rye",
+   "cuisine": "Mediterranean",
+   "items": [
+    [
+     "rye-bread",
+     "2 slices"
+    ],
+    [
+     "avocado",
+     "¼"
+    ],
+    [
+     "chickpeas",
+     "¼ cup"
+    ],
+    [
+     "lemon-juice",
+     "squeeze"
+    ]
+   ],
+   "tags": [
+    "5 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 14,
+   "steps": [
+    "Toast 2 slices of rye",
+    "Mash a quarter avocado with ¼ cup chickpeas and a squeeze of lemon",
+    "Pile onto the toast, black pepper on top"
+   ],
+   "boosters": [
+    "Chilli flakes and a pinch of smoked paprika",
+    "Chopped fresh coriander or parsley"
+   ]
+  },
+  {
+   "id": "bircher",
+   "slot": "breakfast",
+   "emoji": "🥣",
+   "name": "Bircher muesli with apple & flax",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "rolled-oats",
+     "⅓ cup"
+    ],
+    [
+     "yoghurt-lowfat",
+     "½ cup"
+    ],
+    [
+     "apple",
+     "½ grated"
+    ],
+    [
+     "flax",
+     "1 tbsp"
+    ],
+    [
+     "milk-lowfat",
+     "splash"
+    ]
+   ],
+   "tags": [
+    "Make the night before"
+   ],
+   "keepsDays": 2,
+   "prepGroup": "night-before",
+   "estCost": 10,
+   "steps": [
+    "Mix ⅓ cup oats, ½ cup yoghurt and a splash of milk",
+    "Grate in half an apple and stir in 1 tbsp ground flax",
+    "Fridge overnight, then eat cold"
+   ],
+   "boosters": [
+    "Stir in 2 tbsp oat bran: gets the bowl to about 2.4 g of beta-glucan, most of the day's 3 g",
+    "A pinch of cinnamon and a few raisins",
+    "Top with a few fresh berries"
+   ]
+  },
+  {
+   "id": "veggie-scramble",
+   "slot": "breakfast",
+   "emoji": "🍳",
+   "name": "Spinach & tomato scramble on toast",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "egg",
+     "2"
+    ],
+    [
+     "spinach",
+     "1 handful"
+    ],
+    [
+     "tomato",
+     "½"
+    ],
+    [
+     "wholewheat-bread",
+     "1 slice"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "10 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 12,
+   "steps": [
+    "Warm 1 tsp olive oil in a non-stick pan",
+    "Wilt a handful of spinach with half a chopped tomato",
+    "Add 2 beaten eggs and stir gently until just set",
+    "Serve on 1 slice of wholewheat toast"
+   ],
+   "boosters": [
+    "Chilli flakes and black pepper",
+    "A few chopped spring onions"
+   ]
+  },
+  {
+   "id": "oat-bran-porridge",
+   "slot": "breakfast",
+   "emoji": "🥣",
+   "name": "Oat bran porridge with berries & flax",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "oat-bran",
+     "¼ cup"
+    ],
+    [
+     "milk-lowfat",
+     "1 cup"
+    ],
+    [
+     "berries-frozen",
+     "½ cup"
+    ],
+    [
+     "flax",
+     "1 tbsp"
+    ]
+   ],
+   "tags": [
+    "5 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 10,
+   "steps": [
+    "Simmer ¼ cup oat bran in 1 cup milk for 2–3 minutes",
+    "Stir in 1 tbsp ground flax",
+    "Top with ½ cup thawed berries"
+   ],
+   "boosters": [
+    "Grated orange zest",
+    "A pinch of cinnamon"
+   ]
+  },
+  {
+   "id": "chicken-salad",
+   "slot": "lunch",
+   "emoji": "🥗",
+   "name": "Chicken thigh salad",
+   "cuisine": "Everyday",
+   "mine": true,
+   "items": [
+    [
+     "chicken-thigh",
+     "1"
+    ],
+    [
+     "greens",
+     "2 handfuls"
+    ],
+    [
+     "tomato",
+     "5–6 cherry"
+    ],
+    [
+     "cucumber",
+     "½ cup"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ],
+    [
+     "lemon-juice",
+     "1 tbsp"
+    ]
+   ],
+   "tags": [
+    "Prepped Sunday"
+   ],
+   "keepsDays": 3,
+   "prepGroup": "chicken",
+   "estCost": 24,
+   "steps": [
+    "2 handfuls of mixed greens into the container",
+    "5–6 cherry tomatoes, halved",
+    "½ cup sliced cucumber",
+    "Cooled chicken on top",
+    "Olive oil and lemon in a separate small tub"
+   ],
+   "boosters": [
+    "Smoked paprika, garlic and lemon zest on the chicken before grilling",
+    "A few quick-pickled red onions"
+   ]
+  },
+  {
+   "id": "tuna-chickpea",
+   "slot": "lunch",
+   "emoji": "🐟",
+   "name": "Tuna & chickpea bowl",
+   "cuisine": "Everyday",
+   "mine": true,
+   "items": [
+    [
+     "tuna-water",
+     "1 tin"
+    ],
+    [
+     "chickpeas",
+     "½ cup"
+    ],
+    [
+     "red-pepper",
+     "½"
+    ],
+    [
+     "greens",
+     "1 handful"
+    ],
+    [
+     "lemon-juice",
+     "squeeze"
+    ]
+   ],
+   "tags": [
+    "No cooking"
+   ],
+   "keepsDays": 2,
+   "estCost": 30,
+   "steps": [
+    "1 handful greens into the bowl",
+    "Add ½ cup rinsed chickpeas",
+    "Flake the drained tuna on top",
+    "Chopped pepper and a squeeze of lemon"
+   ],
+   "boosters": [
+    "Chopped parsley and a little red onion",
+    "A spoon of chakalaka on the side"
+   ]
+  },
+  {
+   "id": "rice-egg-bowl",
+   "slot": "lunch",
+   "emoji": "🍚",
+   "name": "Brown rice & egg bowl",
+   "cuisine": "Everyday",
+   "mine": true,
+   "items": [
+    [
+     "brown-rice",
+     "1 cup"
+    ],
+    [
+     "egg",
+     "1"
+    ],
+    [
+     "greens",
+     "1 handful"
+    ],
+    [
+     "cucumber",
+     "½ cup"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "Prepped Sunday"
+   ],
+   "keepsDays": 3,
+   "prepGroup": "rice",
+   "estCost": 9,
+   "steps": [
+    "1 cup cooked brown rice into the container",
+    "Handful of greens and ½ cup cucumber",
+    "Halve a boiled egg on top",
+    "1 tsp olive oil and black pepper"
+   ],
+   "boosters": [
+    "Sesame seeds and sliced spring onion",
+    "A spoon of salsa or fresh chilli"
+   ]
+  },
+  {
+   "id": "hummus-wrap",
+   "slot": "lunch",
+   "emoji": "🌯",
+   "name": "Hummus & veg wrap",
+   "cuisine": "Middle Eastern",
+   "mine": true,
+   "items": [
+    [
+     "wholewheat-wrap",
+     "1"
+    ],
+    [
+     "hummus",
+     "2 tbsp"
+    ],
+    [
+     "carrot",
+     "½ cup grated"
+    ],
+    [
+     "spinach",
+     "1 handful"
+    ],
+    [
+     "cucumber",
+     "½ cup"
+    ]
+   ],
+   "tags": [
+    "5 minutes"
+   ],
+   "keepsDays": 1,
+   "estCost": 16,
+   "steps": [
+    "Spread 2 tbsp hummus over the wrap",
+    "Spinach, grated carrot and cucumber down the middle",
+    "Roll tight and cut in half"
+   ],
+   "boosters": [
+    "Smoked paprika stirred into the hummus",
+    "A few pickled red onions"
+   ]
+  },
+  {
+   "id": "black-bean-bowl",
+   "slot": "lunch",
+   "emoji": "🫘",
+   "name": "Black bean, corn & rice bowl",
+   "cuisine": "Mexican",
+   "mine": true,
+   "items": [
+    [
+     "black-beans",
+     "½ cup"
+    ],
+    [
+     "sweetcorn",
+     "¼ cup"
+    ],
+    [
+     "brown-rice",
+     "½ cup"
+    ],
+    [
+     "greens",
+     "1 handful"
+    ],
+    [
+     "salsa",
+     "2 tbsp"
+    ]
+   ],
+   "tags": [
+    "No cooking"
+   ],
+   "keepsDays": 3,
+   "estCost": 14,
+   "steps": [
+    "½ cup cooked brown rice into the bowl",
+    "Rinse ½ cup black beans well (cuts the tin's salt by about a third) and add",
+    "¼ cup sweetcorn and a handful of greens",
+    "2 tbsp salsa or a squeeze of lime"
+   ],
+   "boosters": [
+    "Cumin and lime on the beans",
+    "Chopped coriander and fresh chilli"
+   ]
+  },
+  {
+   "id": "kauai-falafel",
+   "slot": "lunch",
+   "emoji": "🧆",
+   "name": "Kauai avo falafel wrap",
+   "cuisine": "Middle Eastern",
+   "mine": true,
+   "items": [],
+   "bought": {
+    "where": "Kauai",
+    "price": 110,
+    "per": {
+     "kcal": 620,
+     "sat": 3.8,
+     "mono": 12,
+     "poly": 9,
+     "na": 950,
+     "fibre": 9,
+     "sol": 2.8,
+     "betaGlucan": 0
+    },
+    "orderNotes": [
+     "Ask for no feta",
+     "Dressing on the side"
+    ],
+    "estimated": true
+   },
+   "tags": [
+    "Bought · R110"
+   ],
+   "keepsDays": 0,
+   "estCost": 110,
+   "steps": [
+    "Order the Avo Falafel Wrap",
+    "Ask for no feta and the dressing on the side",
+    "Water with it, not a juice"
+   ],
+   "boosters": [
+    "Ask for extra chilli instead of extra sauce"
+   ],
+   "_note": "Kauai doesn't publish a nutrition breakdown; figures are Claude's estimate from the ingredients (chickpea falafel, avocado, nut-butter dressing, wholewheat wrap)."
+  },
+  {
+   "id": "lentil-soup",
+   "slot": "lunch",
+   "emoji": "🍲",
+   "name": "Cape Malay spiced lentil soup",
+   "cuisine": "Cape Malay",
+   "items": [
+    [
+     "lentils",
+     "1 cup"
+    ],
+    [
+     "onion",
+     "¼"
+    ],
+    [
+     "carrot",
+     "1"
+    ],
+    [
+     "tinned-tomatoes",
+     "½ tin"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ],
+    [
+     "garlic",
+     "1 clove"
+    ]
+   ],
+   "tags": [
+    "Batch cook",
+    "Freezes"
+   ],
+   "keepsDays": 4,
+   "prepGroup": "soup",
+   "estCost": 12,
+   "steps": [
+    "Soften onion, carrot and garlic in the oil for 5 minutes",
+    "Add 1 tsp curry powder, ½ tsp turmeric and a cinnamon stick for 1 minute",
+    "Add the lentils and tinned tomatoes with 2 cups water, simmer 20 minutes",
+    "Blend half of it for a thicker soup; portion into containers"
+   ],
+   "boosters": [
+    "A squeeze of lemon just before eating",
+    "Fresh coriander and a pinch of chilli"
+   ]
+  },
+  {
+   "id": "chakalaka-bowl",
+   "slot": "lunch",
+   "emoji": "🫘",
+   "name": "Chakalaka & brown rice",
+   "cuisine": "SA home",
+   "items": [
+    [
+     "baked-beans",
+     "½ cup"
+    ],
+    [
+     "onion",
+     "¼"
+    ],
+    [
+     "red-pepper",
+     "½"
+    ],
+    [
+     "carrot",
+     "½ cup grated"
+    ],
+    [
+     "brown-rice",
+     "½ cup"
+    ],
+    [
+     "canola-oil",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "Batch cook"
+   ],
+   "keepsDays": 4,
+   "prepGroup": "chakalaka",
+   "estCost": 11,
+   "steps": [
+    "Soften onion and pepper in the oil",
+    "Add grated carrot, 1 tsp curry powder and a little chilli",
+    "Stir in the baked beans and simmer 5 minutes",
+    "Serve on ½ cup brown rice"
+   ],
+   "boosters": [
+    "Extra chilli and a squeeze of lemon",
+    "A spoon of plain yoghurt on top"
+   ]
+  },
+  {
+   "id": "pilchards-toast",
+   "slot": "lunch",
+   "emoji": "🐟",
+   "name": "Pilchards on wholewheat toast",
+   "cuisine": "SA home",
+   "items": [
+    [
+     "pilchards-tomato",
+     "2 pieces"
+    ],
+    [
+     "wholewheat-bread",
+     "2 slices"
+    ],
+    [
+     "greens",
+     "1 handful"
+    ],
+    [
+     "tomato",
+     "½"
+    ]
+   ],
+   "tags": [
+    "5 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 14,
+   "steps": [
+    "Toast 2 slices of wholewheat bread",
+    "Mash 2 pilchards with a little of their sauce",
+    "Pile onto the toast with sliced tomato and greens on the side"
+   ],
+   "boosters": [
+    "Chopped red onion and black pepper",
+    "A squeeze of lemon"
+   ]
+  },
+  {
+   "id": "chana-masala",
+   "slot": "lunch",
+   "emoji": "🍛",
+   "name": "Chickpea curry with brown rice",
+   "cuisine": "Indian",
+   "items": [
+    [
+     "chickpeas",
+     "1 cup"
+    ],
+    [
+     "tinned-tomatoes",
+     "½ tin"
+    ],
+    [
+     "onion",
+     "¼"
+    ],
+    [
+     "garlic",
+     "1 clove"
+    ],
+    [
+     "canola-oil",
+     "1 tsp"
+    ],
+    [
+     "brown-rice",
+     "½ cup"
+    ]
+   ],
+   "tags": [
+    "Batch cook",
+    "Freezes"
+   ],
+   "keepsDays": 4,
+   "prepGroup": "curry",
+   "estCost": 14,
+   "steps": [
+    "Soften onion and garlic in the oil",
+    "Add 1 tsp garam masala, ½ tsp cumin and ½ tsp turmeric for 1 minute",
+    "Add chickpeas and tinned tomatoes, simmer 15 minutes",
+    "Serve on ½ cup brown rice"
+   ],
+   "boosters": [
+    "Fresh ginger with the garlic",
+    "Coriander and a squeeze of lemon"
+   ]
+  },
+  {
+   "id": "barley-salad",
+   "slot": "lunch",
+   "emoji": "🥗",
+   "name": "Barley, chickpea & feta salad",
+   "cuisine": "Mediterranean",
+   "items": [
+    [
+     "barley-cooked",
+     "¾ cup"
+    ],
+    [
+     "chickpeas",
+     "½ cup"
+    ],
+    [
+     "cucumber",
+     "½ cup"
+    ],
+    [
+     "tomato",
+     "5–6 cherry"
+    ],
+    [
+     "feta",
+     "1 tbsp crumbled"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ],
+    [
+     "lemon-juice",
+     "1 tbsp"
+    ]
+   ],
+   "tags": [
+    "Prepped Sunday"
+   ],
+   "keepsDays": 3,
+   "prepGroup": "barley",
+   "estCost": 15,
+   "steps": [
+    "¾ cup cooked barley into the container",
+    "Add ½ cup chickpeas, cucumber and halved tomatoes",
+    "Crumble 1 tbsp feta on top",
+    "Olive oil and lemon in a separate small tub"
+   ],
+   "boosters": [
+    "Dried oregano and lemon zest",
+    "A few chopped mint leaves"
+   ]
+  },
+  {
+   "id": "bean-chilli",
+   "slot": "lunch",
+   "emoji": "🌶️",
+   "name": "Bean chilli with brown rice",
+   "cuisine": "Mexican",
+   "items": [
+    [
+     "kidney-beans",
+     "½ cup"
+    ],
+    [
+     "tinned-tomatoes",
+     "½ tin"
+    ],
+    [
+     "onion",
+     "¼"
+    ],
+    [
+     "red-pepper",
+     "½"
+    ],
+    [
+     "canola-oil",
+     "1 tsp"
+    ],
+    [
+     "brown-rice",
+     "½ cup"
+    ]
+   ],
+   "tags": [
+    "Batch cook",
+    "Freezes"
+   ],
+   "keepsDays": 4,
+   "prepGroup": "chilli",
+   "estCost": 13,
+   "steps": [
+    "Soften onion and pepper in the oil",
+    "Add 1 tsp cumin, 1 tsp smoked paprika and chilli to taste",
+    "Add beans and tinned tomatoes, simmer 15 minutes",
+    "Serve on ½ cup brown rice"
+   ],
+   "boosters": [
+    "A square of dark chocolate stirred in (Mexican-style)",
+    "Lime and fresh coriander"
+   ]
+  },
+  {
+   "id": "mackerel-pasta",
+   "slot": "lunch",
+   "emoji": "🍝",
+   "name": "Mackerel & tomato wholewheat pasta",
+   "cuisine": "Mediterranean",
+   "items": [
+    [
+     "wholewheat-pasta",
+     "¾ cup"
+    ],
+    [
+     "mackerel-tin",
+     "½ tin"
+    ],
+    [
+     "tomato",
+     "5–6 cherry"
+    ],
+    [
+     "spinach",
+     "1 handful"
+    ],
+    [
+     "lemon-juice",
+     "squeeze"
+    ]
+   ],
+   "tags": [
+    "15 minutes"
+   ],
+   "keepsDays": 2,
+   "estCost": 18,
+   "steps": [
+    "Cook the pasta, drain",
+    "Toss with halved tomatoes and spinach while hot so it wilts",
+    "Flake the mackerel through",
+    "Lemon and black pepper"
+   ],
+   "boosters": [
+    "Chilli flakes and garlic",
+    "Capers or a few olives (small amount, they're salty)"
+   ]
+  },
+  {
+   "id": "lentil-tahini-salad",
+   "slot": "lunch",
+   "emoji": "🥗",
+   "name": "Lentil salad with tahini-lemon",
+   "cuisine": "Middle Eastern",
+   "items": [
+    [
+     "lentils",
+     "½ cup"
+    ],
+    [
+     "red-pepper",
+     "½"
+    ],
+    [
+     "cucumber",
+     "½ cup"
+    ],
+    [
+     "greens",
+     "1 handful"
+    ],
+    [
+     "tahini",
+     "1 tbsp"
+    ],
+    [
+     "lemon-juice",
+     "1 tbsp"
+    ]
+   ],
+   "tags": [
+    "Prepped Sunday"
+   ],
+   "keepsDays": 3,
+   "prepGroup": "lentils",
+   "estCost": 12,
+   "steps": [
+    "½ cup cooked lentils into the container",
+    "Add chopped pepper, cucumber and greens",
+    "Whisk tahini with lemon and a splash of water for the dressing",
+    "Dressing in a separate small tub"
+   ],
+   "boosters": [
+    "Sumac or smoked paprika on top",
+    "Chopped parsley and mint"
+   ]
+  },
+  {
+   "id": "chicken-stirfry",
+   "slot": "lunch",
+   "emoji": "🥢",
+   "name": "Chicken & veg stir-fry",
+   "cuisine": "Asian",
+   "items": [
+    [
+     "chicken-breast",
+     "½"
+    ],
+    [
+     "mixed-veg-frozen",
+     "1 cup"
+    ],
+    [
+     "brown-rice",
+     "½ cup"
+    ],
+    [
+     "soy-sauce-low",
+     "1 tsp"
+    ],
+    [
+     "canola-oil",
+     "1 tsp"
+    ],
+    [
+     "garlic",
+     "1 clove"
+    ]
+   ],
+   "tags": [
+    "15 minutes"
+   ],
+   "keepsDays": 3,
+   "estCost": 20,
+   "steps": [
+    "Stir-fry sliced chicken in the oil for 4 minutes",
+    "Add garlic and the frozen veg, 3–4 minutes more",
+    "1 tsp low-sodium soy sauce at the end",
+    "Serve on ½ cup brown rice"
+   ],
+   "boosters": [
+    "Fresh ginger and chilli",
+    "A squeeze of lime and sesame seeds"
+   ]
+  },
+  {
+   "id": "apple-almonds",
+   "slot": "snack",
+   "emoji": "🍎",
+   "name": "Apple & almonds",
+   "cuisine": "Everyday",
+   "mine": true,
+   "items": [
+    [
+     "apple",
+     "1"
+    ],
+    [
+     "almonds",
+     "10"
+    ]
+   ],
+   "tags": [
+    "Desk drawer"
+   ],
+   "keepsDays": 0,
+   "estCost": 7,
+   "steps": [
+    "Eat about 30–60 minutes before supper",
+    "1 apple and 10 almonds",
+    "A glass of water with it"
+   ],
+   "boosters": [
+    "Slice the apple and dust with cinnamon"
+   ]
+  },
+  {
+   "id": "carrot-hummus",
+   "slot": "snack",
+   "emoji": "🥕",
+   "name": "Carrot sticks & hummus",
+   "cuisine": "Everyday",
+   "mine": true,
+   "items": [
+    [
+     "carrot",
+     "1"
+    ],
+    [
+     "hummus",
+     "2 tbsp"
+    ]
+   ],
+   "tags": [
+    "2 minutes"
+   ],
+   "keepsDays": 2,
+   "estCost": 6,
+   "steps": [
+    "Cut 1 carrot into sticks",
+    "2 tbsp hummus in a small tub",
+    "Eat 30–60 minutes before supper"
+   ],
+   "boosters": [
+    "Smoked paprika and lemon on the hummus"
+   ]
+  },
+  {
+   "id": "psyllium-water",
+   "slot": "snack",
+   "emoji": "🥛",
+   "name": "Psyllium in water",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "psyllium",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "30 seconds"
+   ],
+   "keepsDays": 0,
+   "estCost": 2,
+   "steps": [
+    "Stir 1 tsp psyllium husk into a big glass of water",
+    "Drink straight away, before it thickens",
+    "Follow with another glass of water"
+   ],
+   "boosters": [
+    "A squeeze of lemon makes it easier to drink"
+   ]
+  },
+  {
+   "id": "orange-walnuts",
+   "slot": "snack",
+   "emoji": "🍊",
+   "name": "Orange & walnuts",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "orange",
+     "1"
+    ],
+    [
+     "walnuts",
+     "4 halves"
+    ]
+   ],
+   "tags": [
+    "Desk drawer"
+   ],
+   "keepsDays": 0,
+   "estCost": 7,
+   "steps": [
+    "Peel 1 orange",
+    "4 walnut halves",
+    "Eat 30–60 minutes before supper"
+   ],
+   "boosters": [
+    "Toast the walnuts in a dry pan first"
+   ]
+  },
+  {
+   "id": "pear-pumpkin",
+   "slot": "snack",
+   "emoji": "🍐",
+   "name": "Pear & pumpkin seeds",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "pear",
+     "1"
+    ],
+    [
+     "pumpkin-seeds",
+     "1 tbsp"
+    ]
+   ],
+   "tags": [
+    "Desk drawer"
+   ],
+   "keepsDays": 0,
+   "estCost": 8,
+   "steps": [
+    "1 pear",
+    "1 tbsp pumpkin seeds",
+    "Eat 30–60 minutes before supper"
+   ],
+   "boosters": [
+    "Toast the seeds with a pinch of smoked paprika"
+   ]
+  },
+  {
+   "id": "yoghurt-berries",
+   "slot": "snack",
+   "emoji": "🫐",
+   "name": "Yoghurt with berries & chia",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "yoghurt-lowfat",
+     "½ cup"
+    ],
+    [
+     "blueberries",
+     "⅓ cup"
+    ],
+    [
+     "chia",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "2 minutes"
+   ],
+   "keepsDays": 1,
+   "estCost": 10,
+   "steps": [
+    "½ cup plain yoghurt in a tub",
+    "Top with ⅓ cup blueberries and 1 tsp chia",
+    "Eat 30–60 minutes before supper"
+   ],
+   "boosters": [
+    "A little grated lemon zest"
+   ]
+  },
+  {
+   "id": "roast-chickpeas",
+   "slot": "snack",
+   "emoji": "🫘",
+   "name": "Spiced roast chickpeas",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "chickpeas",
+     "½ cup"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "Batch cook"
+   ],
+   "keepsDays": 5,
+   "prepGroup": "chickpeas",
+   "estCost": 5,
+   "steps": [
+    "Dry rinsed chickpeas well on a towel",
+    "Toss with olive oil, smoked paprika and cumin",
+    "Roast at 200 °C for 25–30 minutes, shaking halfway",
+    "Cool and keep in a jar"
+   ],
+   "boosters": [
+    "Try peri-peri spice (salt-free) instead"
+   ]
+  }
+ ]
+}
