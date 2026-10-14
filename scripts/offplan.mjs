@@ -34,7 +34,7 @@ assert.equal(await cardCount(), before - 1, "that slot's card is gone");
 await p.screenshot({ path: path.join(out, "op2-replaced.png") });
 
 // An extra on top.
-await p.locator(".habit", { hasText: "Extra" }).click();
+await p.getByRole("button", { name: /\+ Extra/ }).click();
 await p.waitForTimeout(600);
 assert.match(await p.locator(".sheet-title").innerText(), /extra/i);
 await p.locator(".checkin-opt", { hasText: "Chocolate" }).click();

@@ -44,16 +44,15 @@ const hour = new Date().getHours();
 const hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
 /* One calm sentence about why today looks the way it does. */
-function outlookLine(a: CheckInAnswer, carry: number) {
+function outlookLine(a: CheckInAnswer, carry: number): string | null {
   const name = a.lastNight ? supperMap.get(a.lastNight.supperId)?.name.toLowerCase() : null;
   if (carry >= 2 && a.tonight === "heavy") return `Last night's ${name} was a big one and tonight's heavy too, so today stays very lean.`;
   if (carry >= 2) return `Last night's ${name} was a big one, so today leans lean and high in fibre.`;
   if (carry > 0 && a.tonight === "heavy") return `Last night's ${name} was a bit rich and tonight's heavy, so today stays lean.`;
   if (carry > 0) return `Last night's ${name} was a bit rich, so today leans a little lighter.`;
   if (a.tonight === "heavy") return "Keeping today lean to make room for tonight's heavy supper.";
-  if (a.lastNight && a.tonight === "light") return "Easy night last night and a light one tonight. Plenty of room today.";
-  if (a.lastNight) return "Last night was easy on the plan. Today has room for a normal supper.";
-  return "Today's plan leaves room for a normal supper tonight.";
+  // An ordinary day needs no explanation.
+  return null;
 }
 
 export default function App() {
@@ -69,6 +68,7 @@ export default function App() {
   const [offPlan, setOffPlan] = useState<OffPlanTarget>(null);
   const [tomorrowOpen, setTomorrowOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
+  const [eatenOpen, setEatenOpen] = useState(false);
   const [updateId, setUpdateId] = useState<string | null>(null);
   const [supperOpen, setSupperOpen] = useState(false);
   // Read the release notes only once the main app is showing, so they aren't used up behind Setup.
@@ -152,8 +152,6 @@ export default function App() {
     supper: app.prefs.supperTonight?.date === todayIso ? { supperId: app.prefs.supperTonight.supperId, plate: app.prefs.supperTonight.plate } : null,
     onSupper: () => setSupperOpen(true),
     dot: todayDot,
-    onPlanWeek: () => { setTomorrowOpen(false); setScreen("week"); },
-    hasWeek: !!app.week,
   };
 
   // Tell the user when a newer build has been published, and offer to load it.
@@ -310,17 +308,19 @@ export default function App() {
       {app.answer && day && (
         <section className="outlook">
           <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={outlookLine(app.answer, app.carry)}
-              className="fit"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18 }}
-            >
-              <span className="pip" />
-              {outlookLine(app.answer, app.carry)}
-            </motion.div>
+            {outlookLine(app.answer, app.carry) && (
+              <motion.div
+                key={outlookLine(app.answer, app.carry)!}
+                className="fit"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18 }}
+              >
+                <span className="pip" />
+                {outlookLine(app.answer, app.carry)}
+              </motion.div>
+            )}
           </AnimatePresence>
           <div className="outlook-pills">
             <motion.button className="supper-pill" whileTap={{ scale: 0.95 }} onClick={() => setCheckIn(true)}>
@@ -405,8 +405,15 @@ export default function App() {
       <AnimatePresence initial={false}>
         {day && (day.eaten.length > 0 || (day.replaced ?? []).length > 0) && (
           <motion.section key="eaten" className="done" layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3 className="section-label">Eaten</h3>
-            <AnimatePresence initial={false}>
+            {daytimeDone ? (
+              <button className="eaten-toggle" aria-expanded={eatenOpen} onClick={() => setEatenOpen((o) => !o)}>
+                <span className="section-label">Eaten today · {day.eaten.length + (day.replaced ?? []).length}</span>
+                <span className="link">{eatenOpen ? "Hide" : "Show"}</span>
+              </button>
+            ) : (
+              <h3 className="section-label">Eaten</h3>
+            )}
+            {(!daytimeDone || eatenOpen) && <AnimatePresence initial={false}>
               {day.eaten.map((e) => {
                 const s = SLOTS.find((x) => x.key === e.slot)!;
                 const m = mealMap.get(e.mealId);
@@ -448,14 +455,20 @@ export default function App() {
                   </motion.div>
                 );
               })}
-            </AnimatePresence>
+            </AnimatePresence>}
           </motion.section>
         )}
       </AnimatePresence>
 
       {day && (
         <section className="also">
-          <h3 className="section-label">Also today</h3>
+          <div className="also-head">
+            <h3 className="section-label">Also today</h3>
+            <span className="also-links">
+              <button className="link" onClick={() => setOffPlan({ mode: "extra" })}>+ Extra{(day.extras ?? []).length ? ` (${(day.extras ?? []).length})` : ""}</button>
+              <button className="link" onClick={() => setTomorrowOpen(true)}>Tomorrow</button>
+            </span>
+          </div>
           <div className="habits">
             <motion.button className="habit" aria-pressed={doseCount > 0 && taken.length >= doseCount} whileTap={{ scale: 0.95 }} onClick={() => void actions.toggleTablet()}>
               <span className="emoji">💊</span>
@@ -474,24 +487,13 @@ export default function App() {
               <span className="emoji">{move.emoji}</span>
               <span className="txt"><span className="h1">{move.label}</span><span className="h2">{day.walk ? "Done today" : move.hint}</span></span>
             </motion.button>
-            <motion.button className="habit" whileTap={{ scale: 0.95 }} onClick={() => setTomorrowOpen(true)}>
-              <span className="emoji">🌙</span>
-              <span className="txt"><span className="h1">Tomorrow</span><span className="h2">Prep and shopping</span></span>
-            </motion.button>
-            <motion.button className="habit" whileTap={{ scale: 0.95 }} onClick={() => setOffPlan({ mode: "extra" })}>
-              <span className="emoji">➕</span>
-              <span className="txt">
-                <span className="h1">Extra</span>
-                <span className="h2">{(day.extras ?? []).length ? `${(day.extras ?? []).length} today · tap to add` : "Cake, chips, a drink…"}</span>
-              </span>
-            </motion.button>
             {(day.extras ?? []).map((x, i) => (
               <div key={`${x.at}-${i}`} className="extra-row">
                 <span>{x.kind} · {x.size}</span>
                 <button className="link" onClick={() => void actions.removeExtra(i)}>Remove</button>
               </div>
             ))}
-            <div className="cue"><span className="emoji">☕</span>Last coffee by 12:00 · filter or instant, not plunger</div>
+            {hour < 12 && <div className="cue"><span className="emoji">☕</span>Last coffee by 12:00 · filter or instant, not plunger</div>}
           </div>
         </section>
       )}

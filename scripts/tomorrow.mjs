@@ -71,7 +71,7 @@ await p.waitForTimeout(700);
 const st = (await rows("prefs"))[0].supperTonight;
 assert.equal(st.date, "2026-10-14");
 assert.match(st.supperId, /nando/i);
-assert.match(await p.locator(".supper-row").innerText(), /Nando/);
+assert.match(await p.locator(".supper-link").innerText(), /Nando/);
 await p.screenshot({ path: path.join(out, "tm2-supper.png") });
 
 // Next morning the check-in already has it.

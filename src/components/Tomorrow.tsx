@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { suppers } from "../core/content";
-import { formatAmount } from "../core/stock";
 import type { DayState } from "../core/score";
 import type { TomorrowPlan } from "../core/tomorrow";
 import { SLOTS } from "../core/planner";
@@ -23,8 +22,6 @@ interface Props {
   onSupper: () => void;
   /** How today went, shown as a small quiet dot; null hides it. */
   dot: DayState | null;
-  onPlanWeek: () => void;
-  hasWeek: boolean;
 }
 
 const DOT_WORDS: Record<DayState, string> = { none: "", partial: "Today was partly recorded", green: "Today went well", yellow: "Today was mixed", red: "Today was a tough one" };
@@ -66,15 +63,7 @@ export function TomorrowPanel(p: Props) {
         <section>
           <h3 className="section-label">Pick up for tomorrow</h3>
           <div className="nudge">
-            {needs.map((n) => {
-              const f = foodMap.get(n.foodId);
-              return f ? (
-                <div key={n.foodId} className="row-between">
-                  <span>{f.emoji} {f.name}</span>
-                  <span className="sub">short {formatAmount(f, n.needG)}</span>
-                </div>
-              ) : null;
-            })}
+            <span>{needs.slice(0, 3).map((n) => foodMap.get(n.foodId)?.name ?? n.foodId).join(", ")}{needs.length > 3 ? ` and ${needs.length - 3} more` : ""}</span>
             <button className={allListed ? "btn small ghost" : "btn small"} disabled={allListed} onClick={p.onAddNeeds}>
               {allListed ? "On your list" : `Add ${needs.length} to your list`}
             </button>
@@ -97,18 +86,9 @@ export function TomorrowPanel(p: Props) {
         </div>
       </section>
 
-      <section>
-        <h3 className="section-label">Supper</h3>
-        <button className="nudge supper-row" onClick={p.onSupper}>
-          <span className="prep-txt">
-            <b>{supperName ? `${supperName}, ${p.supper!.plate.toLowerCase()} plate` : "What's supper tonight?"}</b>
-            <small>{supperName ? "Tomorrow's first question is already answered." : "Optional. It saves a question tomorrow morning."}</small>
-          </span>
-          <span className="pill">{supperName ? "Change" : "Tell me now"}</span>
-        </button>
-      </section>
-
-      <button className="btn ghost" onClick={p.onPlanWeek}>{p.hasWeek ? "See the week" : "Plan the week"}</button>
+      <button className="link supper-link" onClick={p.onSupper}>
+        {supperName ? `Supper: ${supperName}, ${p.supper!.plate.toLowerCase()} plate. Change` : "What's supper tonight? Tell me now"}
+      </button>
     </motion.div>
   );
 }
