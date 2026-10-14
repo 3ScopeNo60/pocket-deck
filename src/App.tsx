@@ -14,6 +14,10 @@ import { Setup } from "./components/Setup";
 import { Progress } from "./components/Progress";
 import { OffPlanSheet, type OffPlanTarget } from "./components/OffPlan";
 import { BackupNudge, LookBack } from "./components/Nudges";
+import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
+import { tomorrowPlan } from "./core/tomorrow";
+import { addDays } from "./app/history";
+import { meals as allMeals } from "./core/content";
 import { backupAgeWords, backupDue, lookbackDue } from "./core/nudges";
 import { iso, lastDates, mealMap as histMeals, foodMap as histFoods, scoreDate } from "./app/history";
 import { summarise } from "./core/score";
@@ -62,6 +66,8 @@ export default function App() {
   const { day, cards, emptySlots, actions } = app;
   const [reviewing, setReviewing] = useState(false);
   const [offPlan, setOffPlan] = useState<OffPlanTarget>(null);
+  const [tomorrowOpen, setTomorrowOpen] = useState(false);
+  const [supperOpen, setSupperOpen] = useState(false);
   // Read the release notes only once the main app is showing, so they aren't used up behind Setup.
   const [whats, setWhats] = useState<ReleaseNotes | null>(null);
   const mainShowing = app.ready && !app.needsSetup;
@@ -77,6 +83,39 @@ export default function App() {
     return summarise(lastDates(todayIso, 7).map((d) => scoreDate(d, byDate, cap, app.med)), histMeals, histFoods, "week");
   }, [todayIso, app.prefs.nudges, recordedDays, app.allDays, app.profile, app.med]);
   const backup = backupDue(todayIso, app.prefs.lastBackupAt, app.prefs.nudges, recordedDays);
+
+  // Tomorrow: prep and shopping, worked out once daytime is done (or when asked for).
+  const daytimeDone = !!day && cards.length === 0 && emptySlots.length === 0;
+  const tomorrowDate = addDays(todayIso, 1);
+  const tomorrow = useMemo(() => {
+    if (!daytimeDone && !tomorrowOpen) return null;
+    return tomorrowPlan({
+      date: tomorrowDate, week: app.week, meals: allMeals, foods: foodMap, products: app.products, prefs: app.prefs,
+      satCap: targets(app.profile).satCap, stock: app.stock,
+      recentMealIds: day ? (Object.values(day.plan).filter(Boolean) as string[]) : [],
+    });
+  }, [daytimeDone, tomorrowOpen, tomorrowDate, app.week, app.products, app.prefs, app.profile, app.stock, day]);
+  const listedIds = useMemo(() => new Set(app.shopping.map((r) => r.itemId)), [app.shopping]);
+  const todayDot = useMemo(() => {
+    if (!daytimeDone) return null;
+    const byDate = new Map(app.allDays.map((d) => [d.date, d]));
+    return scoreDate(todayIso, byDate, targets(app.profile).satCap, app.med).state;
+  }, [daytimeDone, app.allDays, app.profile, app.med, todayIso]);
+  const panelProps = tomorrow && {
+    plan: tomorrow,
+    listed: listedIds,
+    prepDone: app.prefs.prepDone?.date === tomorrowDate ? app.prefs.prepDone.ids : [],
+    onTogglePrep: (id: string) => actions.togglePrep(tomorrowDate, id),
+    onAddNeeds: () => {
+      const n = actions.addToList(tomorrow.needs, "plan");
+      toast(n ? `Added ${n} ${n === 1 ? "thing" : "things"} to your list` : "Already on your list");
+    },
+    supper: app.prefs.supperTonight?.date === todayIso ? { supperId: app.prefs.supperTonight.supperId, plate: app.prefs.supperTonight.plate } : null,
+    onSupper: () => setSupperOpen(true),
+    dot: todayDot,
+    onPlanWeek: () => { setTomorrowOpen(false); setScreen("week"); },
+    hasWeek: !!app.week,
+  };
 
   // Tell the user when a newer build has been published, and offer to load it.
   useEffect(() => {
@@ -263,6 +302,7 @@ export default function App() {
       )}
 
       {day && <Deck
+        collapsed={daytimeDone && !!panelProps}
         slots={cards.map((c) => c.slot)}
         mealFor={(slot) => cardFor.get(slot)!}
         exit={exit}
@@ -301,7 +341,7 @@ export default function App() {
           const n = actions.addMealToList(c.mealId, "plan");
           toast(n ? `Added ${n} ${n === 1 ? "thing" : "things"} to your list` : "Already on your list");
         }}
-        empty={
+        empty={!emptySlots.length && panelProps ? null : (
           <motion.div className="end" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.25 }}>
             <span className="emoji">{emptySlots.length ? "🛒" : "🍽️"}</span>
             <h2>{emptySlots.length ? "Nothing fits yet" : "Daytime done"}</h2>
@@ -322,9 +362,11 @@ export default function App() {
                 <button className="btn ghost" onClick={() => setScreen("week")}>{app.week ? "See the week" : "Plan the week"}</button>
               </div>
             )}
-          </motion.div>
+          </motion.div>)
         }
       />}
+
+      {day && daytimeDone && panelProps && <TomorrowPanel title="Daytime done" {...panelProps} />}
 
       <AnimatePresence initial={false}>
         {day && (day.eaten.length > 0 || (day.replaced ?? []).length > 0) && (
@@ -398,6 +440,10 @@ export default function App() {
               <span className="emoji">{move.emoji}</span>
               <span className="txt"><span className="h1">{move.label}</span><span className="h2">{day.walk ? "Done today" : move.hint}</span></span>
             </motion.button>
+            <motion.button className="habit" whileTap={{ scale: 0.95 }} onClick={() => setTomorrowOpen(true)}>
+              <span className="emoji">🌙</span>
+              <span className="txt"><span className="h1">Tomorrow</span><span className="h2">Prep and shopping</span></span>
+            </motion.button>
             <motion.button className="habit" whileTap={{ scale: 0.95 }} onClick={() => setOffPlan({ mode: "extra" })}>
               <span className="emoji">➕</span>
               <span className="txt">
@@ -434,7 +480,10 @@ export default function App() {
             key="checkin"
             greeting={hello}
             date={dateLabel}
-            initial={checkIn && app.answer ? app.answer : null}
+            initial={checkIn && app.answer ? app.answer
+              : app.prefs.supperTonight?.date === addDays(todayIso, -1)
+                ? { lastNight: { supperId: app.prefs.supperTonight.supperId, plate: app.prefs.supperTonight.plate }, tonight: "normal" }
+                : null}
             changing={checkIn}
             onDone={submit}
             onClose={() => setCheckIn(false)}
@@ -446,6 +495,17 @@ export default function App() {
           <NewMeals key="newmeals" ids={app.newMealIds} stock={app.stock} onDecide={actions.decideNewMeal} onClose={() => setReviewing(false)} />
         )}
       </AnimatePresence>
+      <Sheet open={tomorrowOpen && !!panelProps} onOpenChange={setTomorrowOpen} title="Tomorrow">
+        {panelProps && <TomorrowPanel {...panelProps} title="Tomorrow" dot={null} />}
+      </Sheet>
+      <SupperNowSheet
+        open={supperOpen}
+        current={panelProps?.supper ?? null}
+        onClose={() => setSupperOpen(false)}
+        onSave={(sp) => { actions.setSupperTonight(sp); setSupperOpen(false); toast("Got it. Tomorrow's question is answered."); }}
+        onClear={() => { actions.setSupperTonight(null); setSupperOpen(false); }}
+      />
+
       <OffPlanSheet
         target={offPlan}
         onClose={() => setOffPlan(null)}

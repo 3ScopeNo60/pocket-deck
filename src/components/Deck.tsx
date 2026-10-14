@@ -41,12 +41,14 @@ interface DeckProps extends BackInfo {
   onSwap: (slot: SlotKey, dir: 1 | -1) => boolean;
   onEat: (slot: SlotKey) => void;
   empty: React.ReactNode;
+  /** Daytime is done and something else takes the space: the deck folds away. */
+  collapsed?: boolean;
 }
 
-export function Deck({ slots, mealFor, exit, flipped, onFlip, onSwap, onEat, empty, ...back }: DeckProps) {
+export function Deck({ slots, mealFor, exit, flipped, onFlip, onSwap, onEat, empty, collapsed, ...back }: DeckProps) {
   const shown = slots.slice(0, 3);
   return (
-    <div className="deck">
+    <div className={collapsed ? "deck deck-done" : "deck"}>
       {shown.length === 0 && empty}
       <AnimatePresence initial={false} custom={exit}>
         {shown

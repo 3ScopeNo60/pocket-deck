@@ -100,6 +100,10 @@ export interface Prefs {
   seenMeals?: string[];
   /** When the last backup file was made (ISO). */
   lastBackupAt?: string;
+  /** Tonight's supper, told in the evening so tomorrow's check-in is already answered. */
+  supperTonight?: { date: string; supperId: string; plate: "Small" | "Normal" | "Big" };
+  /** Night-before prep ticked off for one date. */
+  prepDone?: { date: string; ids: string[] };
   /** Quiet prompts he has put away for now. */
   nudges?: { lookbackOn?: string; backupUntil?: string };
   /** True once Setup was finished or skipped, so it isn't offered again. */

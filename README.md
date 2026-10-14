@@ -28,6 +28,7 @@ node scripts/offplan.mjs  <shots-dir>   # had something else, extras, skipping
 node scripts/nudges.mjs   <shots-dir>   # Sunday look-back, backup reminder (fixed clock)
 node scripts/ownmeal.mjs  <shots-dir>   # add your own meal
 node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm run build)
+node scripts/tomorrow.mjs <shots-dir>   # daytime done: prep, shopping, tell supper now
 node scripts/label.mjs    <shots-dir>   # label scan: pasted text and a photo (needs npm run build)
 ```
 

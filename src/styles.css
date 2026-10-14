@@ -642,7 +642,7 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 /* Unplanned food */
 .skip-chip { margin-bottom: 4px; }
 .extra-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--surface); border-radius: 14px; padding: 8px 14px; font-size: 0.9rem; }
-.habits > .extra-row, .habits > .cue, .habits > .habit:nth-child(3) { grid-column: 1 / -1; }
+.habits > .extra-row, .habits > .cue { grid-column: 1 / -1; }
 
 /* Quiet prompts on Today */
 .nudge { display: flex; flex-direction: column; gap: 6px; background: var(--surface); border-radius: 22px; padding: 14px 16px; }
@@ -664,3 +664,23 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 /* For your doctor */
 .doc-page { display: flex; flex-direction: column; gap: 10px; background: var(--page); border-radius: 18px; padding: 14px; }
 .doc-head { font-family: var(--display); font-weight: 800; font-size: 1.05rem; }
+
+/* Tomorrow */
+.tomorrow { display: flex; flex-direction: column; gap: 10px; width: 100%; padding-top: 6px; }
+.tomorrow h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.02em; }
+.tomorrow-head { display: flex; align-items: center; gap: 10px; }
+.tdot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.tdot.dot-green { background: var(--dot-green); }
+.tdot.dot-yellow, .tdot.dot-partial { background: var(--dot-yellow); }
+.tdot.dot-red { background: var(--dot-red); }
+.tomorrow section { display: flex; flex-direction: column; gap: 6px; }
+.prep-row { display: flex; align-items: flex-start; gap: 10px; text-align: left; border: none; background: none; padding: 4px 0; width: 100%; }
+.tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex-shrink: 0; display: grid; place-items: center; font-size: 0.8rem; margin-top: 1px; }
+.tick.d { background: var(--dot-green); border-color: var(--dot-green); }
+.prep-txt { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+.prep-txt small { color: var(--muted); font-size: 0.8rem; font-weight: 500; }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.supper-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; text-align: left; border: none; width: 100%; }
+.nudge .sub, .tomorrow .sub { color: var(--muted); font-size: 0.82rem; }
+
+.deck-done { height: 0; margin: 0; }

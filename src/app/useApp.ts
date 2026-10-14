@@ -261,6 +261,26 @@ export function useApp() {
     void persist(db.put("prefs", next));
   }, []);
 
+  /** Tick a night-before prep job for tomorrow on or off. */
+  const togglePrep = useCallback((forDate: string, mealId: string) => {
+    const pr = latest.current.prefs;
+    const ids = pr.prepDone?.date === forDate ? pr.prepDone.ids : [];
+    const next: Prefs = { ...pr, prepDone: { date: forDate, ids: ids.includes(mealId) ? ids.filter((x) => x !== mealId) : [...ids, mealId] } };
+    latest.current.prefs = next;
+    setPrefs(next);
+    void persist(db.put("prefs", next));
+  }, []);
+
+  /** Say now what tonight's supper is (or take it back). Tomorrow's check-in starts from it. */
+  const setSupperTonight = useCallback((s: { supperId: string; plate: "Small" | "Normal" | "Big" } | null) => {
+    const pr = latest.current.prefs;
+    const { supperTonight: _drop, ...rest } = pr;
+    const next: Prefs = s ? { ...rest, supperTonight: { date, ...s } } : rest;
+    latest.current.prefs = next;
+    setPrefs(next);
+    void persist(db.put("prefs", next));
+  }, [date]);
+
   /** Save a meal he built himself and put it straight into the rotation. */
   const addOwnMeal = useCallback(async (draft: MealDraft) => {
     const meal = buildCustomMeal(draft, new Set(meals.map((m) => m.id)), foodMap);
@@ -632,7 +652,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan) + overageOf(day) : 0,
     actions: {
       submitAnswer, swap, eat, undo, notFeelingIt, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
-      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
+      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },
   };
