@@ -261,6 +261,18 @@ export function useApp() {
     void persist(db.put("prefs", next));
   }, []);
 
+  /** The bell's items have been seen. */
+  const markInboxRead = useCallback((ids: string[]) => {
+    const pr = latest.current.prefs;
+    const have = new Set(pr.inboxRead ?? []);
+    if (ids.every((id) => have.has(id))) return;
+    // keep the list from growing for ever
+    const next: Prefs = { ...pr, inboxRead: [...new Set([...(pr.inboxRead ?? []), ...ids])].slice(-60) };
+    latest.current.prefs = next;
+    setPrefs(next);
+    void persist(db.put("prefs", next));
+  }, []);
+
   /** Tick a night-before prep job for tomorrow on or off. */
   const togglePrep = useCallback((forDate: string, mealId: string) => {
     const pr = latest.current.prefs;
@@ -652,7 +664,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan) + overageOf(day) : 0,
     actions: {
       submitAnswer, swap, eat, undo, notFeelingIt, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
-      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
+      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },
   };

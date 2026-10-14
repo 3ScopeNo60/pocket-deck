@@ -57,6 +57,12 @@ await p.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
 await p.waitForTimeout(1200);
 assert.equal(await noToast(), 1, "newer build: notice shown");
 await p.screenshot({ path: path.join(out, "up1-toast.png") });
+// ...and it's in the bell too.
+await p.locator(".bell").evaluate((el) => el.click());
+await p.waitForTimeout(600);
+assert.match(await p.locator(".inbox-item[data-kind=update]").innerText(), /new version is ready/i);
+await p.keyboard.press("Escape");
+await p.waitForTimeout(500);
 
 // A second return doesn't stack another toast.
 await p.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));

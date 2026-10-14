@@ -13,7 +13,8 @@ import { WeekScreen } from "./components/Week";
 import { Setup } from "./components/Setup";
 import { Progress } from "./components/Progress";
 import { OffPlanSheet, type OffPlanTarget } from "./components/OffPlan";
-import { BackupNudge, LookBack } from "./components/Nudges";
+import { BellButton, InboxSheet } from "./components/Inbox";
+import { buildInbox, type InboxItem } from "./core/inbox";
 import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
 import { tomorrowPlan } from "./core/tomorrow";
 import { addDays } from "./app/history";
@@ -67,6 +68,8 @@ export default function App() {
   const [reviewing, setReviewing] = useState(false);
   const [offPlan, setOffPlan] = useState<OffPlanTarget>(null);
   const [tomorrowOpen, setTomorrowOpen] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const [updateId, setUpdateId] = useState<string | null>(null);
   const [supperOpen, setSupperOpen] = useState(false);
   // Read the release notes only once the main app is showing, so they aren't used up behind Setup.
   const [whats, setWhats] = useState<ReleaseNotes | null>(null);
@@ -86,21 +89,57 @@ export default function App() {
 
   // Tomorrow: prep and shopping, worked out once daytime is done (or when asked for).
   const daytimeDone = !!day && cards.length === 0 && emptySlots.length === 0;
+  const evening = !!day && new Date().getHours() >= 15;
   const tomorrowDate = addDays(todayIso, 1);
   const tomorrow = useMemo(() => {
-    if (!daytimeDone && !tomorrowOpen) return null;
+    if (!daytimeDone && !tomorrowOpen && !evening) return null;
     return tomorrowPlan({
       date: tomorrowDate, week: app.week, meals: allMeals, foods: foodMap, products: app.products, prefs: app.prefs,
       satCap: targets(app.profile).satCap, stock: app.stock,
       recentMealIds: day ? (Object.values(day.plan).filter(Boolean) as string[]) : [],
     });
-  }, [daytimeDone, tomorrowOpen, tomorrowDate, app.week, app.products, app.prefs, app.profile, app.stock, day]);
+  }, [daytimeDone, tomorrowOpen, evening, tomorrowDate, app.week, app.products, app.prefs, app.profile, app.stock, day]);
   const listedIds = useMemo(() => new Set(app.shopping.map((r) => r.itemId)), [app.shopping]);
   const todayDot = useMemo(() => {
     if (!daytimeDone) return null;
     const byDate = new Map(app.allDays.map((d) => [d.date, d]));
     return scoreDate(todayIso, byDate, targets(app.profile).satCap, app.med).state;
   }, [daytimeDone, app.allDays, app.profile, app.med, todayIso]);
+  const inbox = useMemo<InboxItem[]>(() => {
+    if (!day) return [];
+    const lowNames = app.stock
+      .filter((s) => s.kind === "food" && foodMap.get(s.itemId) && isLow(foodMap.get(s.itemId)!, s.grams))
+      .map((s) => foodMap.get(s.itemId)!.name);
+    const unlisted = tomorrow ? tomorrow.needs.filter((n) => !listedIds.has(n.foodId)).map((n) => foodMap.get(n.foodId)?.name ?? n.foodId) : null;
+    const med = app.med && app.med.pillsLeft >= 0 ? { id: app.med.id, pillsLeft: app.med.pillsLeft, perDay: (app.med.times?.length ?? 1) * (app.med.perDose ?? 1) } : null;
+    const lastLab = app.labs.length ? app.labs[app.labs.length - 1].date : null;
+    return buildInbox({
+      todayIso, updateId, updateNote: RELEASE_NOTES.notes[0], newMealCount: app.newMealIds.length,
+      tomorrowNeeds: unlisted, tomorrowDate, lowNames, med, lastLabDate: lastLab,
+      lookback: lookBack ? { headline: lookBack.headline, tip: lookBack.suggestions[0] } : null,
+      backup: { due: backup.due, words: backupAgeWords(backup.ageDays) },
+    });
+  }, [day, app.stock, app.med, app.labs, app.newMealIds, tomorrow, listedIds, todayIso, updateId, tomorrowDate, lookBack, backup.due, backup.ageDays]);
+  const unread = inbox.filter((x) => !(app.prefs.inboxRead ?? []).includes(x.id));
+  const act = (item: InboxItem, key: "open" | "dismiss") => {
+    if (key === "dismiss") {
+      if (item.kind === "lookback") actions.dismissNudge("lookback");
+      if (item.kind === "backup") actions.dismissNudge("backup");
+      return;
+    }
+    setInboxOpen(false);
+    actions.markInboxRead(inbox.map((x) => x.id));
+    switch (item.kind) {
+      case "update": window.location.reload(); break;
+      case "newmeals": setReviewing(true); break;
+      case "shopping": if (tomorrow) { const n = actions.addToList(tomorrow.needs, "plan"); toast(n ? `Added ${n} ${n === 1 ? "thing" : "things"} to your list` : "Already on your list"); } break;
+      case "low": setScreen("kitchen"); break;
+      case "refill": setScreen("me"); break;
+      case "labs": case "lookback": setScreen("progress"); break;
+      case "backup": setScreen("me"); break;
+    }
+  };
+
   const panelProps = tomorrow && {
     plan: tomorrow,
     listed: listedIds,
@@ -122,7 +161,9 @@ export default function App() {
     if (BUILD_ID === "dev") return;
     const check = async () => {
       if (document.visibilityState !== "visible") return;
-      if (await newerBuild()) {
+      const newer = await newerBuild();
+      if (newer) {
+        setUpdateId(newer.id);
         toast("A new version is ready", { id: "update", duration: Infinity, action: { label: "Update now", onClick: () => window.location.reload() } });
       }
     };
@@ -160,7 +201,7 @@ export default function App() {
           onFinish={actions.completeSetup}
           onSkip={actions.skipSetup}
         />
-        <Toaster position="top-center" toastOptions={{ className: "toast" }} />
+        <Toaster position="top-center" offset={64} toastOptions={{ className: "toast" }} />
       </div>
     );
   }
@@ -232,7 +273,9 @@ export default function App() {
             version: BUILD_ID,
             onWhatsNew: () => setWhats(RELEASE_NOTES),
             onCheck: async () => {
-              if (await newerBuild()) toast("A new version is ready", { id: "update", duration: Infinity, action: { label: "Update now", onClick: () => window.location.reload() } });
+              const newer = await newerBuild();
+              if (newer) setUpdateId(newer.id);
+              if (newer) toast("A new version is ready", { id: "update", duration: Infinity, action: { label: "Update now", onClick: () => window.location.reload() } });
               else toast("You're on the latest version");
             },
           }}
@@ -290,16 +333,7 @@ export default function App() {
         </section>
       )}
 
-      {day && lookBack && <LookBack summary={lookBack} onOpen={() => setScreen("progress")} onDismiss={() => actions.dismissNudge("lookback")} />}
-      {day && backup.due && <BackupNudge words={backupAgeWords(backup.ageDays)} onOpen={() => setScreen("me")} onDismiss={() => actions.dismissNudge("backup")} />}
 
-      {day && app.newMealIds.length > 0 && (
-        <motion.button className="newmeals" whileTap={{ scale: 0.97 }} onClick={() => setReviewing(true)}>
-          <span className="emoji">✨</span>
-          <span className="kname">{app.newMealIds.length} new {app.newMealIds.length === 1 ? "meal" : "meals"} unlocked<small>Have a look before they join your rotation</small></span>
-          <span className="pill">Preview</span>
-        </motion.button>
-      )}
 
       {day && <Deck
         collapsed={daytimeDone && !!panelProps}
@@ -464,6 +498,15 @@ export default function App() {
 
       </>)}
 
+      {day && !app.needsCheckIn && !checkIn && <BellButton count={unread.length} onOpen={() => setInboxOpen(true)} />}
+      <InboxSheet
+        open={inboxOpen}
+        items={inbox}
+        read={app.prefs.inboxRead ?? []}
+        onClose={() => { setInboxOpen(false); actions.markInboxRead(inbox.map((x) => x.id)); }}
+        onAct={act}
+      />
+
       <RadialMenu
         items={NAV}
         current={screen}
@@ -542,7 +585,7 @@ export default function App() {
           if (app.answer) void submit({ ...app.answer, tonight: t });
         }}
       />
-      <Toaster position="top-center" toastOptions={{ className: "toast" }} />
+      <Toaster position="top-center" offset={64} toastOptions={{ className: "toast" }} />
     </div>
   );
 }

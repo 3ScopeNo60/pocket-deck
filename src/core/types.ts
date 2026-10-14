@@ -104,6 +104,8 @@ export interface Prefs {
   supperTonight?: { date: string; supperId: string; plate: "Small" | "Normal" | "Big" };
   /** Night-before prep ticked off for one date. */
   prepDone?: { date: string; ids: string[] };
+  /** Ids of bell items he has seen. */
+  inboxRead?: string[];
   /** Quiet prompts he has put away for now. */
   nudges?: { lookbackOn?: string; backupUntil?: string };
   /** True once Setup was finished or skipped, so it isn't offered again. */
