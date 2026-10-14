@@ -20,7 +20,7 @@ import { summarise } from "./core/score";
 import { NewMeals } from "./components/NewMeals";
 import { Sheet } from "./components/Sheets";
 import { targets } from "./core/nutrition";
-import { BUILD_ID, newerBuild, whatsNewOnce, type ReleaseNotes } from "./app/updates";
+import { BUILD_ID, RELEASE_NOTES, newerBuild, whatsNewOnce, type ReleaseNotes } from "./app/updates";
 import { useApp } from "./app/useApp";
 import { mealMap, supperMap, toCard, foodMap } from "./app/viewModel";
 import { isLow } from "./core/stock";
@@ -189,6 +189,14 @@ export default function App() {
       {screen === "me" && (
         <Me
           profile={app.profile}
+          about={import.meta.env.MODE === "single" ? undefined : {
+            version: BUILD_ID,
+            onWhatsNew: () => setWhats(RELEASE_NOTES),
+            onCheck: async () => {
+              if (await newerBuild()) toast("A new version is ready", { id: "update", duration: Infinity, action: { label: "Update now", onClick: () => window.location.reload() } });
+              else toast("You're on the latest version");
+            },
+          }}
           onRedoSetup={actions.redoSetup}
           onBackedUp={actions.markBackedUp}
           lastBackupAt={app.prefs.lastBackupAt}

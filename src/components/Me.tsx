@@ -28,7 +28,7 @@ const SCENARIOS: { key: Scenario; emoji: string; title: string; hint: string }[]
   { key: "reset", emoji: "♻️", title: "Reset everything", hint: "Back to the starter pantry and placeholder profile" },
 ];
 
-export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded }: { profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
+export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about }: { about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
   const [sex, setSex] = useState(profile.sex);
   const [activity, setActivity] = useState(profile.activity);
@@ -119,6 +119,17 @@ export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastB
             <div><dt>Sodium limit</dt><dd>{t.sodiumMax.toLocaleString("en-ZA")} mg</dd></div>
           </div>
           <p className="k-sub">Set to keep you energised, not to lose weight. Saturated fat is 6% of your energy.</p>
+        </section>
+      )}
+
+      {about && !embedded && (
+        <section className="k-section">
+          <h3 className="section-label">About this app</h3>
+          <p className="k-sub">Version <b>{about.version}</b></p>
+          <div className="blood-actions">
+            <button className="btn small ghost" onClick={about.onCheck}>Check for updates</button>
+            <button className="btn small ghost" onClick={about.onWhatsNew}>What's new</button>
+          </div>
         </section>
       )}
 

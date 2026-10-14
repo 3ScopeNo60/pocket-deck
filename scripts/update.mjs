@@ -30,8 +30,26 @@ await p.goto(url);
 await p.waitForTimeout(1200);
 await p.getByRole("button", { name: "Skip for now" }).click();
 await p.waitForTimeout(600);
+await p.locator(".supper-opt", { hasText: "Fish" }).click();
+await p.getByRole("button", { name: "Plan my day" }).click();
+await p.waitForTimeout(900);
 const noToast = () => p.getByText("A new version is ready").count();
 assert.equal(await noToast(), 0, "same build: no notice");
+
+// Me shows which version is running, can check on demand, and replays the notes.
+await p.getByRole("button", { name: "Menu" }).click();
+await p.waitForTimeout(450);
+await p.getByRole("button", { name: "Me", exact: true }).click();
+await p.waitForTimeout(600);
+assert.ok(await p.getByText("About this app").isVisible());
+await p.getByRole("button", { name: "Check for updates" }).click();
+await p.waitForTimeout(900);
+assert.ok(await p.getByText("You're on the latest version").isVisible(), "says it's current");
+await p.getByRole("button", { name: "What's new" }).click();
+await p.waitForTimeout(600);
+assert.ok(await p.locator(".sheet-title", { hasText: "What's new" }).isVisible(), "notes can be replayed");
+await p.keyboard.press("Escape");
+await p.waitForTimeout(500);
 
 // A newer build is published; the phone comes back to the app.
 served = { ...served, id: "next-build", title: "Three new meals", notes: ["Three new meals to try", "A progress view"] };
@@ -46,15 +64,15 @@ await p.waitForTimeout(800);
 assert.equal(await noToast(), 1, "still one notice");
 
 // "What's new" appears once after a build change, never on the very first install.
-assert.equal(await p.getByText("What's new").count(), 0, "first install: no what's-new");
+assert.equal(await p.locator(".sheet-title", { hasText: "What's new" }).count(), 0, "first install: no what's-new");
 await p.evaluate(() => localStorage.setItem("pd-last-build", "older-build"));
 await p.reload();
 await p.waitForTimeout(1500);
-assert.ok(await p.getByText("What's new").first().isVisible(), "what's new after an update");
+assert.ok(await p.locator(".sheet-title", { hasText: "What's new" }).isVisible(), "what's new after an update");
 await p.screenshot({ path: path.join(out, "up2-whatsnew.png") });
 await p.reload();
 await p.waitForTimeout(1200);
-assert.equal(await p.getByText("What's new").count(), 0, "only once");
+assert.equal(await p.locator(".sheet-title", { hasText: "What's new" }).count(), 0, "only once");
 
 console.log("errors:", errors.length ? errors : "none");
 assert.equal(errors.length, 0);
