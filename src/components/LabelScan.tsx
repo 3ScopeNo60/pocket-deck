@@ -138,7 +138,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     return (
       <>
         <p className="k-sub">What is it called, and where do you find it? It joins your food list, so you can stock it, shop for it and use it in your own meals.</p>
-        <label className="me-field"><span className="me-label">Name</span><span className="me-input"><input autoFocus value={fresh.name} placeholder="e.g. Nutty crunch bar" aria-label="Food name" onChange={(e) => setFresh({ ...fresh, name: e.target.value })} /></span></label>
+        <label className="me-field"><span className="me-label">Name</span><span className="me-input"><input value={fresh.name} placeholder="e.g. Nutty crunch bar" aria-label="Food name" onChange={(e) => setFresh({ ...fresh, name: e.target.value })} /></span></label>
         <h3 className="section-label">Icon</h3>
         <LayoutGroup id="pick-emoji">
           <div className="pick-grid pick-emoji" role="group" aria-label="Icon">
@@ -173,7 +173,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     return (
       <>
         <p className="k-sub">Which food is this label for? The numbers replace the food list's for that item.</p>
-        <label className="me-field"><span className="me-input"><input autoFocus value={query} placeholder="Search the food list" aria-label="Search foods" onChange={(e) => setQuery(e.target.value)} /></span></label>
+        <label className="me-field"><span className="me-input"><input value={query} placeholder="Search the food list" aria-label="Search foods" onChange={(e) => setQuery(e.target.value)} /></span></label>
         {matches.map((f) => (<button key={f.id} className="krow" onClick={() => setFoodId(f.id)}><span className="emoji">{f.emoji}</span><span className="kname">{f.name}</span></button>))}
         <button className="krow add-new" onClick={() => { setFresh({ name: query.trim(), emoji: "🛒", aisle: "Tins & dry goods" }); setNaming(true); }}>
           <span className="emoji">＋</span><span className="kname">{query.trim() ? `Add “${query.trim()}” as a new food` : "Not in the list? Add a new food"}<small>For anything the food list doesn't have</small></span>
