@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { foods } from "../core/content";
 import { parseLabel, type LabelNumbers } from "../core/label";
@@ -44,15 +45,26 @@ export function estimateSoluble(food: Food, fibre: number): number {
 
 /** "Scan a label": pick the food, read a photo or pasted text, confirm the numbers. */
 export function LabelScanSheet({ seed, onClose, onSave }: { seed: Seed | null; onClose: () => void; onSave: (r: LabelResult) => void }) {
+  // The big plus at the top right starts a new food from wherever the sheet is.
+  const [addNew, setAddNew] = useState(0);
   return (
-    <Sheet open={!!seed} onOpenChange={(o) => !o && onClose()} title="Scan a label">
-      {seed && <LabelFlow key={`${seed.foodId ?? "new"}-${seed.newName ?? ""}`} seed={seed} onSave={onSave} />}
+    <Sheet
+      open={!!seed}
+      onOpenChange={(o) => !o && onClose()}
+      title="Scan a label"
+      action={
+        <motion.button className="plus-btn" aria-label="Add a new food" whileTap={{ scale: 0.92 }} onClick={() => setAddNew((n) => n + 1)}>
+          <Plus size={30} strokeWidth={2.75} aria-hidden />
+        </motion.button>
+      }
+    >
+      {seed && <LabelFlow key={`${seed.foodId ?? "new"}-${seed.newName ?? ""}`} seed={seed} onSave={onSave} addNew={addNew} />}
     </Sheet>
   );
 }
 
 /** The scan steps on their own, so another sheet (a meal being built) can run them inline. */
-export function LabelFlow({ seed, onSave }: { seed: { foodId: string | null; product?: Product; newName?: string }; onSave: (r: LabelResult) => void }) {
+export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string | null; product?: Product; newName?: string }; onSave: (r: LabelResult) => void; /** Bumped by the sheet's plus button to start a new food. */ addNew?: number }) {
   const [foodId, setFoodId] = useState<string | null>(seed.foodId);
   const [query, setQuery] = useState("");
   // A food that isn't in the list yet: named here, created when the label is saved.
@@ -76,6 +88,16 @@ export function LabelFlow({ seed, onSave }: { seed: { foodId: string | null; pro
   const photos = useRef<HTMLInputElement>(null);
 
   const food = foodId ? foodMap.get(foodId) ?? null : null;
+  const seenAdd = useRef(addNew);
+  useEffect(() => {
+    if (addNew === seenAdd.current) return;
+    seenAdd.current = addNew;
+    setFoodId(null);
+    setConfirm(false);
+    setValues({});
+    setFresh({ name: query.trim(), emoji: "🛒", aisle: "Tins & dry goods" });
+    setNaming(true);
+  }, [addNew, query]);
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
     return foods.filter((f) => !q || f.name.toLowerCase().includes(q)).slice(0, 10);

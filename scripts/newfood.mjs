@@ -14,11 +14,12 @@ await p.waitForTimeout(400);
 // 1. Scan a label for something not in the list.
 await p.getByRole("button", { name: "Scan a label" }).click();
 await p.waitForTimeout(500);
-await p.getByLabel("Search foods").fill("granola bar");
-await p.waitForTimeout(250);
-await p.getByRole("button", { name: /Add “granola bar” as a new food/ }).click();
+// The big plus at the top right goes straight to a new food.
+const plus = p.getByRole("button", { name: "Add a new food", exact: true });
+assert.ok(await plus.isVisible(), "plus button on the sheet");
+await p.screenshot({ path: path.join(out, "nf0-plus.png") });
+await plus.click();
 await p.waitForTimeout(300);
-assert.equal(await p.getByLabel("Food name").inputValue(), "granola bar");
 await p.getByLabel("Food name").fill("Granola bar");
 await p.getByLabel("Icon 🍫").click();
 await p.getByRole("button", { name: "Next: the label" }).click();

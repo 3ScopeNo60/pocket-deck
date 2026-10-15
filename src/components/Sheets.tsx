@@ -2,7 +2,7 @@ import { Drawer } from "vaul";
 import { motion } from "motion/react";
 import { TONIGHT, type Tonight } from "../data/meals";
 
-export function Sheet({ open, onOpenChange, title, children }: { open: boolean; onOpenChange: (o: boolean) => void; title: string; children: React.ReactNode }) {
+export function Sheet({ open, onOpenChange, title, children, action }: { open: boolean; onOpenChange: (o: boolean) => void; title: string; children: React.ReactNode; /** A control pinned to the top right, beside the title. */ action?: React.ReactNode }) {
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>
@@ -10,6 +10,7 @@ export function Sheet({ open, onOpenChange, title, children }: { open: boolean; 
         <Drawer.Content className="sheet" aria-describedby={undefined}>
           <div className="sheet-handle" />
           <Drawer.Title className="sheet-title">{title}</Drawer.Title>
+          {action && <div className="sheet-action">{action}</div>}
           <div className="sheet-body">{children}</div>
         </Drawer.Content>
       </Drawer.Portal>
