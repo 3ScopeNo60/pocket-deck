@@ -15,6 +15,7 @@ import { Progress } from "./components/Progress";
 import { OffPlanSheet, type OffPlanTarget } from "./components/OffPlan";
 import { BellButton, InboxSheet } from "./components/Inbox";
 import { CardSwitcher, type SwitcherMode } from "./components/CardSwitcher";
+import { NumbersSheet } from "./components/NumbersSheet";
 import { buildInbox, type InboxItem } from "./core/inbox";
 import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
 import { tomorrowPlan } from "./core/tomorrow";
@@ -68,6 +69,7 @@ export default function App() {
   const [reviewing, setReviewing] = useState(false);
   const [offPlan, setOffPlan] = useState<OffPlanTarget>(null);
   const [tomorrowOpen, setTomorrowOpen] = useState(false);
+  const [numbersOpen, setNumbersOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [eatenOpen, setEatenOpen] = useState(false);
   /* the card he has chosen to see first, and a count for the shuffle animation */
@@ -279,6 +281,7 @@ export default function App() {
       {screen === "me" && (
         <Me
           profile={app.profile}
+          onNumbers={() => setNumbersOpen(true)}
           onHand={(h) => actions.saveProfile({ ...app.profile, hand: h })}
           onMealTimes={(t) => actions.saveProfile({ ...app.profile, mealTimes: t })}
           med={app.med}
@@ -359,6 +362,7 @@ export default function App() {
         collapsed={daytimeDone && !!panelProps}
         slots={orderedSlots}
         times={mealTimes(app.profile)}
+        onNumbers={() => setNumbersOpen(true)}
         shuffle={shuffleTick}
         mealFor={(slot) => cardFor.get(slot)!}
         exit={exit}
@@ -586,6 +590,7 @@ export default function App() {
         onClear={() => { actions.setSupperTonight(null); setSupperOpen(false); }}
       />
 
+      <NumbersSheet open={numbersOpen} onClose={() => setNumbersOpen(false)} />
       <OffPlanSheet
         target={offPlan}
         onClose={() => setOffPlan(null)}

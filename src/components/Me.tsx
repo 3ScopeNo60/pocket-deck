@@ -53,7 +53,7 @@ const FEEL_HINTS = {
 
 type Page = null | "you" | "meds" | "times" | "feel" | "backup" | "app" | "try";
 
-export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
+export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, onNumbers, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void}; onNumbers?: () => void; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
   const [sex, setSex] = useState(profile.sex);
   const [activity, setActivity] = useState(profile.activity);
@@ -406,6 +406,14 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
       )}
       {page === "app" && (
         <>
+          {onNumbers && (
+            <section className="k-section">
+              <button className="krow" onClick={onNumbers}>
+                <span className="emoji">🔍</span>
+                <span className="kname">How the numbers work<small>Where the nutrition figures come from and how close they are</small></span>
+              </button>
+            </section>
+          )}
       {about && !embedded && (
             <section className="k-section">
               <h3 className="section-label">About this app</h3>

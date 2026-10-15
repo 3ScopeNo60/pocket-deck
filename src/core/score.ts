@@ -116,9 +116,9 @@ export function scoreDay(i: ScoreInput): DayScore {
 
   const notes: string[] = [];
   if (partial) notes.push("Only one meal was recorded, so this is a partial picture.");
-  notes.push(satUsed <= satBudget ? `Saturated fat ${round1(satUsed)} of ${round1(satBudget)} g.` : `Saturated fat ${round1(satUsed)} g, over the ${round1(satBudget)} g budget.`);
-  notes.push(fibre >= FIBRE_GOAL ? `Soluble fibre ${round1(fibre)} g, goal met.` : `Soluble fibre ${round1(fibre)} of ${FIBRE_GOAL} g.`);
-  if (naUsed > sodiumBudget) notes.push(`Sodium ${Math.round(naUsed)} mg, above ${sodiumBudget} mg.`);
+  notes.push(satUsed <= satBudget ? `Saturated fat about ${round1(satUsed)} of ${round1(satBudget)} g.` : `Saturated fat about ${round1(satUsed)} g, over the ${round1(satBudget)} g budget.`);
+  notes.push(fibre >= FIBRE_GOAL ? `Soluble fibre about ${round1(fibre)} g, goal met.` : `Soluble fibre about ${round1(fibre)} of ${FIBRE_GOAL} g.`);
+  if (naUsed > sodiumBudget) notes.push(`Sodium about ${Math.round(naUsed / 10) * 10} mg, above ${sodiumBudget} mg.`);
   const missing = ANCHORS.filter((a) => !anchors.has(a));
   if (missing.length) notes.push(`Missed: ${missing.map((a) => ANCHOR_WORDS[a]).join(", ")}.`);
   for (const r of day.replaced ?? []) notes.push(r.size === "skipped" ? `${cap(r.slot)} was skipped.` : `${cap(r.slot)}: had ${r.what.toLowerCase()} instead.`);

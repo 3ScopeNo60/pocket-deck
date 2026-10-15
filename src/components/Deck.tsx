@@ -30,6 +30,8 @@ interface BackInfo {
   onSomethingElse: (slot: SlotKey) => void;
   /** When each meal is eaten, as he has set it. */
   times?: Partial<Record<SlotKey, string>>;
+  /** Opens the explanation of where the numbers come from. */
+  onNumbers?: () => void;
   /** For a near-miss card: put its missing ingredients on the shopping list. */
   onAddToList: (slot: SlotKey) => void;
 }
@@ -256,14 +258,14 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
                 </ul>
                 <h4 className="section-label">The numbers</h4>
                 <dl className="nums">
-                  <div><dt>Sat fat</dt><dd>{meal.sat.toFixed(1)} g</dd></div>
-                  <div><dt>Sol. fibre</dt><dd>{meal.sol.toFixed(1)} g</dd></div>
-                  <div><dt>Sodium</dt><dd>{meal.na} mg</dd></div>
-                  <div><dt>Energy</dt><dd>{meal.kcal} kcal</dd></div>
-                  <div><dt>Cost</dt><dd>R{meal.cost}</dd></div>
-                  <div><dt>Day so far</dt><dd>{back.daySat.toFixed(1)}/{back.allowance} g</dd></div>
+                  <div><dt>Sat fat</dt><dd>≈ {meal.sat.toFixed(1)} g</dd></div>
+                  <div><dt>Sol. fibre</dt><dd>≈ {meal.sol.toFixed(1)} g</dd></div>
+                  <div><dt>Sodium</dt><dd>≈ {Math.round(meal.na / 10) * 10} mg</dd></div>
+                  <div><dt>Energy</dt><dd>≈ {Math.round(meal.kcal / 5) * 5} kcal</dd></div>
+                  <div><dt>Cost</dt><dd>≈ R{meal.cost}</dd></div>
+                  <div><dt>Day so far</dt><dd>≈ {back.daySat.toFixed(1)}/{back.allowance} g</dd></div>
                 </dl>
-                <p className="rough">Rough figures for the prototype. Real values come from the food database.</p>
+                <p className="rough">Estimates from a food database and typical portions: close, not exact. <button className="link" onClick={() => back.onNumbers?.()} tabIndex={flipped ? 0 : -1}>How they're worked out</button></p>
                 <div className="actions back-actions">
                   <button className="btn ghost" onClick={() => back.onNotFeelingIt(slot)} tabIndex={flipped ? 0 : -1}>Not feeling it</button>
                   <button className="btn ghost" onClick={() => back.onSomethingElse(slot)} tabIndex={flipped ? 0 : -1}>Had something else</button>

@@ -798,3 +798,4 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 
 .me-page { display: flex; flex-direction: column; gap: 16px; }
 .me-page > header .back-btn { margin-bottom: 8px; }
+.rough .link { font-size: inherit; padding: 0 2px; }
