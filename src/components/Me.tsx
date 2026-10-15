@@ -69,13 +69,13 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
   );
 
 
-  const TILES: { key: Exclude<Page, null>; Icon: LucideIcon; title: string; status: string; show: boolean }[] = [
-    { key: "you", Icon: UserRound, title: "About you", status: profile.setUp ? `${profile.heightCm} cm · ${profile.weightKg} kg${t ? ` · ${t.satCap} g sat fat a day` : ""}` : "Add your numbers", show: true },
-    { key: "meds", Icon: Pill, title: "Medication", status: med ? `${med.name}${med.dose ? ` ${med.dose}` : ""}` : "Not added yet", show: !!onSaveMed },
-    { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No switcher" : switcher === "dots" ? "Dots" : "Peek"}` : ""}`, show: !!(menuFeel || switcher) },
-    { key: "backup", Icon: HardDriveDownload, title: "Back up", status: lastBackupAt ? `Last ${ago(lastBackupAt)}` : "Not backed up yet", show: !!onBackedUp },
-    { key: "app", Icon: Info, title: "This app", status: about ? `Version ${about.version.slice(0, 12)}` : "Updates and setup", show: !!(about || onRedoSetup) },
-    { key: "try", Icon: FlaskConical, title: "Try a scenario", status: "Preview only", show: import.meta.env.MODE === "single" && !!onScenario },
+  const TILES: { key: Exclude<Page, null>; Icon: LucideIcon; title: string; status: string; show: boolean; hue: string }[] = [
+    { key: "you", Icon: UserRound, title: "About you", status: profile.setUp ? `${profile.heightCm} cm · ${profile.weightKg} kg${t ? ` · ${t.satCap} g sat fat a day` : ""}` : "Add your numbers", show: true, hue: "sage" },
+    { key: "meds", Icon: Pill, title: "Medication", status: med ? `${med.name}${med.dose ? ` ${med.dose}` : ""}` : "Not added yet", show: !!onSaveMed, hue: "blush" },
+    { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No switcher" : switcher === "dots" ? "Dots" : "Peek"}` : ""}`, show: !!(menuFeel || switcher), hue: "sand" },
+    { key: "backup", Icon: HardDriveDownload, title: "Back up", status: lastBackupAt ? `Last ${ago(lastBackupAt)}` : "Not backed up yet", show: !!onBackedUp, hue: "sky" },
+    { key: "app", Icon: Info, title: "This app", status: about ? `Version ${about.version.slice(0, 12)}` : "Updates and setup", show: !!(about || onRedoSetup), hue: "lilac" },
+    { key: "try", Icon: FlaskConical, title: "Try a scenario", status: "Preview only", show: import.meta.env.MODE === "single" && !!onScenario, hue: "mint" },
   ];
   const pageTitle: Record<Exclude<Page, null>, string> = { you: "About you", meds: "Medication", feel: "Menu and cards", backup: "Back up", app: "This app", try: "Try a scenario" };
 
@@ -83,7 +83,7 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
     return (
       <div className="kitchen">
       <section className="k-section">
-          <h3 className="section-label">About you</h3>
+          <h3 className="section-label">Your numbers</h3>
           <div className="me-grid">
             {field("h", "Height", "cm")}
             {field("w", "Weight", "kg")}
@@ -148,13 +148,18 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
     );
   }
 
+  const here = page ? TILES.find((x) => x.key === page) : undefined;
+
   return (
-    <div className="kitchen">
+    <div className="kitchen" data-hue={here?.hue}>
       <header>
-        {page ? (
+        {page && here ? (
           <>
             <button className="me-back" onClick={() => open(null)}><ChevronLeft size={20} strokeWidth={2} />Me</button>
-            <h1 className="hello">{pageTitle[page]}</h1>
+            <div className="me-hero">
+              <span className="me-tile-icon" aria-hidden="true"><here.Icon size={22} strokeWidth={2} /></span>
+              <span className="me-tile-txt"><h1 className="hello">{pageTitle[page]}</h1><small>{here.status}</small></span>
+            </div>
           </>
         ) : (
           <h1 className="hello">Me</h1>
@@ -166,7 +171,7 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
           {!profile.setUp && <p className="me-note">These are placeholder numbers. Add your own and the daily saturated-fat limit becomes yours.</p>}
           <div className="me-tiles">
             {TILES.filter((x) => x.show).map((x) => (
-              <motion.button key={x.key} className="me-tile" whileTap={{ scale: 0.97 }} onClick={() => open(x.key)}>
+              <motion.button key={x.key} className="me-tile" data-hue={x.hue} whileTap={{ scale: 0.97 }} onClick={() => open(x.key)}>
                 <span className="me-tile-icon" aria-hidden="true"><x.Icon size={21} strokeWidth={2} /></span>
                 <span className="me-tile-txt"><b>{x.title}</b><small>{x.status}</small></span>
               </motion.button>
@@ -178,7 +183,7 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
       {page === "you" && (
         <>
       <section className="k-section">
-            <h3 className="section-label">About you</h3>
+            <h3 className="section-label">Your numbers</h3>
             <div className="me-grid">
               {field("h", "Height", "cm")}
               {field("w", "Weight", "kg")}

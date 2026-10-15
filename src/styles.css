@@ -759,3 +759,20 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 .me-tile-txt b { font-family: var(--display); font-weight: 800; font-size: 1.12rem; letter-spacing: -0.01em; }
 .me-tile-txt small { color: var(--muted); font-size: 0.8rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .me-back { display: inline-flex; align-items: center; gap: 2px; border: none; background: none; padding: 4px 8px 4px 0; color: var(--muted); font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+
+/* Me: a soft colour for each area, taken from the meal cards' pastels, with a deeper tone of the same hue for the icon */
+[data-hue="sage"]  { --hue-bg: #d8e6d1; --hue-deep: #24583f; }
+[data-hue="blush"] { --hue-bg: #f0d6cf; --hue-deep: #9a4a3c; }
+[data-hue="sand"]  { --hue-bg: #efe3c6; --hue-deep: #86661c; }
+[data-hue="sky"]   { --hue-bg: #d9e5ef; --hue-deep: #2f5d7c; }
+[data-hue="lilac"] { --hue-bg: #e4dff0; --hue-deep: #5a4d86; }
+[data-hue="mint"]  { --hue-bg: #d3ebe2; --hue-deep: #1f6b5c; }
+.me-tile { background: var(--hue-bg, var(--surface)); }
+.me-tile .me-tile-icon, .me-hero .me-tile-icon { background: var(--hue-deep, var(--ink)); color: #fff; }
+.me-tile-txt small { color: color-mix(in srgb, var(--hue-deep, var(--muted)) 70%, var(--ink)); opacity: 0.85; }
+.me-hero { display: flex; align-items: center; gap: 14px; background: var(--hue-bg); border-radius: 26px; padding: 14px 16px; }
+.me-hero h1 { margin: 0; }
+.me-hero small { color: color-mix(in srgb, var(--hue-deep) 70%, var(--ink)); font-size: 0.85rem; }
+[data-hue] .krow[aria-pressed="true"] { background: var(--hue-bg); }
+[data-hue] .slider-row input[type="range"] { accent-color: var(--hue-deep); }
+[data-hue] .section-label { color: var(--hue-deep); }
