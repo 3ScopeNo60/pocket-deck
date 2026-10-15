@@ -2,6 +2,15 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-15-f",
+      "date": "2026-10-15",
+      "notes": [
+        "Scan another side: a pack's table and its weight are often on different sides. Scan both and the numbers add up, with nothing read overwritten.",
+        "Mark a food as needing a rinse. Meals with it start with a rinse step, the pantry tags it, and the shopping list suggests a no-rinse one next time.",
+        "Energy printed as \"Energy (kJ) 359\" is read and converted, and drained tables are called out."
+      ]
+    },
+    {
       "id": "2026-10-15-e",
       "date": "2026-10-15",
       "notes": [

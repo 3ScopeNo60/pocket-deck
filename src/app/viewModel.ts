@@ -2,6 +2,7 @@
 import { estCost, foodIndex, mealIndex, suppers } from "../core/content";
 import { mealNutrition } from "../core/nutrition";
 import { shortfall } from "../core/planner";
+import { withRinse } from "../core/rinse";
 import type { Meal as CoreMeal, StockItem } from "../core/types";
 import type { Meal as CardMeal } from "../data/meals";
 
@@ -10,7 +11,8 @@ export const mealMap = mealIndex;
 export const supperMap = new Map(suppers.map((s) => [s.id, s]));
 
 /** The prototype card for a meal. `stock` (optional) adds the "missing" list for near-miss cards. */
-export function toCard(meal: CoreMeal, stock?: StockItem[]): CardMeal {
+/** `rinse` is the set of food ids he has marked as needing a rinse. */
+export function toCard(meal: CoreMeal, stock?: StockItem[], rinse?: Set<string>): CardMeal {
   const n = mealNutrition(meal, foodMap);
   const items: CardMeal["items"] = meal.bought
     ? [[meal.emoji, meal.bought.where, "1"], ...(meal.bought.orderNotes ?? []).map((t): [string, string, string] => ["📝", t, ""])]
@@ -22,7 +24,7 @@ export function toCard(meal: CoreMeal, stock?: StockItem[]): CardMeal {
     name: meal.name,
     items,
     tags: meal.tags,
-    steps: meal.steps,
+    steps: rinse && rinse.size && !meal.bought ? withRinse(meal.steps, meal.items.filter((i) => rinse.has(i.foodId)).map((i) => foodMap.get(i.foodId)?.name ?? "")) : meal.steps,
     boosters: meal.boosters,
     bought: !!meal.bought,
     sat: round1(n.sat),

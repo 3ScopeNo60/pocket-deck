@@ -29,6 +29,7 @@ node scripts/nudges.mjs   <shots-dir>   # Sunday look-back, backup reminder (fix
 node scripts/ownmeal.mjs  <shots-dir>   # add your own meal
 node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm run build)
 node scripts/tomorrow.mjs <shots-dir>   # daytime done: prep, shopping, tell supper now
+node scripts/tuna.mjs <shots-dir>        # two sides of a tin merged, needs-rinse, list hint
 node scripts/sheetdrag.mjs .            # dragging content scrolls a sheet; only the handle closes it
 node scripts/newfood.mjs <shots-dir>    # new food from a label, custom pack size, new ingredient in own meal
 node scripts/menufeel.mjs <shots-dir>   # hold and slide across the menu: lens, magnet, lean

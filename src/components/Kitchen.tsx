@@ -10,6 +10,7 @@ import { foodMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
 import { OwnMealSheet } from "./OwnMeal";
 import { LabelScanSheet, type LabelResult } from "./LabelScan";
+import { NO_RINSE_HINT } from "../core/rinse";
 import { OWN_TAG, type MealDraft } from "../core/custom";
 import type { Meal } from "../core/types";
 
@@ -136,7 +137,7 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
                     return (
                       <button key={f.id} className="krow" onClick={() => setAdjust(f.id)}>
                         <span className="emoji">{f.emoji}</span>
-                        <span className="kname">{f.name}</span>
+                        <span className="kname">{f.name}{products.get(f.id)?.needsRinse && <small>Needs rinsing</small>}</span>
                         <span className={isLow(f, g) ? "pill low" : "pill"}>{formatAmount(f, g)}{isLow(f, g) ? " · low" : ""}</span>
                       </button>
                     );
@@ -340,7 +341,7 @@ function ShoppingList({ shopping, products, actions, onAdd, onDone, onEdit }: {
                         <span className="box" />
                       </button>
                       <span className="emoji">{f.emoji}</span>
-                      <span className="kname">{f.name}<small>{REASON[r.reason]}</small></span>
+                      <span className="kname">{f.name}<small>{REASON[r.reason]}</small>{products.get(r.itemId)?.needsRinse && <small className="rinse-hint">{NO_RINSE_HINT}</small>}</span>
                       <button className="pill editable" aria-label={`Change how much ${f.name}`} onClick={() => onEdit(r)}>{r.packs} × {r.shopUnitG} g</button>
                       <button className="link" aria-label={`Remove ${f.name}`} onClick={() => actions.removeFromList(r.id)}>×</button>
                     </div>

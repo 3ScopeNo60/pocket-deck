@@ -59,6 +59,8 @@ export interface Product {
   estimated: string[];
   /** True when the numbers were read from a nutrition label rather than the food list. */
   fromLabel?: boolean;
+  /** Needs draining and rinsing before use (tinned fish or beans in brine). */
+  needsRinse?: boolean;
 }
 
 export interface MealItem {

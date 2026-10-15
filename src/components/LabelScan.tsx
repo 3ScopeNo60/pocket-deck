@@ -19,6 +19,8 @@ export interface LabelResult {
   price?: number;
   /** Packs to add to the pantry now. */
   packsBought?: number;
+  /** Needs draining and rinsing before use. */
+  needsRinse?: boolean;
   newFood?: { emoji: string; aisle: string };
   per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number };
 }
@@ -80,6 +82,10 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
   const [brand, setBrand] = useState(seed.product?.name ?? "");
   const [pack, setPack] = useState(seed.product?.packG ? String(seed.product.packG) : "");
   const [packRead, setPackRead] = useState(false);
+  // A pack often has the table on one side and the weight or ingredients on another: scans add up.
+  const [merging, setMerging] = useState(false);
+  const [sides, setSides] = useState(0);
+  const [needsRinse, setNeedsRinse] = useState(!!seed.product?.needsRinse);
   const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -107,10 +113,21 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     const p = parseLabel(text);
     const next: Record<string, string> = {};
     for (const k of p.found) if (k !== "packG") next[k] = String(p[k]);
-    setValues(next);
-    if (p.packG) { setPack(String(p.packG)); setPackRead(true); }
+    // Another side of the same pack: keep what's already there and fill the gaps.
+    const added = merging ? Object.keys(next).filter((k) => !values[k]?.trim()).length : 0;
+    setValues(merging ? { ...next, ...Object.fromEntries(Object.entries(values).filter(([, v]) => v?.trim())) } : next);
+    if (p.packG && (!merging || !pack.trim())) { setPack(String(p.packG)); setPackRead(true); }
+    if (p.rinse) setNeedsRinse(true);
+    setSides((n) => (merging ? n + 1 : 1));
+    setMerging(false);
     setConfirm(true);
-    setNote(p.found.length === 0 ? "I couldn't find a nutrition table in that. You can type the numbers in." : p.found.length < 3 ? "I only found a few numbers. Check them against the pack." : p.drained ? "This table is for the drained food, as printed. The pack size is the whole tin, so check that too." : null);
+    setNote(
+      merging ? (added > 0 || p.packG ? `Added ${added > 0 ? `${added} more number${added === 1 ? "" : "s"}` : "the pack size"} from the other side.` : "Nothing new on that side. You can type anything that's missing.")
+      : p.found.length === 0 ? "I couldn't find a nutrition table in that. You can type the numbers in."
+      : p.found.length < 3 ? "I only found a few numbers. Check them against the pack."
+      : p.drained ? "This table is for the drained food, as printed. The pack size is the whole tin, so check that too."
+      : null,
+    );
   };
 
   const fromPhoto = async (file: File | undefined) => {
@@ -196,7 +213,8 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
               <button className="btn" onClick={() => camera.current?.click()}>Take a photo</button>
               <button className="btn ghost" onClick={() => photos.current?.click()}>Choose from Photos</button>
             </div>
-            <p className="k-sub">Fill the frame with the nutrition table and hold steady. It's read on this phone and the photo isn't kept.</p>
+            <p className="k-sub">{merging ? "Scan the other side. Anything new is added to what's already been read." : "Fill the frame with the nutrition table and hold steady. It's read on this phone and the photo isn't kept."}</p>
+            {merging && <button className="link" onClick={() => { setMerging(false); setConfirm(true); }}>Back to the numbers</button>}
             <label className="me-field">
               <span className="me-label">Or paste the label text <span className="optional">Live Text works well</span></span>
               <textarea className="own-steps" rows={4} value={pasted} aria-label="Label text" onChange={(e) => setPasted(e.target.value)} />
@@ -213,8 +231,12 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
 
   return (
     <>
-      <div className="own-row"><span className="emoji">{subject.emoji}</span><span className="kname">{subject.name}{!food && <small>New food</small>}</span><button className="link" onClick={() => setConfirm(false)}>Rescan</button></div>
+      <div className="own-row"><span className="emoji">{subject.emoji}</span><span className="kname">{subject.name}{!food && <small>New food</small>}</span><button className="link" onClick={() => { setMerging(false); setConfirm(false); }}>Rescan</button></div>
       {note && <p className="k-sub" role="status">{note}</p>}
+      <div className="blood-actions">
+        <button className="btn small ghost" onClick={() => { setMerging(true); setConfirm(false); }}>Scan another side</button>
+        {sides > 1 && <span className="k-sub">{sides} sides read</span>}
+      </div>
       <p className="k-sub">Check these against the pack. All numbers are per 100 g (or 100 ml).</p>
       {food && <label className="me-field"><span className="me-label">Product name <span className="optional">Optional</span></span><span className="me-input"><input value={brand} placeholder={`e.g. ${food.name} brand`} aria-label="Product name" onChange={(e) => setBrand(e.target.value)} /></span></label>}
       <div className="me-grid two">
@@ -238,6 +260,10 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
           <button aria-label="One more" onClick={() => setBought(bought + 1)}>+</button>
         </div>
       </div>
+      <button className="switch-row" role="switch" aria-checked={needsRinse} onClick={() => setNeedsRinse(!needsRinse)}>
+        <span className="kname">Needs rinsing before use<small>Adds a rinse step to meals with it, and suggests a no-rinse one next time</small></span>
+        <span className="switch" aria-hidden><span className="switch-knob" /></span>
+      </button>
       {food && <p className="k-sub">Soluble fibre isn't printed on labels, so it's estimated from the food (marked est.).</p>}
       <div className="sheet-actions">
         <motion.button className="btn" whileTap={{ scale: 0.96 }} disabled={!ready} onClick={() => {
@@ -246,7 +272,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
           onSave({
             foodId: food?.id ?? null,
             name: food ? brand.trim() || food.name : subject.name,
-            packG: packNum, price: priceNum, packsBought: bought || undefined,
+            packG: packNum, price: priceNum, packsBought: bought || undefined, needsRinse,
             newFood: !food && fresh ? { emoji: fresh.emoji, aisle: fresh.aisle } : undefined,
             per100: { kcal: num("kcal")!, sat: num("sat")!, na: num("sodium")!, ...(fibre !== undefined ? { fibre, ...(food ? { sol: estimateSoluble(food, fibre) } : {}) } : {}) },
           });

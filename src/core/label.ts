@@ -21,6 +21,8 @@ export interface ParsedLabel extends LabelNumbers {
   basis: "per100" | "unknown";
   /** The table says it is for the drained food (tinned fish, beans in brine). */
   drained: boolean;
+  /** The pack says to rinse it. */
+  rinse: boolean;
   /** Field names that were read, for the "we found N of 7" hint. */
   found: (keyof LabelNumbers)[];
 }
@@ -107,5 +109,5 @@ export function parseLabel(text: string): ParsedLabel {
 
   const found = (Object.keys(out) as (keyof LabelNumbers)[]).filter((k) => out[k] !== undefined);
   const hasBasis = /per\s*100\s*(g|ml)|100\s*(g|ml)/i.test(text);
-  return { ...out, basis: hasBasis ? "per100" : "unknown", drained: /\bdrained\b/i.test(text), found };
+  return { ...out, basis: hasBasis ? "per100" : "unknown", drained: /\bdrained\b/i.test(text), rinse: /\brins(e|ing)\b/i.test(text), found };
 }

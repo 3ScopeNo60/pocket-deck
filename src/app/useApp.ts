@@ -446,7 +446,7 @@ export function useApp() {
       // A restock updates the pack and price but keeps numbers read from a label.
       const product: Product = {
         id: r.foodId, foodId: r.foodId, name: prev?.name ?? food.name, packG: r.packG, lastPrice: perPack,
-        estimated: prev?.estimated ?? [], fromLabel: prev?.fromLabel,
+        estimated: prev?.estimated ?? [], fromLabel: prev?.fromLabel, needsRinse: prev?.needsRinse,
         per100: prev?.per100 ?? { kcal: food.per100.kcal, sat: food.per100.sat, na: food.per100.na },
       };
       pd = [...pd.filter((p) => p.foodId !== r.foodId), product];
@@ -467,6 +467,7 @@ export function useApp() {
   const saveLabel = useCallback((r: {
     foodId: string | null; name: string; packG: number; price?: number; packsBought?: number;
     newFood?: { emoji: string; aisle: string };
+    needsRinse?: boolean;
     per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number };
   }): string | null => {
     let foodId = r.foodId;
@@ -482,7 +483,7 @@ export function useApp() {
     const packG = r.packG || prev?.packG || 0;
     const product: Product = {
       id: foodId, foodId, name: r.name, packG, lastPrice: r.price && r.price > 0 ? r.price : prev?.lastPrice ?? 0,
-      per100: r.per100, estimated: r.per100.sol !== undefined ? ["sol"] : [], fromLabel: true,
+      per100: r.per100, estimated: r.per100.sol !== undefined ? ["sol"] : [], fromLabel: true, ...(r.needsRinse ? { needsRinse: true } : {}),
     };
     const pd = [...latest.current.products.filter((p) => p.foodId !== foodId), product];
     latest.current.products = pd;

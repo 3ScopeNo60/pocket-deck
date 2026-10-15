@@ -185,14 +185,15 @@ export default function App() {
   const doseCount = app.med?.times?.length ?? 1;
   const taken = day?.dosesTaken ?? (day?.tabletAt ? [day.tabletAt] : []);
 
+  const rinseIds = useMemo(() => new Set([...app.products.values()].filter((p) => p.needsRinse).map((p) => p.foodId)), [app.products]);
   const cardFor = useMemo(() => {
     const map = new Map<SlotKey, ReturnType<typeof toCard>>();
     for (const c of cards) {
       const meal = mealMap.get(c.mealId);
-      if (meal) map.set(c.slot, toCard(meal, c.nearMiss ? app.stock : undefined));
+      if (meal) map.set(c.slot, toCard(meal, c.nearMiss ? app.stock : undefined, rinseIds));
     }
     return map;
-  }, [cards, app.stock]);
+  }, [cards, app.stock, rinseIds]);
 
   if (!app.ready) return null;
   if (app.needsSetup) {

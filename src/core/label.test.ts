@@ -68,4 +68,8 @@ Total Sodium (rng) 400 220`);
   it("reads energy given as (kcal) in the heading", () => {
     expect(parseLabel("Energy (kcal) 86 47").kcal).toBe(86);
   });
+  it("notices a rinse instruction", () => {
+    expect(parseLabel("Drain and rinse before use").rinse).toBe(true);
+    expect(parseLabel("Energy 100 kcal").rinse).toBe(false);
+  });
 });
