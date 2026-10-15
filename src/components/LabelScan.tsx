@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
-import { motion } from "motion/react";
+import { LayoutGroup, motion } from "motion/react";
 import { foods } from "../core/content";
 import { parseLabel, type LabelNumbers } from "../core/label";
 import { readLabelImage } from "../core/ocr";
@@ -139,12 +139,28 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
       <>
         <p className="k-sub">What is it called, and where do you find it? It joins your food list, so you can stock it, shop for it and use it in your own meals.</p>
         <label className="me-field"><span className="me-label">Name</span><span className="me-input"><input autoFocus value={fresh.name} placeholder="e.g. Nutty crunch bar" aria-label="Food name" onChange={(e) => setFresh({ ...fresh, name: e.target.value })} /></span></label>
-        <div className="chips emoji-row" role="group" aria-label="Icon">
-          {EMOJI.map((e) => (<button key={e} className="chip" aria-pressed={fresh.emoji === e} aria-label={`Icon ${e}`} onClick={() => setFresh({ ...fresh, emoji: e })}>{e}</button>))}
-        </div>
-        <div className="chips" role="group" aria-label="Aisle">
-          {AISLES.map((a) => (<button key={a} className="chip" aria-pressed={fresh.aisle === a} onClick={() => setFresh({ ...fresh, aisle: a })}>{a}</button>))}
-        </div>
+        <h3 className="section-label">Icon</h3>
+        <LayoutGroup id="pick-emoji">
+          <div className="pick-grid pick-emoji" role="group" aria-label="Icon">
+            {EMOJI.map((e) => (
+              <motion.button key={e} className="pick-tile" aria-pressed={fresh.emoji === e} aria-label={`Icon ${e}`} whileTap={{ scale: 0.94 }} onClick={() => setFresh({ ...fresh, emoji: e })}>
+                {fresh.emoji === e && <motion.span layoutId="pick-emoji-thumb" className="pick-thumb" transition={{ type: "spring", stiffness: 520, damping: 36 }} />}
+                <motion.span className="emoji" animate={{ scale: fresh.emoji === e ? [1, 1.28, 1] : 1 }} transition={{ duration: 0.34, ease: "easeOut" }}>{e}</motion.span>
+              </motion.button>
+            ))}
+          </div>
+        </LayoutGroup>
+        <h3 className="section-label">Where you find it</h3>
+        <LayoutGroup id="pick-aisle">
+          <div className="pick-grid pick-aisle" role="group" aria-label="Aisle">
+            {AISLES.map((a) => (
+              <motion.button key={a} className="pick-tile" aria-pressed={fresh.aisle === a} whileTap={{ scale: 0.97 }} onClick={() => setFresh({ ...fresh, aisle: a })}>
+                {fresh.aisle === a && <motion.span layoutId="pick-aisle-thumb" className="pick-thumb" transition={{ type: "spring", stiffness: 520, damping: 36 }} />}
+                <span className="pick-label">{a}</span>
+              </motion.button>
+            ))}
+          </div>
+        </LayoutGroup>
         <div className="sheet-actions">
           <button className="btn ghost" onClick={() => { setFresh(null); setNaming(false); }}>Back</button>
           <motion.button className="btn" whileTap={{ scale: 0.96 }} disabled={!!problem} onClick={() => setNaming(false)}>{problem ?? "Next: the label"}</motion.button>
