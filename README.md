@@ -33,6 +33,7 @@ node scripts/menufeel.mjs <shots-dir>   # hold and slide across the menu: lens, 
 node scripts/switcher.mjs <shots-dir>   # the dots bring another meal to the top
 node scripts/med.mjs <shots-dir>   # add, edit and remove the medication under Me
 node scripts/mealtimes.mjs <shots-dir>   # set meal times under Me; cards follow
+node scripts/touch.mjs   # no selection on a firm press; sideways asks to turn upright
 node scripts/label.mjs    <shots-dir>   # label scan: pasted text and a photo (needs npm run build)
 ```
 
