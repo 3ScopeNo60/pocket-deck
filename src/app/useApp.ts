@@ -631,6 +631,15 @@ export function useApp() {
     }
   }, []);
 
+  /** Add, change or (with null) remove the medication. */
+  const saveMed = useCallback((m: Med | null) => {
+    const old = latest.current.med;
+    latest.current.med = m;
+    setMed(m);
+    if (m) void persist(db.put("meds", m));
+    else if (old) void persist(db.del("meds", old.id));
+  }, []);
+
   const redoSetup = useCallback(() => {
     const next: Prefs = { ...latest.current.prefs, setupDone: false };
     latest.current.prefs = next;
@@ -679,7 +688,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan) + overageOf(day) : 0,
     actions: {
       submitAnswer, swap, eat, undo, notFeelingIt, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
-      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
+      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveMed, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },
   };

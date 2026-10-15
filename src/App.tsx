@@ -279,6 +279,8 @@ export default function App() {
       {screen === "me" && (
         <Me
           profile={app.profile}
+          med={app.med}
+          onSaveMed={actions.saveMed}
           switcher={switcherMode}
           onSwitcher={actions.setSwitcher}
           menuFeel={app.prefs.menuFeel ?? DEFAULT_FEEL}

@@ -5,7 +5,8 @@ import { maintenanceKcal, targets } from "../core/nutrition";
 import { toast } from "sonner";
 import { MOVEMENT, chosenMovements } from "../app/movement";
 import { ago, makeBackup, restoreBackup } from "../app/backupFile";
-import type { Profile } from "../core/types";
+import type { Med, Profile } from "../core/types";
+import { MedSheet } from "./MedEditor";
 
 const ACTIVITY: { key: Profile["activity"]; label: string; hint: string }[] = [
   { key: "sedentary", label: "Mostly seated", hint: "Desk job, little walking" },
@@ -37,11 +38,12 @@ const FEEL_HINTS = {
   lean: "A softer lens, and the whole fan tips toward your thumb.",
 } as const;
 
-export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, menuFeel, onMenuFeel, switcher, onSwitcher }: { switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
+export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
   const [sex, setSex] = useState(profile.sex);
   const [activity, setActivity] = useState(profile.activity);
   const [hand, setHand] = useState(profile.hand);
+  const [medOpen, setMedOpen] = useState(false);
   const [movements, setMovements] = useState<string[]>(chosenMovements(profile).map((m) => m.key));
   const [pendingRestore, setPendingRestore] = useState<File | null>(null);
   const toggleMovement = (k: string) => setMovements((cur) => (cur.includes(k) ? (cur.length > 1 ? cur.filter((x) => x !== k) : cur) : [...cur, k]));
@@ -128,6 +130,28 @@ export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastB
             <div><dt>Sodium limit</dt><dd>{t.sodiumMax.toLocaleString("en-ZA")} mg</dd></div>
           </div>
           <p className="k-sub">Set to keep you energised, not to lose weight. Saturated fat is 6% of your energy.</p>
+        </section>
+      )}
+
+      {onSaveMed && !embedded && (
+        <section className="k-section">
+          <h3 className="section-label">Medication</h3>
+          {med ? (
+            <button className="krow" onClick={() => setMedOpen(true)}>
+              <span className="emoji">💊</span>
+              <span className="kname">
+                {med.name}{med.dose ? ` ${med.dose}` : ""}
+                <small>{(med.perDose ?? 1) > 1 ? `${med.perDose} tablets · ` : ""}{(med.times?.length ?? 1) > 1 ? `${med.times!.length} times a day at ${med.times!.join(" and ")}` : `Every day at ${med.times?.[0] ?? med.time}`}{med.packSize || med.pillsLeft ? ` · ${med.pillsLeft} left` : ""}</small>
+              </span>
+              <span className="link">Change</span>
+            </button>
+          ) : (
+            <>
+              <p className="k-sub">Add it once and the Tablet chip on Today counts doses and tablets left.</p>
+              <button className="btn small" onClick={() => setMedOpen(true)}>Add your medication</button>
+            </>
+          )}
+          <MedSheet open={medOpen} med={med ?? null} onClose={() => setMedOpen(false)} onSave={(m) => { onSaveMed(m); setMedOpen(false); toast("Medication saved"); }} onRemove={() => { onSaveMed(null); setMedOpen(false); }} />
         </section>
       )}
 

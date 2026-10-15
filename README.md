@@ -31,6 +31,7 @@ node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm r
 node scripts/tomorrow.mjs <shots-dir>   # daytime done: prep, shopping, tell supper now
 node scripts/menufeel.mjs <shots-dir>   # hold and slide across the menu: lens, magnet, lean
 node scripts/switcher.mjs <shots-dir>   # dots and peek bring another meal to the top
+node scripts/med.mjs <shots-dir>   # add, edit and remove the medication under Me
 node scripts/label.mjs    <shots-dir>   # label scan: pasted text and a photo (needs npm run build)
 ```
 
