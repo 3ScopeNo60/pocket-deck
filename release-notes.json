@@ -2,6 +2,15 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-15-g",
+      "date": "2026-10-15",
+      "notes": [
+        "Scan a label tries again on its own. If energy, saturated fat or sodium is missing, it looks at the photo another way, up to three times, and keeps what each try read.",
+        "A read that doesn't add up (energy against the protein, carbohydrate and fat beside it) is called out instead of trusted, and a lost decimal point (174 for 17.4) is put back.",
+        "If a number still can't be read, it says which one."
+      ]
+    },
+    {
       "id": "2026-10-15-f",
       "date": "2026-10-15",
       "notes": [

@@ -35,7 +35,7 @@ function after(line: string, label: RegExp): number | undefined {
   const m = label.exec(line);
   if (!m) return undefined;
   // A unit printed in brackets after the name, "(g)", which OCR often reads as "(9".
-  const rest = line.slice(m.index + m[0].length).replace(/^\s*[(\[]\s*(?:g|9|mg|m9|rng)\s*[)\]]?/i, " ");
+  const rest = line.slice(m.index + m[0].length).replace(/^\s*[(\[]\s*(?:g|9|q|mg|m9|mq|rng)\s*[)\]]?/i, " ");
   const n = new RegExp(NUM).exec(rest);
   if (!n) return undefined;
   // Printed grams have one decimal. OCR often reads the "g" after "12.3 g" as a 9, giving 12.39.
@@ -61,8 +61,9 @@ export function parseLabel(text: string): ParsedLabel {
   for (const line of lines) {
     const low = line.toLowerCase();
     // Energy with the unit in the heading: "Energy (kJ) 359 197". OCR often reads kJ as "kd".
-    if (/\benerg(y|ie)\b/.test(low) && kj === undefined && out.kcal === undefined) {
-      const head = /energ\w*\s*\(\s*(kcal|k[jd\]l1])\s*\)\s*:?\s*(\d+(?:[.,]\d+)?)/.exec(low);
+    // The reader garbles both the word and the unit ("Eneray (ku)", "(kd)", "(ki)").
+    if (/\ben[ea]r[gqa]\w*/.test(low) && kj === undefined && out.kcal === undefined) {
+      const head = /en[ea]r[gqa]\w*\s*\(\s*(kcal|k[a-z\][1l|!]{1,2})\s*\)\s*:?\s*(\d+(?:[.,]\d+)?)/.exec(low);
       if (head) {
         if (head[1] === "kcal") out.kcal = toNum(head[2]);
         else kj = toNum(head[2]);

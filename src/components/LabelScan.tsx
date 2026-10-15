@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import { foods } from "../core/content";
-import { parseLabel, type LabelNumbers } from "../core/label";
+import type { LabelNumbers } from "../core/label";
+import { mergeReads } from "../core/ocrpasses";
 import { readLabelImage } from "../core/ocr";
 import type { Food, Product } from "../core/types";
 import { foodMap } from "../app/viewModel";
@@ -38,6 +39,11 @@ const FIELDS: { key: keyof LabelNumbers; label: string; unit: string; required?:
   { key: "carbs", label: "Carbohydrate", unit: "g" },
   { key: "protein", label: "Protein", unit: "g" },
 ];
+
+const REQUIRED_NAMES: [keyof LabelNumbers, string][] = [["kcal", "energy"], ["sat", "saturated fat"], ["sodium", "sodium"]];
+function missingRequired(p: LabelNumbers): string[] {
+  return REQUIRED_NAMES.filter(([k]) => p[k] === undefined).map(([, n]) => n);
+}
 
 /** A soluble-fibre figure for a branded product: labels don't print it, so scale the food list's ratio. */
 export function estimateSoluble(food: Food, fibre: number): number {
@@ -109,8 +115,8 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     return foods.filter((f) => !q || f.name.toLowerCase().includes(q)).slice(0, 10);
   }, [query]);
 
-  const apply = (text: string) => {
-    const p = parseLabel(text);
+  const apply = (texts: string[]) => {
+    const p = mergeReads(texts);
     const next: Record<string, string> = {};
     for (const k of p.found) if (k !== "packG") next[k] = String(p[k]);
     // Another side of the same pack: keep what's already there and fill the gaps.
@@ -124,7 +130,9 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     setNote(
       merging ? (added > 0 || p.packG ? `Added ${added > 0 ? `${added} more number${added === 1 ? "" : "s"}` : "the pack size"} from the other side.` : "Nothing new on that side. You can type anything that's missing.")
       : p.found.length === 0 ? "I couldn't find a nutrition table in that. You can type the numbers in."
+      : missingRequired(p).length ? `I couldn't read the ${missingRequired(p).join(" or ")}. Type ${missingRequired(p).length === 1 ? "it" : "them"} in from the pack.`
       : p.found.length < 3 ? "I only found a few numbers. Check them against the pack."
+      : p.suspectEnergy ? "The energy doesn't match the protein, carbohydrate and fat beside it. Check it against the pack."
       : p.drained ? "This table is for the drained food, as printed. The pack size is the whole tin, so check that too."
       : null,
     );
@@ -134,8 +142,14 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     if (!file) return;
     setBusy("Reading the label…");
     try {
-      const text = await readLabelImage(file, (pr) => setBusy(`Reading the label… ${Math.round(pr * 100)}%`));
-      apply(text);
+      let attempt = 1;
+      const texts = await readLabelImage(file, (pr) => {
+        if (pr.attempt) attempt = pr.attempt;
+        if (pr.attempt && pr.attempt > 1) setBusy(`Didn't get it all. Trying another way (${pr.attempt} of ${pr.of})…`);
+        else if (pr.progress !== undefined) setBusy(`${attempt > 1 ? `Trying another way (${attempt})… ` : "Reading the label… "}${Math.round(pr.progress * 100)}%`);
+        else setBusy("Reading the label…");
+      });
+      apply(texts);
     } catch {
       setNote("Reading photos needs the installed app and a first-time download. Paste the label text instead, or type the numbers.");
       setConfirm(true);
@@ -220,7 +234,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
               <textarea className="own-steps" rows={4} value={pasted} aria-label="Label text" onChange={(e) => setPasted(e.target.value)} />
             </label>
             <div className="blood-actions">
-              <button className="btn small" disabled={!pasted.trim()} onClick={() => apply(pasted)}>Read the text</button>
+              <button className="btn small" disabled={!pasted.trim()} onClick={() => apply([pasted])}>Read the text</button>
               <button className="btn small ghost" onClick={() => { setValues({}); setConfirm(true); }}>Type the numbers</button>
             </div>
           </>
