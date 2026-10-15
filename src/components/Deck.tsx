@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useDragControls, useMotionValue, useTransform, type PanInfo } from "motion/react";
 import { SLOTS, type Meal, type SlotKey } from "../data/meals";
 
@@ -106,24 +106,50 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
   const fy = useMotionValue(POSES[pos].y);
   const fr = useMotionValue(POSES[pos].rotate);
   const fs = useMotionValue(POSES[pos].scale);
+  const fz = useMotionValue(10 - pos);
+  /* a card that has just gone behind keeps its face while the other slides clear */
+  const [keepFace, setKeepFace] = useState(false);
   const seen = useRef({ pos, shuffle });
   useEffect(() => {
     const was = seen.current;
     seen.current = { pos, shuffle };
-    if (shuffle === was.shuffle || pos === was.pos) return;
+    const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (shuffle === was.shuffle || pos === was.pos || reduced) { fz.set(10 - pos); return; }
     const side = shuffle % 2 === 0 ? 1 : -1;
-    const lift = { duration: 0.56, times: [0, 0.42, 1], ease: ["easeOut", "easeInOut"] as ("easeOut" | "easeInOut")[] };
+    const out = Math.min(150, (typeof window !== "undefined" ? window.innerWidth : 390) * 0.38);
+    const OUT_MS = 230;
+    let timer: number | undefined;
     if (pos === 0) {
-      animate(fx, [fx.get(), 62 * side, 0], lift);
-      animate(fy, [fy.get(), -38, 0], lift);
-      animate(fr, [fr.get(), 7 * side, 0], lift);
-      animate(fs, [fs.get(), 1.05, 1], lift);
+      /* pulled OUT FROM UNDER the cards in front of it: it keeps its old
+         place in the stack while it slides clear of them, and only then
+         is it above them, and slides home across the top. */
+      fz.set(10 - was.pos);
+      void (async () => {
+        await Promise.all([
+          animate(fx, side * out, { duration: OUT_MS / 1000, ease: "easeOut" }),
+          animate(fr, 7 * side, { duration: OUT_MS / 1000, ease: "easeOut" }),
+        ]);
+        fz.set(20);
+        animate(fs, [1.04, 1], { duration: 0.42, ease: "easeOut" });
+        await Promise.all([
+          animate(fx, 0, { type: "spring", stiffness: 320, damping: 26 }),
+          animate(fr, 0, { type: "spring", stiffness: 260, damping: 22 }),
+        ]);
+        fz.set(10);
+      })();
     } else if (was.pos === 0) {
-      const nudge = { duration: 0.5, times: [0, 0.4, 1], ease: "easeOut" as const };
-      animate(fx, [fx.get(), -26 * side, 0], nudge);
-      animate(fr, [fr.get(), -4 * side, 0], nudge);
+      /* the one that was on top stays on top until the other is clear,
+         then slips behind it */
+      fz.set(10);
+      setKeepFace(true);
+      timer = window.setTimeout(() => { fz.set(10 - pos); setKeepFace(false); }, OUT_MS + 60);
+      animate(fx, [fx.get(), -18 * side, 0], { duration: 0.55, times: [0, 0.4, 1], ease: "easeOut" });
+      animate(fr, [fr.get(), -3 * side, 0], { duration: 0.55, times: [0, 0.4, 1], ease: "easeOut" });
+    } else {
+      fz.set(10 - pos);
     }
-  }, [pos, shuffle, fx, fy, fr, fs]);
+    return () => window.clearTimeout(timer);
+  }, [pos, shuffle, fx, fy, fr, fs, fz]);
 
   function handleDragEnd(_: PointerEvent, info: PanInfo) {
     const far = Math.abs(info.offset.x) > 100 || Math.abs(info.velocity.x) > 600;
@@ -140,7 +166,7 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
       animate={{ ...POSES[pos], opacity: 1 }}
       exit="exit"
       transition={spring}
-      style={{ zIndex: 10 - pos, x: fx, y: fy, rotate: fr, scale: fs }}
+      style={{ zIndex: fz, x: fx, y: fy, rotate: fr, scale: fs }}
       aria-hidden={!top}
     >
       <motion.div
@@ -170,7 +196,7 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
                 <span className="slot-name">{s.label}</span>
                 <span className="pill">{s.when}</span>
               </div>
-              <div className={top ? "card-body" : "card-body hidden-behind"}>
+              <div className={top || keepFace ? "card-body" : "card-body hidden-behind"}>
                 <div className="title">
                   <div className="icon-tile"><span className="emoji">{meal.icon}</span></div>
                   <h2 className="name">{meal.name}</h2>

@@ -218,7 +218,13 @@ export function RadialMenu({
   const mode = still() ? "off" : feel.mode;
   const p = clamp(feel.strength, 0, 100) / 100;
   const zeta = 0.9 - 0.48 * (clamp(feel.bounce, 0, 100) / 100);
-  const swing = (k: number, mass = 1) => ({ type: "spring" as const, stiffness: k, damping: 2 * Math.sqrt(k * mass) * zeta, mass });
+  /* Letting go is slower than reaching: the options ease back into
+     their buttons rather than snapping to rest. Stiffness is what
+     sets the pace, and the damping ratio is unchanged, so the
+     bounce reads the same at either speed. */
+  const arriving = held !== null || aim !== null;
+  const pace = arriving ? 1 : 0.34;
+  const swing = (k: number, mass = 1) => ({ type: "spring" as const, stiffness: k * pace, damping: 2 * Math.sqrt(k * pace * mass) * zeta, mass });
   const bearing = held ? (Math.atan2(held.dy, held.dx) * 180) / Math.PI : null;
   const dist = held ? Math.hypot(held.dx, held.dy) : 0;
   /* builds as the thumb travels outward, so a thumb resting near
@@ -313,6 +319,7 @@ export function RadialMenu({
                     property — they would fight every frame. */}
                 <motion.span
                   className="fan-disc gpane"
+                  data-hot={aim === i && mode !== "off" ? true : undefined}
                   initial={false}
                   animate={{ x: fx.x, y: fx.y, scale: fx.scale, rotate: fx.rotate }}
                   transition={{

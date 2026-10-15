@@ -723,7 +723,13 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 .fan-opt { background: none; padding: 0; }
 .fan-disc { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 999px; }
 .fan-opt[data-live="true"] { box-shadow: none; }
-[data-surface="glass"] .fan-opt[data-live="true"] .fan-disc { box-shadow: 0 0 0 2px var(--ink), 0 10px 40px rgba(var(--shadow-rgb), 0.16); }
+/* No ring: the one you're on is simply the one that has come forward. It goes nearly opaque so a swollen
+   disc that overlaps its neighbours covers them instead of blending with them, and it throws a soft shadow. */
+[data-surface="glass"] .fan-opt[data-live="true"] .fan-disc {
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 8px 22px rgba(var(--shadow-rgb), 0.2);
+}
+[data-surface="glass"] .fan-opt[data-live="true"] .fan-disc::before { opacity: 0; }
 
 .slider-row { display: grid; grid-template-columns: 74px 1fr 32px; align-items: center; gap: 10px; font-size: 0.9rem; }
 .slider-row input[type="range"] { width: 100%; accent-color: var(--ink); }
