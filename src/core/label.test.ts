@@ -47,4 +47,10 @@ describe("parseLabel", () => {
     expect(p.protein).toBe(8.5);
     expect(p.fat).toBe(18.2);
   });
+  it("reads the pack size from the net weight or the e-mark", () => {
+    expect(parseLabel("NET WEIGHT 425 g\nEnergy 100 kcal").packG).toBe(425);
+    expect(parseLabel("Contents: 1,5 kg").packG).toBe(1500);
+    expect(parseLabel("Best before 12/26\n500 g e").packG).toBe(500);
+    expect(parseLabel("Per 100 g\nEnergy 100 kcal").packG).toBeUndefined();
+  });
 });

@@ -31,7 +31,7 @@ export interface KitchenActions {
   setStockGrams: (foodId: string, grams: number) => void;
   setMealState: (mealId: string, state: "kept" | "hidden") => void;
   addOwnMeal: (d: MealDraft) => Promise<Meal>;
-  saveLabel: (r: LabelResult) => void;
+  saveLabel: (r: LabelResult) => string | null;
 }
 
 interface Props {
@@ -51,7 +51,7 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
   const [adjust, setAdjust] = useState<string | null>(null);
   const [picker, setPicker] = useState<"list" | "restock" | null>(null);
   const [ownOpen, setOwnOpen] = useState(false);
-  const [scan, setScan] = useState<{ foodId: string | null; product?: Product } | null>(null);
+  const [scan, setScan] = useState<{ foodId: string | null; product?: Product; newName?: string } | null>(null);
   const [qty, setQty] = useState<{ foodId: string; packs: number; packG: number; editing: boolean } | null>(null);
   const go = (s: Section) => { setSection(s); window.scrollTo({ top: 0 }); };
 
@@ -60,6 +60,8 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
   const own = useMemo(() => meals.filter((m) => m.tags.includes(OWN_TAG) && prefs.meals[m.id]?.state !== "hidden"), [prefs]);
   const hidden = useMemo(() => meals.filter((m) => prefs.meals[m.id]?.state === "hidden"), [prefs]);
   const onList = useMemo(() => new Set(shopping.map((r) => r.itemId)), [shopping]);
+  /** The pack he last bought of a food (or read off its label), else the smallest on the shelf. */
+  const usualPack = (f: Food) => { const g = products.get(f.id)?.packG; return g && g > 0 ? g : Math.min(...f.packSizes); };
 
   return (
     <div className="kitchen">
@@ -241,7 +243,7 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
                 ) : onList.has(id) ? (
                   <span className="pill">On list</span>
                 ) : (
-                  <button className="btn small" onClick={() => { actions.addToList([{ foodId: id, needG: Math.min(...f.packSizes) }], "manual"); toast(`${f.name} is on your list`); }}>Add</button>
+                  <button className="btn small" onClick={() => { actions.addToList([{ foodId: id, needG: usualPack(f) }], "manual"); toast(`${f.name} is on your list`); }}>Add</button>
                 )}
               </div>
             );
@@ -256,9 +258,10 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
         onPick={(f) => {
           const mode = picker;
           setPicker(null);
-          if (mode === "restock") setRestock({ rows: [{ foodId: f.id, packs: 1, packG: Math.min(...f.packSizes) }] });
-          else setQty({ foodId: f.id, packs: 1, packG: Math.min(...f.packSizes), editing: false });
+          if (mode === "restock") setRestock({ rows: [{ foodId: f.id, packs: 1, packG: usualPack(f) }] });
+          else setQty({ foodId: f.id, packs: 1, packG: usualPack(f), editing: false });
         }}
+        onAddNew={(name) => { setPicker(null); setScan({ foodId: null, newName: name }); }}
       />
       <QuantitySheet
         seed={qty}
@@ -292,8 +295,13 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
           setAdjust(null);
         }}
       />
-      <OwnMealSheet open={ownOpen} onClose={() => setOwnOpen(false)} onSave={(d) => { setOwnOpen(false); void actions.addOwnMeal(d).then((m) => toast(`${m.name} is in your rotation`)); }} />
-      <LabelScanSheet seed={scan} onClose={() => setScan(null)} onSave={(r) => { actions.saveLabel(r); setScan(null); toast("Label saved. Meals with it use these numbers."); }} />
+      <OwnMealSheet open={ownOpen} onClose={() => setOwnOpen(false)} onNewFood={(r) => actions.saveLabel(r)} onSave={(d) => { setOwnOpen(false); void actions.addOwnMeal(d).then((m) => toast(`${m.name} is in your rotation`)); }} />
+      <LabelScanSheet seed={scan} onClose={() => setScan(null)} onSave={(r) => {
+        const id = actions.saveLabel(r);
+        setScan(null);
+        const name = id ? foodMap.get(id)?.name ?? r.name : r.name;
+        toast(!r.foodId ? `${name} is in your food list${r.packsBought ? " and your pantry" : ""}` : r.packsBought ? `Label saved, ${r.packsBought} added to the pantry` : "Label saved. Meals with it use these numbers.");
+      }} />
     </div>
   );
 }
@@ -370,6 +378,28 @@ function RestockSheet({ seed, products, onClose, onSave }: {
   );
 }
 
+/** Pack size: the usual ones as chips, plus any grams he types for a pack that isn't on the list. */
+function PackSize({ food, value, onChange, label }: { food: Food; value: number; onChange: (g: number) => void; label: string }) {
+  const sizes = [...new Set([...food.packSizes, value])].filter((g) => g > 0).sort((a, b) => a - b);
+  const [other, setOther] = useState(false);
+  const [text, setText] = useState("");
+  return (
+    <div className="packsize">
+      <div className="chips" role="group" aria-label={label}>
+        {sizes.map((g) => (<button key={g} className="chip" aria-pressed={!other && value === g} onClick={() => { setOther(false); onChange(g); }}>{g} g</button>))}
+        <button className="chip" aria-pressed={other} onClick={() => setOther(true)}>Other</button>
+      </div>
+      {other && (
+        <label className="me-input packsize-other">
+          <input autoFocus inputMode="decimal" aria-label={`${label}, grams`} placeholder="Grams in one pack" value={text}
+            onChange={(e) => { const t = e.target.value.replace(/[^0-9]/g, ""); setText(t); if (Number(t) > 0) onChange(Number(t)); }} />
+          <span>g</span>
+        </label>
+      )}
+    </div>
+  );
+}
+
 function RestockForm({ seed, products, onSave }: { seed: RestockSeed; products: Map<string, Product>; onSave: (rows: { foodId: string; packs: number; packG: number; price?: number }[], listIds: string[]) => void }) {
   const [rows, setRows] = useState(() => seed.rows.map((r) => ({ ...r, price: "" })));
   const set = (i: number, patch: Partial<(typeof rows)[number]>) => setRows((all) => all.map((r, j) => (j === i ? { ...r, ...patch } : r)));
@@ -382,7 +412,7 @@ function RestockForm({ seed, products, onSave }: { seed: RestockSeed; products: 
         return (
           <div key={r.foodId} className="restock-row">
             <span className="emoji">{f.emoji}</span>
-            <span className="kname">{f.name}<small>{r.packG} g packs{last ? ` · last R${last.toFixed(2)} a pack` : ""}</small></span>
+            <span className="kname">{f.name}<small>{r.packs} × {r.packG} g{last ? ` · last R${last.toFixed(2)} a pack` : ""}</small></span>
             <div className="stepper" role="group" aria-label={`${f.name} packs`}>
               <button aria-label="One fewer" onClick={() => set(i, { packs: Math.max(0, r.packs - 1) })}>−</button>
               <b>{r.packs}</b>
@@ -392,6 +422,7 @@ function RestockForm({ seed, products, onSave }: { seed: RestockSeed; products: 
               <span>R</span>
               <input inputMode="decimal" placeholder="total" aria-label={`${f.name} price`} value={r.price} onChange={(e) => set(i, { price: e.target.value.replace(/[^0-9.,]/g, "") })} />
             </label>
+            <PackSize food={f} value={r.packG} label={`${f.name} pack size`} onChange={(g) => set(i, { packG: g })} />
           </div>
         );
       })}
@@ -431,7 +462,6 @@ function QuantityForm({ seed, food, onSave, onRemove }: {
 }) {
   const [packs, setPacks] = useState(seed.packs);
   const [packG, setPackG] = useState(seed.packG);
-  const sizes = [...new Set([...food.packSizes, seed.packG])].sort((a, b) => a - b);
   return (
     <>
       <p className="k-sub">How many do you need to buy? Pick the pack size you'd usually take off the shelf.</p>
@@ -440,13 +470,7 @@ function QuantityForm({ seed, food, onSave, onRemove }: {
         <div className="adjust-n"><span className="emoji">{food.emoji}</span><b>{packs} × {packG} g</b></div>
         <button aria-label="One more" onClick={() => setPacks(packs + 1)}>+</button>
       </div>
-      {sizes.length > 1 && (
-        <div className="chips" role="group" aria-label="Pack size">
-          {sizes.map((g) => (
-            <button key={g} className="chip" aria-pressed={packG === g} onClick={() => setPackG(g)}>{g} g</button>
-          ))}
-        </div>
-      )}
+      <PackSize food={food} value={packG} label="Pack size" onChange={setPackG} />
       <div className="sheet-actions">
         {seed.editing && <button className="btn ghost" onClick={() => onRemove(seed.foodId)}>Remove</button>}
         <motion.button className="btn" whileTap={{ scale: 0.96 }} onClick={() => onSave(seed.foodId, packs, packG)}>
@@ -484,9 +508,10 @@ function AdjustForm({ food, grams, onSave }: { food: Food; grams: number; onSave
   );
 }
 
-function PickFoodSheet({ open, title, onClose, onPick }: { open: boolean; title: string; onClose: () => void; onPick: (f: Food) => void }) {
+function PickFoodSheet({ open, title, onClose, onPick, onAddNew }: { open: boolean; title: string; onClose: () => void; onPick: (f: Food) => void; onAddNew: (name: string) => void }) {
   const [q, setQ] = useState("");
-  const list = useMemo(() => foods.filter((f) => f.name.toLowerCase().includes(q.trim().toLowerCase())).sort((a, b) => a.name.localeCompare(b.name)), [q]);
+  // `foods` grows when he adds one from a label, so key the list on its length too.
+  const list = useMemo(() => foods.filter((f) => f.name.toLowerCase().includes(q.trim().toLowerCase())).sort((a, b) => a.name.localeCompare(b.name)), [q, open, foods.length]);
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) { setQ(""); onClose(); } }} title={title}>
       <input className="search" placeholder="Search foods" aria-label="Search foods" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -497,7 +522,9 @@ function PickFoodSheet({ open, title, onClose, onPick }: { open: boolean; title:
             <span className="kname">{f.name}</span>
           </button>
         ))}
-        {list.length === 0 && <p className="k-empty">No foods match. Meals you send me can add new ones.</p>}
+        <button className="krow add-new" onClick={() => { const name = q.trim(); setQ(""); onAddNew(name); }}>
+          <span className="emoji">＋</span><span className="kname">{q.trim() ? `Add “${q.trim()}” as a new food` : "Not here? Add a new food"}<small>From its nutrition label</small></span>
+        </button>
       </div>
     </Sheet>
   );

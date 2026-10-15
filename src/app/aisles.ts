@@ -18,7 +18,13 @@ const MAP: Record<string, Aisle> = {
 };
 
 /** Anything not listed (tins, grains, pulses, pasta, rice) is "Tins & dry goods". */
-export const aisleOf = (foodId: string): Aisle => MAP[foodId] ?? "Tins & dry goods";
+export const aisleOf = (foodId: string): Aisle => MAP[foodId] ?? CUSTOM[foodId] ?? "Tins & dry goods";
+
+/** Aisles for foods he added himself, filled in as they're loaded or created. */
+const CUSTOM: Record<string, Aisle> = {};
+export function setCustomAisle(foodId: string, aisle: string | undefined): void {
+  if (aisle && (AISLES as readonly string[]).includes(aisle)) CUSTOM[foodId] = aisle as Aisle;
+}
 
 /** Cheap staples that make everything tastier; offered as a checklist in the Kitchen. */
 export const FLAVOUR_KIT = ["smoked-paprika", "cumin", "chilli-flakes", "peri-peri-rub", "lemon-juice", "garlic", "tahini", "red-onion"] as const;

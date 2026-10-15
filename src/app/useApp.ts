@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as db from "../core/db";
-import { addCustomMeal, estCost, meals, startingMealIds, suppers } from "../core/content";
+import { addCustomFood, addCustomMeal, estCost, foods, meals, startingMealIds, suppers } from "../core/content";
+import { buildFood } from "../core/newfood";
+import { setCustomAisle } from "./aisles";
 import { buildCustomMeal, OWN_PREFIX, type MealDraft } from "../core/custom";
 import { addDays } from "./history";
 import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
@@ -98,6 +100,8 @@ export function useApp() {
         const wk = (await db.getAll("week")).sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0] ?? null;
         const md = (await db.getAll("meds"))[0] ?? null;
         // His own meals live in the database; bring them into the library before anything is dealt.
+        // ...and so are foods he added from a label, which his meals and pantry may use.
+        for (const f of await db.getAll("foods")) { addCustomFood(f); setCustomAisle(f.id, f.aisle); }
         for (const own of await db.getAll("meals")) addCustomMeal(own);
         // New meals that arrived with this build wait for a decision before they're ever dealt.
         const found = discoverMeals(meals.filter((m) => !m.id.startsWith(OWN_PREFIX)).map((m) => m.id), pr);
@@ -455,17 +459,43 @@ export function useApp() {
     saveShopping(latest.current.shopping.filter((r) => !listIds.includes(r.id)), listIds);
   }, []);
 
-  /** Keep the numbers read from a nutrition label for a food. The planner uses them from then on. */
-  const saveLabel = useCallback((r: { foodId: string; name: string; packG: number; per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number } }) => {
-    const prev = latest.current.products.find((p) => p.foodId === r.foodId);
+  /**
+   * Keep what a label says about a food: the numbers the planner uses from then on, the pack size and
+   * the price of one pack. A food that isn't in the list yet is created first. Packs bought are
+   * added to the pantry.
+   */
+  const saveLabel = useCallback((r: {
+    foodId: string | null; name: string; packG: number; price?: number; packsBought?: number;
+    newFood?: { emoji: string; aisle: string };
+    per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number };
+  }): string | null => {
+    let foodId = r.foodId;
+    if (!foodId) {
+      if (!r.newFood || !(r.packG > 0)) return null;
+      const food = buildFood({ name: r.name, emoji: r.newFood.emoji, aisle: r.newFood.aisle, packG: r.packG, per100: r.per100 }, new Set(foods.map((f) => f.id)));
+      addCustomFood(food);
+      setCustomAisle(food.id, food.aisle);
+      void persist(db.put("foods", food));
+      foodId = food.id;
+    }
+    const prev = latest.current.products.find((p) => p.foodId === foodId);
+    const packG = r.packG || prev?.packG || 0;
     const product: Product = {
-      id: r.foodId, foodId: r.foodId, name: r.name, packG: r.packG || prev?.packG || 0, lastPrice: prev?.lastPrice ?? 0,
+      id: foodId, foodId, name: r.name, packG, lastPrice: r.price && r.price > 0 ? r.price : prev?.lastPrice ?? 0,
       per100: r.per100, estimated: r.per100.sol !== undefined ? ["sol"] : [], fromLabel: true,
     };
-    const pd = [...latest.current.products.filter((p) => p.foodId !== r.foodId), product];
+    const pd = [...latest.current.products.filter((p) => p.foodId !== foodId), product];
     latest.current.products = pd;
     setProducts(pd);
     void persist(db.put("products", product));
+    const food = foodMap.get(foodId);
+    if (food && r.packsBought && r.packsBought > 0 && packG > 0) {
+      const added = addToStock(latest.current.stock, foodId, restockGrams(food, r.packsBought, packG), new Date().toISOString());
+      latest.current.stock = added.next;
+      setStock(added.next);
+      void persist(db.put("stock", added.row));
+    }
+    return foodId;
   }, []);
 
   /** Fridge check: set a food's amount directly. */

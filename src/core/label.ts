@@ -12,6 +12,8 @@ export interface LabelNumbers {
   fibre?: number;
   /** Milligrams per 100 g (or per 100 ml). */
   sodium?: number;
+  /** What's in one pack, in grams (ml are taken as grams): "NET 425 g" or "425 g e". */
+  packG?: number;
 }
 
 export interface ParsedLabel extends LabelNumbers {
@@ -81,6 +83,15 @@ export function parseLabel(text: string): ParsedLabel {
   if (out.kcal === undefined && kj !== undefined) out.kcal = Math.round(kj / 4.184);
   // Many labels print salt, not sodium: sodium is salt / 2.5.
   if (out.sodium === undefined && salt !== undefined) out.sodium = Math.round((salt / 2.5) * 1000);
+
+  // Pack size: "Net weight 425 g", "Contents: 1 kg", or the e-mark ("425 g e" / "425g ℮").
+  const net = /net\s*(?:weight|wt\.?|content|contents|mass|volume)?\s*[:.]?\s*(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i.exec(text)
+    ?? /\bcontents?\s*[:.]?\s*(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i.exec(text)
+    ?? /(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\s*[e\u212e]\b/i.exec(text);
+  if (net) {
+    const n = toNum(net[1]) * (/^(kg|l)$/i.test(net[2]) ? 1000 : 1);
+    if (n > 0 && n <= 20000) out.packG = Math.round(n);
+  }
 
   const found = (Object.keys(out) as (keyof LabelNumbers)[]).filter((k) => out[k] !== undefined);
   const hasBasis = /per\s*100\s*(g|ml)|100\s*(g|ml)/i.test(text);

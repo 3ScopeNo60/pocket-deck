@@ -6,24 +6,27 @@ import { mealNutrition } from "../core/nutrition";
 import type { Meal } from "../core/types";
 import { foodMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
+import { LabelFlow, type LabelResult } from "./LabelScan";
 
 const EMOJI = ["🍳", "🥣", "🥪", "🥗", "🍲", "🍛", "🥙", "🍎", "🍞", "🥜"];
 const SLOT_LABEL: Record<Meal["slot"], string> = { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack" };
 const BLANK: MealDraft = { name: "", emoji: "🍳", slot: "lunch", items: [], steps: "" };
 
 /** "Add your own meal": pick ingredients and amounts; the numbers are worked out from the food list. */
-export function OwnMealSheet({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (d: MealDraft) => void }) {
+export function OwnMealSheet({ open, onClose, onSave, onNewFood }: { open: boolean; onClose: () => void; onSave: (d: MealDraft) => void; onNewFood: (r: LabelResult) => string | null }) {
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Add your own meal">
-      {open && <Form onSave={onSave} />}
+      {open && <Form onSave={onSave} onNewFood={onNewFood} />}
     </Sheet>
   );
 }
 
-function Form({ onSave }: { onSave: (d: MealDraft) => void }) {
+function Form({ onSave, onNewFood }: { onSave: (d: MealDraft) => void; onNewFood: (r: LabelResult) => string | null }) {
   const [d, setD] = useState<MealDraft>(BLANK);
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
+  // An ingredient that isn't in the food list yet: read off its label, then straight into the meal.
+  const [fresh, setFresh] = useState<string | null>(null);
 
   const problem = draftProblem(d, foodMap);
   const nums = useMemo(() => {
@@ -44,6 +47,23 @@ function Form({ onSave }: { onSave: (d: MealDraft) => void }) {
     setQuery("");
     setAdding(false);
   };
+
+  if (fresh !== null) {
+    return (
+      <>
+        <h3 className="section-label">A new ingredient</h3>
+        <LabelFlow
+          seed={{ foodId: null, newName: fresh }}
+          onSave={(r) => {
+            const id = onNewFood(r);
+            setFresh(null);
+            if (id) addFood(id);
+          }}
+        />
+        <div className="sheet-actions"><button className="btn ghost" onClick={() => setFresh(null)}>Back to the meal</button></div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -84,6 +104,9 @@ function Form({ onSave }: { onSave: (d: MealDraft) => void }) {
             <button key={f.id} className="krow" onClick={() => addFood(f.id)}><span className="emoji">{f.emoji}</span><span className="kname">{f.name}</span></button>
           ))}
           {matches.length === 0 && <p className="k-sub">Nothing like that in the food list yet.</p>}
+          <button className="krow add-new" onClick={() => setFresh(query.trim())}>
+            <span className="emoji">＋</span><span className="kname">{query.trim() ? `Add “${query.trim()}” as a new ingredient` : "Not in the list? Add a new ingredient"}<small>From its nutrition label</small></span>
+          </button>
         </div>
       ) : (
         <button className="btn ghost small" onClick={() => setAdding(true)}>Add an ingredient</button>

@@ -1,11 +1,11 @@
 // Turns core meals into the card shape the Today UI draws.
-import { estCost, foods, mealIndex, suppers } from "../core/content";
+import { estCost, foodIndex, mealIndex, suppers } from "../core/content";
 import { mealNutrition } from "../core/nutrition";
 import { shortfall } from "../core/planner";
 import type { Meal as CoreMeal, StockItem } from "../core/types";
 import type { Meal as CardMeal } from "../data/meals";
 
-export const foodMap = new Map(foods.map((f) => [f.id, f]));
+export const foodMap = foodIndex;
 export const mealMap = mealIndex;
 export const supperMap = new Map(suppers.map((s) => [s.id, s]));
 

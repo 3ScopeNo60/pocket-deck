@@ -40,6 +40,10 @@ export interface Food {
   anchors: Anchor[];
   cuisines: string[];
   packSizes: number[];
+  /** Set on foods he added himself from a label. */
+  mine?: boolean;
+  /** Supermarket aisle for foods he added himself (shipped foods are mapped in app/aisles.ts). */
+  aisle?: string;
   /** For foods bought dry that are stocked cooked (rice, barley, lentils): cooked grams per dry gram. */
   cookedYield?: number | null;
   source: string;

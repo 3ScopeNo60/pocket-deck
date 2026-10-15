@@ -806,3 +806,13 @@ img, svg { -webkit-user-drag: none; }
   #upright b { font-family: var(--display); font-weight: 800; font-size: 1.25rem; }
   #upright small { color: var(--muted); font-size: 0.9rem; }
 }
+
+/* New food, pack size and price in the restock and scan sheets. */
+.packsize { grid-column: 1 / -1; margin-top: 8px; }
+.packsize .chips { margin: 0; }
+.packsize-other { margin-top: 8px; max-width: 220px; }
+.krow.add-new { border-style: dashed; }
+.krow.add-new .emoji { font-size: 20px; opacity: 0.7; }
+.emoji-row { margin-bottom: 4px; }
+.emoji-row .chip { min-width: 44px; font-size: 20px; }
+.own-row.bought { margin-top: 8px; }
