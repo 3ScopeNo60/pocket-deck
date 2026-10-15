@@ -79,7 +79,6 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
       ? [{ key: "try" as const, Icon: FlaskConical, title: "Try a scenario", status: "Preview only", show: true, hue: "mint" }]
       : []),
   ];
-  const pageTitle: Record<Exclude<Page, null>, string> = { you: "About you", meds: "Medication", feel: "Menu and cards", backup: "Back up", app: "This app", try: "Try a scenario" };
 
   if (embedded) {
     return (
@@ -160,7 +159,7 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
             <button className="me-back" onClick={() => open(null)}><ChevronLeft size={20} strokeWidth={2} />Me</button>
             <div className="me-hero">
               <span className="me-tile-icon" aria-hidden="true"><here.Icon size={22} strokeWidth={2} /></span>
-              <span className="me-tile-txt"><h1 className="hello">{pageTitle[page]}</h1><small>{here.status}</small></span>
+              <span className="me-tile-txt"><h1 className="hello">{here.title}</h1><small>{here.status}</small></span>
             </div>
           </>
         ) : (
