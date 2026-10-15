@@ -34,6 +34,34 @@ const grab = (e: React.PointerEvent) => {
    everyone will discover the drag — but the drag is the point,
    and once you have it you never tap again. */
 
+/* ══ How the options respond to a held thumb ════════════════
+   Three feels, kept side by side until one is chosen. They share
+   one idea taken from the "magnetic select" block: the thing you
+   are over should not be a highlight, it should change the
+   neighbourhood. Each answers it differently.
+
+   lens   — the options swell continuously with how close your
+            thumb's bearing is to them, like a dock. Nothing is
+            shoved; the one you are heading for simply grows.
+   magnet — the one you are aimed at takes the ink and the others
+            give way: they shrink a little and are pushed along
+            the line away from it, with the far ones a beat late.
+   lean   — lens, softer, plus the whole fan tips toward your
+            thumb as one body (the gaps never change).
+
+   `strength` and `bounce` are 0–100 and mean the same in all
+   three: how much it swells, and how much it overshoots when it
+   arrives. Bounce is a damping RATIO so one setting rings the
+   same on every chip whatever its stiffness. */
+export type MenuMode = "off" | "lens" | "magnet" | "lean";
+export interface MenuFeel { mode: MenuMode; strength: number; bounce: number }
+export const DEFAULT_FEEL: MenuFeel = { mode: "lens", strength: 55, bounce: 45 };
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+/* the shortest way round, so -170 and 170 are 20 apart */
+const angGap = (a: number, b: number) => 180 - Math.abs((Math.abs(a - b) % 360) - 180);
+const still = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
 export interface RadialItem {
   key: string;
   label: string;
@@ -74,6 +102,7 @@ export function RadialMenu({
      opens as one shape; the higher it goes the more it reads
      as items being dealt out one after another. */
   stagger = 28,
+  feel = DEFAULT_FEEL,
 }: {
   items: RadialItem[];
   current: string;
@@ -83,6 +112,7 @@ export function RadialMenu({
   radius?: number;
   spread?: number;
   stagger?: number;
+  feel?: MenuFeel;
 }) {
   /* everything except where you already are */
   const arc = items.filter((o) => o.key !== current).slice(0, 6);
@@ -108,6 +138,8 @@ export function RadialMenu({
   const reach = radius * Math.max(1, chordAt(DEALT) / chordAt(arc.length));
   const [open, setOpen] = useState(false);
   const [aim, setAim] = useState<number | null>(null);
+  /* where the thumb is, as an offset from where it went down */
+  const [held, setHeld] = useState<{ dx: number; dy: number } | null>(null);
   const down = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   /* whether the fan was already open when this press began —
      a press always opens it, so without remembering the state
@@ -157,8 +189,9 @@ export function RadialMenu({
     const dx = e.clientX - d.x;
     const dy = e.clientY - d.y;
     /* a press that has not travelled is still a tap */
-    if (Math.hypot(dx, dy) < 14) { setAim(null); return; }
+    if (Math.hypot(dx, dy) < 14) { setAim(null); setHeld(null); return; }
     d.moved = true;
+    setHeld({ dx, dy });
     /* one note each time the aim crosses onto a different
        option — the fan is chosen by direction, and this is
        what tells you the direction landed somewhere */
@@ -175,6 +208,70 @@ export function RadialMenu({
       setOpen(false);
     }
     setAim(null);
+    setHeld(null);
+  };
+
+  /* ── what each option does about the thumb ────────────────
+     Worked out from the fan's own geometry, never read back from
+     the DOM: the chips are displaced by these numbers, and
+     reading a position off something you are moving is a loop. */
+  const mode = still() ? "off" : feel.mode;
+  const p = clamp(feel.strength, 0, 100) / 100;
+  const zeta = 0.9 - 0.48 * (clamp(feel.bounce, 0, 100) / 100);
+  const swing = (k: number, mass = 1) => ({ type: "spring" as const, stiffness: k, damping: 2 * Math.sqrt(k * mass) * zeta, mass });
+  const bearing = held ? (Math.atan2(held.dy, held.dx) * 180) / Math.PI : null;
+  const dist = held ? Math.hypot(held.dx, held.dy) : 0;
+  /* builds as the thumb travels outward, so a thumb resting near
+     the core does not light up the whole fan */
+  const ramp = clamp((dist - 14) / (reach * 0.6), 0, 1);
+  const centres = arc.map((_, i) => {
+    const a = (angleOf(i) * Math.PI) / 180;
+    return { x: Math.cos(a) * reach, y: Math.sin(a) * reach, ux: Math.cos(a), uy: Math.sin(a) };
+  });
+  const chord = arc.length > 1 ? 2 * reach * Math.sin((spread / (arc.length - 1) / 2) * (Math.PI / 180)) : 52;
+
+  const effect = (i: number) => {
+    let x = 0, y = 0, scale = 1, rotate = 0, z = 1, wait = 0;
+    if ((mode === "lens" || mode === "lean") && bearing !== null) {
+      const w = Math.exp(-Math.pow(angGap(bearing, angleOf(i)) / 30, 2));
+      const gain = mode === "lean" ? 0.12 + 0.26 * p : 0.14 + 0.30 * p;
+      scale = 1 + gain * w * ramp;
+      /* it also pops outward a few pixels, off the arc, so a swollen
+         disc leaves its neighbours' side rather than sitting on it */
+      x += centres[i].ux * 7 * p * w * ramp;
+      y += centres[i].uy * 7 * p * w * ramp;
+      z = 1 + Math.round(w * 4);
+      if (mode === "lean") {
+        /* ONE vector for the group, zero at the core, full out at the
+           arc: the fan tips toward the thumb as a body and no gap
+           changes. A per-chip lean would pull the fan apart. */
+        const mag = clamp(dist / reach, 0, 1) * (2 + 5 * p);
+        x += (held!.dx / (dist || 1)) * mag;
+        y += (held!.dy / (dist || 1)) * mag;
+      }
+    }
+    if (mode === "magnet" && aim !== null) {
+      const grow = 1.16 + 0.22 * p;
+      if (i === aim) { scale = grow; z = 5; }
+      else {
+        const room = (48 * (grow - 1)) / 2;
+        const aura = 3 + 9 * p;
+        const dx = centres[i].x - centres[aim].x;
+        const dy = centres[i].y - centres[aim].y;
+        const gap = Math.hypot(dx, dy) || 1;
+        const far = gap / (chord || 52);
+        const fall = Math.exp(-(far - 1) / 2.8);
+        /* a constant push: two chips on one bearing move together and
+           nothing ever closes up. `fall` drives the tilt and the
+           cower, where a sense of reach belongs. */
+        x += (dx / gap) * (room + aura);
+        y += (dy / gap) * (room + aura);
+        scale = 1 - (0.04 + 0.09 * p) * fall;
+        rotate = (dx / gap) * 5 * p * fall;
+        wait = far * 0.014;
+      }
+    }
+    return { x, y, scale, rotate, z, wait };
   };
 
   const CurrentIcon = items.find((o) => o.key === current)?.Icon ?? items[0].Icon;
@@ -190,16 +287,18 @@ export function RadialMenu({
         <div className="fan-arc" data-open={open}>
           {arc.map((o, i) => {
             const a = (angleOf(i) * Math.PI) / 180;
+            const fx = effect(i);
             return (
               <button
                 key={o.key}
-                className="fan-opt gpane"
+                className="fan-opt"
                 data-live={aim === i}
                 style={{
                   transform: open
                     ? `translate(${Math.cos(a) * reach}px, ${Math.sin(a) * reach}px)`
                     : "translate(0, 0) scale(0.4)",
                   transitionDelay: `${open ? i * stagger : 0}ms`,
+                  zIndex: fx.z,
                 }}
                 onClick={() => choose(i)}
                 onPointerDown={hold}
@@ -209,7 +308,22 @@ export function RadialMenu({
                 {/* 19 in a 48px circle. 16 was a third of it and
                     read as a label on a button rather than as the
                     tool itself. */}
-                <o.Icon size={19} strokeWidth={2} />
+                {/* The disc is its own element so its spring transform and
+                    the fan's CSS transform on the button never share one
+                    property — they would fight every frame. */}
+                <motion.span
+                  className="fan-disc gpane"
+                  initial={false}
+                  animate={{ x: fx.x, y: fx.y, scale: fx.scale, rotate: fx.rotate }}
+                  transition={{
+                    x: { ...swing(360, 0.9), delay: fx.wait },
+                    y: { ...swing(360, 0.9), delay: fx.wait },
+                    scale: { ...swing(460, 0.85), delay: fx.wait },
+                    rotate: { ...swing(300, 1), delay: fx.wait },
+                  }}
+                >
+                  <o.Icon size={19} strokeWidth={2} />
+                </motion.span>
               </button>
             );
           })}

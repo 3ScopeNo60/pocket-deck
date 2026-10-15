@@ -29,6 +29,8 @@ node scripts/nudges.mjs   <shots-dir>   # Sunday look-back, backup reminder (fix
 node scripts/ownmeal.mjs  <shots-dir>   # add your own meal
 node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm run build)
 node scripts/tomorrow.mjs <shots-dir>   # daytime done: prep, shopping, tell supper now
+node scripts/menufeel.mjs <shots-dir>   # hold and slide across the menu: lens, magnet, lean
+node scripts/switcher.mjs <shots-dir>   # dots and peek bring another meal to the top
 node scripts/label.mjs    <shots-dir>   # label scan: pasted text and a photo (needs npm run build)
 ```
 

@@ -104,6 +104,10 @@ export interface Prefs {
   supperTonight?: { date: string; supperId: string; plate: "Small" | "Normal" | "Big" };
   /** Night-before prep ticked off for one date. */
   prepDone?: { date: string; ids: string[] };
+  /** The control under the cards that brings another meal to the top. */
+  switcher?: "off" | "dots" | "peek";
+  /** How the menu's options respond to a held thumb (see RadialMenu). */
+  menuFeel?: { mode: "off" | "lens" | "magnet" | "lean"; strength: number; bounce: number };
   /** Ids of bell items he has seen. */
   inboxRead?: string[];
   /** Quiet prompts he has put away for now. */

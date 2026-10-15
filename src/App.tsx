@@ -6,7 +6,7 @@ import { SLOTS, TONIGHT, type SlotKey } from "./data/meals";
 import { Deck, type ExitKind } from "./components/Deck";
 import { TonightSheet } from "./components/Sheets";
 import { CheckIn, type CheckInAnswer } from "./components/CheckIn";
-import { RadialMenu, type RadialItem } from "./components/RadialMenu";
+import { DEFAULT_FEEL, RadialMenu, type RadialItem } from "./components/RadialMenu";
 import { Kitchen } from "./components/Kitchen";
 import { Me } from "./components/Me";
 import { WeekScreen } from "./components/Week";
@@ -14,6 +14,7 @@ import { Setup } from "./components/Setup";
 import { Progress } from "./components/Progress";
 import { OffPlanSheet, type OffPlanTarget } from "./components/OffPlan";
 import { BellButton, InboxSheet } from "./components/Inbox";
+import { CardSwitcher, type SwitcherMode } from "./components/CardSwitcher";
 import { buildInbox, type InboxItem } from "./core/inbox";
 import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
 import { tomorrowPlan } from "./core/tomorrow";
@@ -69,6 +70,9 @@ export default function App() {
   const [tomorrowOpen, setTomorrowOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [eatenOpen, setEatenOpen] = useState(false);
+  /* the card he has chosen to see first, and a count for the shuffle animation */
+  const [frontSlot, setFrontSlot] = useState<SlotKey | null>(null);
+  const [shuffleTick, setShuffleTick] = useState(0);
   const [updateId, setUpdateId] = useState<string | null>(null);
   const [supperOpen, setSupperOpen] = useState(false);
   // Read the release notes only once the main app is showing, so they aren't used up behind Setup.
@@ -204,8 +208,16 @@ export default function App() {
     );
   }
 
-  const top = cards[0];
-  const topMeal = top ? cardFor.get(top.slot) : undefined;
+  const naturalSlots = cards.map((c) => c.slot);
+  const orderedSlots = frontSlot && naturalSlots.includes(frontSlot) ? [frontSlot, ...naturalSlots.filter((s) => s !== frontSlot)] : naturalSlots;
+  const topMeal = orderedSlots[0] ? cardFor.get(orderedSlots[0]) : undefined;
+  const switcherMode = (app.prefs.switcher ?? "dots") as SwitcherMode;
+  const switchTo = (slot: string) => {
+    if (slot === orderedSlots[0]) return;
+    setFlipped(null);
+    setFrontSlot(slot === naturalSlots[0] ? null : (slot as SlotKey));
+    setShuffleTick((t) => t + 1);
+  };
   const budgetShown = Math.round(app.budget * 10) / 10;
 
   async function submit(a: CheckInAnswer) {
@@ -267,6 +279,10 @@ export default function App() {
       {screen === "me" && (
         <Me
           profile={app.profile}
+          switcher={switcherMode}
+          onSwitcher={actions.setSwitcher}
+          menuFeel={app.prefs.menuFeel ?? DEFAULT_FEEL}
+          onMenuFeel={actions.setMenuFeel}
           about={import.meta.env.MODE === "single" ? undefined : {
             version: BUILD_ID,
             onWhatsNew: () => setWhats(RELEASE_NOTES),
@@ -337,7 +353,8 @@ export default function App() {
 
       {day && <Deck
         collapsed={daytimeDone && !!panelProps}
-        slots={cards.map((c) => c.slot)}
+        slots={orderedSlots}
+        shuffle={shuffleTick}
         mealFor={(slot) => cardFor.get(slot)!}
         exit={exit}
         flipped={flipped}
@@ -399,6 +416,18 @@ export default function App() {
           </motion.div>)
         }
       />}
+
+      {day && !daytimeDone && cards.length > 1 && (
+        <CardSwitcher
+          mode={switcherMode}
+          active={orderedSlots[0]}
+          onPick={switchTo}
+          items={naturalSlots.map((slot) => {
+            const c = cardFor.get(slot);
+            return { slot, label: SLOTS.find((x) => x.key === slot)!.label, emoji: c?.icon ?? "🍽️", name: c?.name ?? "", sat: c?.sat, nearMiss: cards.find((x) => x.slot === slot)?.nearMiss };
+          })}
+        />
+      )}
 
       {day && daytimeDone && panelProps && <TomorrowPanel title="Daytime done" {...panelProps} />}
 
@@ -513,6 +542,7 @@ export default function App() {
         items={NAV}
         current={screen}
         hand={app.profile.hand}
+        feel={app.prefs.menuFeel ?? DEFAULT_FEEL}
         onSelect={(key) => {
           if (key === "today" || key === "kitchen" || key === "week" || key === "progress" || key === "me") setScreen(key);
           else toast(`${NAV.find((n) => n.key === key)!.label} comes next`);

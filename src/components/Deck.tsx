@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, animate, motion, useDragControls, useMotionValue, useTransform, type PanInfo } from "motion/react";
 import { SLOTS, type Meal, type SlotKey } from "../data/meals";
 
@@ -43,9 +43,11 @@ interface DeckProps extends BackInfo {
   empty: React.ReactNode;
   /** Daytime is done and something else takes the space: the deck folds away. */
   collapsed?: boolean;
+  /** Counts up each time the user brings a different card to the top by hand. */
+  shuffle?: number;
 }
 
-export function Deck({ slots, mealFor, exit, flipped, onFlip, onSwap, onEat, empty, collapsed, ...back }: DeckProps) {
+export function Deck({ slots, mealFor, exit, flipped, onFlip, onSwap, onEat, empty, collapsed, shuffle = 0, ...back }: DeckProps) {
   const shown = slots.slice(0, 3);
   return (
     <div className={collapsed ? "deck deck-done" : "deck"}>
@@ -62,6 +64,7 @@ export function Deck({ slots, mealFor, exit, flipped, onFlip, onSwap, onEat, emp
               onFlip={onFlip}
               onSwap={onSwap}
               onEat={onEat}
+              shuffle={shuffle}
               back={back}
             />
           ))
@@ -80,15 +83,47 @@ interface CardProps {
   onSwap: DeckProps["onSwap"];
   onEat: DeckProps["onEat"];
   back: BackInfo;
+  shuffle: number;
 }
 
-function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back }: CardProps) {
+function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuffle }: CardProps) {
   const s = SLOTS.find((x) => x.key === slot)!;
   const top = pos === 0;
   const x = useMotionValue(0);
   const tilt = useTransform(x, [-240, 240], [-14, 14]);
   const controls = useDragControls();
   const dragged = useRef(false);
+
+  /* ── brought to the top by hand ────────────────────────────
+     The stack is normally ordered by the day. When the switcher
+     reorders it, the card that comes up is lifted OUT of the
+     stack, sent over the top and dropped in place, while the one
+     it replaces settles back with a small nudge: the pair reads
+     as swapped rather than as one fading into the other. The
+     sideways direction alternates so repeated switching riffles
+     instead of always going the same way. */
+  const fx = useMotionValue(0);
+  const fy = useMotionValue(POSES[pos].y);
+  const fr = useMotionValue(POSES[pos].rotate);
+  const fs = useMotionValue(POSES[pos].scale);
+  const seen = useRef({ pos, shuffle });
+  useEffect(() => {
+    const was = seen.current;
+    seen.current = { pos, shuffle };
+    if (shuffle === was.shuffle || pos === was.pos) return;
+    const side = shuffle % 2 === 0 ? 1 : -1;
+    const lift = { duration: 0.56, times: [0, 0.42, 1], ease: ["easeOut", "easeInOut"] as ("easeOut" | "easeInOut")[] };
+    if (pos === 0) {
+      animate(fx, [fx.get(), 62 * side, 0], lift);
+      animate(fy, [fy.get(), -38, 0], lift);
+      animate(fr, [fr.get(), 7 * side, 0], lift);
+      animate(fs, [fs.get(), 1.05, 1], lift);
+    } else if (was.pos === 0) {
+      const nudge = { duration: 0.5, times: [0, 0.4, 1], ease: "easeOut" as const };
+      animate(fx, [fx.get(), -26 * side, 0], nudge);
+      animate(fr, [fr.get(), -4 * side, 0], nudge);
+    }
+  }, [pos, shuffle, fx, fy, fr, fs]);
 
   function handleDragEnd(_: PointerEvent, info: PanInfo) {
     const far = Math.abs(info.offset.x) > 100 || Math.abs(info.velocity.x) > 600;
@@ -105,7 +140,7 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back }: Car
       animate={{ ...POSES[pos], opacity: 1 }}
       exit="exit"
       transition={spring}
-      style={{ zIndex: 10 - pos }}
+      style={{ zIndex: 10 - pos, x: fx, y: fy, rotate: fr, scale: fs }}
       aria-hidden={!top}
     >
       <motion.div

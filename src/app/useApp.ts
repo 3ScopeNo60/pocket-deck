@@ -261,6 +261,21 @@ export function useApp() {
     void persist(db.put("prefs", next));
   }, []);
 
+  const setSwitcher = useCallback((mode: NonNullable<Prefs["switcher"]>) => {
+    const next: Prefs = { ...latest.current.prefs, switcher: mode };
+    latest.current.prefs = next;
+    setPrefs(next);
+    void persist(db.put("prefs", next));
+  }, []);
+
+  /** Choose how the menu's options respond to a held thumb. */
+  const setMenuFeel = useCallback((feel: NonNullable<Prefs["menuFeel"]>) => {
+    const next: Prefs = { ...latest.current.prefs, menuFeel: feel };
+    latest.current.prefs = next;
+    setPrefs(next);
+    void persist(db.put("prefs", next));
+  }, []);
+
   /** The bell's items have been seen. */
   const markInboxRead = useCallback((ids: string[]) => {
     const pr = latest.current.prefs;
@@ -664,7 +679,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan) + overageOf(day) : 0,
     actions: {
       submitAnswer, swap, eat, undo, notFeelingIt, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
-      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
+      addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },
   };

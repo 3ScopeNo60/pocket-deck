@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { MenuFeel } from "./RadialMenu";
 import { motion } from "motion/react";
 import { maintenanceKcal, targets } from "../core/nutrition";
 import { toast } from "sonner";
@@ -28,7 +29,15 @@ const SCENARIOS: { key: Scenario; emoji: string; title: string; hint: string }[]
   { key: "reset", emoji: "♻️", title: "Reset everything", hint: "Back to the starter pantry and placeholder profile" },
 ];
 
-export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about }: { about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
+const FEEL_NAMES = { off: "Off", lens: "Lens", magnet: "Magnet", lean: "Lean" } as const;
+const FEEL_HINTS = {
+  off: "Only the option you're aimed at is ringed.",
+  lens: "Buttons swell as your thumb gets closer, like a dock. Nothing else moves.",
+  magnet: "The one you're aimed at takes the ink and the others give way.",
+  lean: "A softer lens, and the whole fan tips toward your thumb.",
+} as const;
+
+export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, menuFeel, onMenuFeel, switcher, onSwitcher }: { switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
   const [sex, setSex] = useState(profile.sex);
   const [activity, setActivity] = useState(profile.activity);
@@ -119,6 +128,42 @@ export function Me({ profile, onSave, onScenario, onRedoSetup, onBackedUp, lastB
             <div><dt>Sodium limit</dt><dd>{t.sodiumMax.toLocaleString("en-ZA")} mg</dd></div>
           </div>
           <p className="k-sub">Set to keep you energised, not to lose weight. Saturated fat is 6% of your energy.</p>
+        </section>
+      )}
+
+      {switcher && onSwitcher && !embedded && (
+        <section className="k-section">
+          <h3 className="section-label">See the other meals</h3>
+          <p className="k-sub">A control under the cards that brings lunch or the snack to the top without eating breakfast first.</p>
+          <div className="seg seg-3" role="group" aria-label="Card switcher">
+            {(["off", "dots", "peek"] as const).map((m) => (
+              <button key={m} aria-pressed={switcher === m} onClick={() => onSwitcher(m)}>{m === "off" ? "Off" : m === "dots" ? "Dots" : "Peek"}</button>
+            ))}
+          </div>
+          <p className="k-sub">{switcher === "off" ? "No control. Cards come in the order of the day." : switcher === "dots" ? "A dot for each meal. Touch one to bring it up, or hold and slide across them to riffle through." : "Tap to bring the next one up. Hold to open a list of everything coming, then slide up to one and let go."}</p>
+        </section>
+      )}
+
+      {menuFeel && onMenuFeel && !embedded && (
+        <section className="k-section">
+          <h3 className="section-label">Menu feel</h3>
+          <p className="k-sub">How the menu's buttons respond as you hold and slide your thumb across them. Try each one with the menu.</p>
+          <div className="seg seg-4" role="group" aria-label="Menu feel">
+            {(["off", "lens", "magnet", "lean"] as const).map((m) => (
+              <button key={m} aria-pressed={menuFeel.mode === m} onClick={() => onMenuFeel({ ...menuFeel, mode: m })}>{FEEL_NAMES[m]}</button>
+            ))}
+          </div>
+          <p className="k-sub">{FEEL_HINTS[menuFeel.mode]}</p>
+          <label className="slider-row">
+            <span>Strength</span>
+            <input type="range" min={0} max={100} step={5} value={menuFeel.strength} aria-label="Strength" onChange={(e) => onMenuFeel({ ...menuFeel, strength: Number(e.target.value) })} />
+            <b>{menuFeel.strength}</b>
+          </label>
+          <label className="slider-row">
+            <span>Bounce</span>
+            <input type="range" min={0} max={100} step={5} value={menuFeel.bounce} aria-label="Bounce" onChange={(e) => onMenuFeel({ ...menuFeel, bounce: Number(e.target.value) })} />
+            <b>{menuFeel.bounce}</b>
+          </label>
         </section>
       )}
 

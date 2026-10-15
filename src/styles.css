@@ -718,3 +718,29 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 .habit .emoji { font-size: 18px; }
 .habit .h1 { font-size: 0.88rem; line-height: 1.15; }
 .habit .h2 { font-size: 0.74rem; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* The option is a button that carries the fan's transform, and a disc inside it that carries the feel's */
+.fan-opt { background: none; padding: 0; }
+.fan-disc { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 999px; }
+.fan-opt[data-live="true"] { box-shadow: none; }
+[data-surface="glass"] .fan-opt[data-live="true"] .fan-disc { box-shadow: 0 0 0 2px var(--ink), 0 10px 40px rgba(var(--shadow-rgb), 0.16); }
+
+.slider-row { display: grid; grid-template-columns: 74px 1fr 32px; align-items: center; gap: 10px; font-size: 0.9rem; }
+.slider-row input[type="range"] { width: 100%; accent-color: var(--ink); }
+.slider-row b { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Card switcher */
+.switcher { position: relative; margin-top: 10px; }
+.switcher-row { display: flex; justify-content: center; align-items: center; gap: 10px; height: 48px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.switch-dot { height: 12px; min-width: 12px; border: 0; border-radius: 999px; padding: 0; background: #c9cbc3; display: grid; place-items: center; overflow: hidden; transition: background-color 160ms ease, height 160ms ease; }
+.switch-dot[data-on="true"] { height: 28px; background: var(--ink); }
+.switch-label { color: var(--surface); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; pointer-events: none; }
+.peek { position: absolute; left: 0; right: 0; bottom: 100%; display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; z-index: 40; pointer-events: none; }
+.peek-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 18px; padding: 10px 14px; box-shadow: 0 8px 24px rgba(28, 31, 27, 0.14); }
+.peek-row[data-on="true"] { box-shadow: 0 0 0 2px var(--ink), 0 8px 24px rgba(28, 31, 27, 0.14); }
+.peek-row[data-current="true"] .peek-txt b::after { content: " · on top"; color: var(--muted); font-weight: 500; }
+.peek-row .emoji { font-size: 24px; }
+.peek-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.peek-txt b { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.peek-txt span { font-weight: 700; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.peek-sat { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
