@@ -29,6 +29,12 @@ export const SLOTS: { key: SlotKey; label: string; when: string }[] = [
   { key: "snack", label: "Fibre snack", when: "16:30" },
 ];
 
+/** When each meal is eaten: his own time if he has set one, otherwise the usual. */
+export function mealTimes(profile: { mealTimes?: Partial<Record<SlotKey, string>> }): Record<SlotKey, string> {
+  const own = profile.mealTimes ?? {};
+  return Object.fromEntries(SLOTS.map((s) => [s.key, /^\d{2}:\d{2}$/.test(own[s.key] ?? "") ? own[s.key]! : s.when])) as Record<SlotKey, string>;
+}
+
 /** What's expected tonight. Unknown counts as normal. */
 export type Tonight = "light" | "normal" | "heavy";
 

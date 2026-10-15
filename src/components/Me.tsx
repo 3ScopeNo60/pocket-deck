@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronLeft, FlaskConical, HardDriveDownload, Info, Pill, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronLeft, Clock, FlaskConical, HardDriveDownload, Info, Pill, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
 import type { MenuFeel } from "./RadialMenu";
 import { motion } from "motion/react";
 import { maintenanceKcal, targets } from "../core/nutrition";
@@ -8,6 +8,9 @@ import { MOVEMENT, chosenMovements } from "../app/movement";
 import { ago, makeBackup, restoreBackup } from "../app/backupFile";
 import type { Med, Profile } from "../core/types";
 import { MedSheet } from "./MedEditor";
+import { TimeWheel, mergeTime } from "./TimeWheel";
+import { SLOTS, mealTimes, type SlotKey } from "../data/meals";
+import { buildIcs } from "../core/ics";
 
 const ACTIVITY: { key: Profile["activity"]; label: string; hint: string }[] = [
   { key: "sedentary", label: "Mostly seated", hint: "Desk job, little walking" },
@@ -39,15 +42,25 @@ const FEEL_HINTS = {
   lean: "A softer lens, and the whole fan tips toward your thumb.",
 } as const;
 
-type Page = null | "you" | "meds" | "feel" | "backup" | "app" | "try";
+type Page = null | "you" | "meds" | "times" | "feel" | "backup" | "app" | "try";
 
-export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
+export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void }; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
   const [sex, setSex] = useState(profile.sex);
   const [activity, setActivity] = useState(profile.activity);
   const [hand, setHand] = useState(profile.hand);
   const [medOpen, setMedOpen] = useState(false);
   const [page, setPage] = useState<Page>(null);
+  const [timeSlot, setTimeSlot] = useState<SlotKey>("breakfast");
+  /* Two wheels can report in the same tick, before the saved profile has come back round, so
+     each change is applied to the latest times held here rather than to the prop. */
+  const timesRef = useRef(mealTimes(profile));
+  timesRef.current = mealTimes(profile);
+  const changeTime = (part: { h?: number; m?: number }) => {
+    const next = { ...timesRef.current, [timeSlot]: mergeTime(timesRef.current[timeSlot], part) };
+    timesRef.current = next;
+    onMealTimes?.(next);
+  };
   const open = (p: Page) => { setPage(p); window.scrollTo({ top: 0 }); };
   const [movements, setMovements] = useState<string[]>(chosenMovements(profile).map((m) => m.key));
   const [pendingRestore, setPendingRestore] = useState<File | null>(null);
@@ -72,6 +85,7 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
   const TILES: { key: Exclude<Page, null>; Icon: LucideIcon; title: string; status: string; show: boolean; hue: string }[] = [
     { key: "you", Icon: UserRound, title: "About you", status: profile.setUp ? `${profile.heightCm} cm · ${profile.weightKg} kg${t ? ` · ${t.satCap} g sat fat a day` : ""}` : "Add your numbers", show: true, hue: "sage" },
     { key: "meds", Icon: Pill, title: "Medication", status: med ? `${med.name}${med.dose ? ` ${med.dose}` : ""}` : "Not added yet", show: !!onSaveMed, hue: "blush" },
+    { key: "times", Icon: Clock, title: "Meal times", status: Object.values(mealTimes(profile)).join(" · "), show: !!onMealTimes, hue: "peach" },
     { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No switcher" : switcher === "dots" ? "Dots" : "Peek"}` : ""}`, show: !!(menuFeel || switcher), hue: "sand" },
     { key: "backup", Icon: HardDriveDownload, title: "Back up", status: lastBackupAt ? `Last ${ago(lastBackupAt)}` : "Not backed up yet", show: !!onBackedUp, hue: "sky" },
     { key: "app", Icon: Info, title: "This app", status: about ? `Version ${about.version.slice(0, 12)}` : "Updates and setup", show: !!(about || onRedoSetup), hue: "lilac" },
@@ -261,6 +275,46 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
             </section>
           )}
 
+        </>
+      )}
+      {page === "times" && onMealTimes && (
+        <>
+          <section className="k-section">
+            <p className="k-sub">When you usually eat. The cards show these times, and the snack reminder uses the snack time.</p>
+            <div className="chips" role="group" aria-label="Which meal">
+              {SLOTS.map((sl) => (
+                <button key={sl.key} className="chip" aria-pressed={timeSlot === sl.key} onClick={() => setTimeSlot(sl.key)}><span className="chip-two"><b>{sl.label}</b><small>{mealTimes(profile)[sl.key]}</small></span></button>
+              ))}
+            </div>
+            <TimeWheel
+              key={timeSlot}
+              value={mealTimes(profile)[timeSlot]}
+              onChange={changeTime}
+            />
+            <div className="blood-actions">
+              <button className="btn small ghost" onClick={() => onMealTimes({ breakfast: "07:30", lunch: "13:00", snack: "16:30" })}>Back to the usual times</button>
+              <button
+                className="btn small"
+                onClick={() => {
+                  try {
+                    const ics = buildIcs({ planTime: "18:00", snackTime: mealTimes(profile).snack, tabletTimes: med?.times, start: new Date() });
+                    const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+                    const a = Object.assign(document.createElement("a"), { href: url, download: "pocket-deck-reminders.ics" });
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 2000);
+                    toast("Open the file to add them to Calendar");
+                  } catch {
+                    toast("This view can't save files. It works in the installed app.");
+                  }
+                }}
+              >
+                Update calendar reminders
+              </button>
+            </div>
+            <p className="k-sub">If you've added Pocket Deck reminders to Calendar before, delete the old ones first so there aren't two.</p>
+          </section>
         </>
       )}
       {page === "feel" && (

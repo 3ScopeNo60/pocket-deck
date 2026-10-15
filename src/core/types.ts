@@ -9,6 +9,8 @@ export interface Profile {
   units: "kitchen" | "kitchen+grams";
   /** True once the user has entered his own measurements (until then the numbers are placeholders). */
   setUp?: boolean;
+  /** When he eats, if not the usual 07:30, 13:00 and 16:30 (HH:MM). */
+  mealTimes?: { breakfast?: string; lunch?: string; snack?: string };
   /** The daily movement he chose (see src/app/movement.ts). Defaults to a walk. */
   movement?: string;
   /** All the movements he does; any of them counts for the day. */

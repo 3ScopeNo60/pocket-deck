@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Toaster, toast } from "sonner";
 import { CalendarDays, ChartColumn, LayoutList, Refrigerator, UserRound } from "lucide-react";
-import { SLOTS, TONIGHT, type SlotKey } from "./data/meals";
+import { SLOTS, TONIGHT, mealTimes, type SlotKey } from "./data/meals";
 import { Deck, type ExitKind } from "./components/Deck";
 import { TonightSheet } from "./components/Sheets";
 import { CheckIn, type CheckInAnswer } from "./components/CheckIn";
@@ -280,6 +280,7 @@ export default function App() {
         <Me
           profile={app.profile}
           onHand={(h) => actions.saveProfile({ ...app.profile, hand: h })}
+          onMealTimes={(t) => actions.saveProfile({ ...app.profile, mealTimes: t })}
           med={app.med}
           onSaveMed={actions.saveMed}
           switcher={switcherMode}
@@ -357,6 +358,7 @@ export default function App() {
       {day && <Deck
         collapsed={daytimeDone && !!panelProps}
         slots={orderedSlots}
+        times={mealTimes(app.profile)}
         shuffle={shuffleTick}
         mealFor={(slot) => cardFor.get(slot)!}
         exit={exit}

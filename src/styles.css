@@ -776,3 +776,11 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 [data-hue] .krow[aria-pressed="true"] { background: var(--hue-bg); }
 [data-hue] .slider-row input[type="range"] { accent-color: var(--hue-deep); }
 [data-hue] .section-label { color: var(--hue-deep); }
+
+[data-hue="peach"] { --hue-bg: #f6dcc6; --hue-deep: #a35a1f; }
+/* an odd one out takes the full row, laid out wide, so the grid never has a hole in it */
+.me-tile:last-child:nth-child(odd) { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; align-items: center; min-height: 96px; gap: 16px; }
+
+.chip-two { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.chip-two b { font-weight: 700; font-size: 0.9rem; }
+.chip-two small { font-size: 0.8rem; opacity: 0.8; font-variant-numeric: tabular-nums; }

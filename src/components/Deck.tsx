@@ -28,6 +28,8 @@ interface BackInfo {
   onNotFeelingIt: (slot: SlotKey) => void;
   /** Opens the "had something else" sheet for this slot. */
   onSomethingElse: (slot: SlotKey) => void;
+  /** When each meal is eaten, as he has set it. */
+  times?: Partial<Record<SlotKey, string>>;
   /** For a near-miss card: put its missing ingredients on the shopping list. */
   onAddToList: (slot: SlotKey) => void;
 }
@@ -194,7 +196,7 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
             <div className="pad">
               <div className="slot">
                 <span className="slot-name">{s.label}</span>
-                <span className="pill">{s.when}</span>
+                <span className="pill">{back.times?.[slot] ?? s.when}</span>
               </div>
               <div className={top || keepFace ? "card-body" : "card-body hidden-behind"}>
                 <div className="title">
@@ -235,7 +237,7 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
               <div className="pad scroll">
                 <div className="slot">
                   <span className="slot-name">{s.label} · how to</span>
-                  <span className="pill">{s.when}</span>
+                  <span className="pill">{back.times?.[slot] ?? s.when}</span>
                 </div>
                 <h3 className="back-title">{meal.name}</h3>
                 <ul className="steps">
