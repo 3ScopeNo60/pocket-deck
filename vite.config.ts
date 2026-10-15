@@ -19,7 +19,7 @@ export default defineConfig(({ mode, command }) => {
         // version.json lets an open copy of the app notice that a newer build has been published.
         name: "emit-version",
         generateBundle() {
-          this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify({ id: buildId, builtAt: new Date().toISOString(), ...notes }) });
+          this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify({ id: buildId, builtAt: new Date().toISOString(), title: notes.title, notes: notes.releases[0].notes }) });
         },
       },
     ],

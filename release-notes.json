@@ -1,19 +1,55 @@
 {
   "title": "What's new",
-  "notes": [
-    "Add a food that isn't in the list from its label (Pantry › Scan a label), also from inside your own meal. Type any pack size when you restock, and save the price with a scan.",
-    "A firm press no longer selects text or raises the iOS callout. Held sideways, the app asks you to turn it upright.",
-    "Nutrition figures are now marked as estimates, with a plain explanation of where they come from (Me › This app, or the back of any card).",
-    "Bigger back buttons, and small touches in Me: sliding selections, a pop on ticks and values, screens that slide in.",
-    "Set when you eat under Me › Meal times. The cards and the snack reminder follow.",
-    "Me is now big buttons for each area: About you, Medication, Menu and cards, Back up, This app.",
-    "Add or change your medication under Me › Medication.",
-    "See what's coming: a control under the cards brings lunch or the snack to the top. Choose Dots or Peek under Me › See the other meals.",
-    "The menu's buttons now respond as you hold and slide your thumb. Pick a feel under Me › Menu feel.",
-    "A notification bell, top right: updates, new meals, tomorrow's shopping, low items, refills and reminders in one place.",
-    "Today is quieter: slimmer Tablet and Walk chips, and explanations only when they matter.",
-    "When daytime is done, Today now looks ahead: tonight's prep, what to pick up for tomorrow, and tomorrow's meals.",
-    "Tell the app what supper is tonight and tomorrow's first question is already answered.",
-    "Me now shows the version, with Check for updates and What's new."
+  "releases": [
+    {
+      "id": "2026-10-15-c",
+      "date": "2026-10-15",
+      "notes": [
+        "Add a food that isn't in the list from its label (Pantry › Scan a label, or the big plus), also from inside your own meal.",
+        "Type any pack size when you restock or add to the list. It starts from the size you last bought.",
+        "A scan can save the pack size, the price and how many packs to add to the pantry, all in one go."
+      ]
+    },
+    {
+      "id": "2026-10-15-b",
+      "date": "2026-10-15",
+      "notes": [
+        "A firm press no longer selects text or raises the iOS callout. Held sideways, the app asks you to turn it upright.",
+        "Nutrition figures are marked as estimates, with a plain explanation of where they come from (Me › This app, or the back of any card).",
+        "Bigger back buttons, and small touches in Me: sliding selections, a pop on ticks and values, screens that slide in.",
+        "Set when you eat under Me › Meal times. The cards and the snack reminder follow."
+      ]
+    },
+    {
+      "id": "2026-10-15-a",
+      "date": "2026-10-15",
+      "notes": [
+        "Me is big buttons for each area: About you, Medication, Menu and cards, Back up, This app.",
+        "Add or change your medication under Me › Medication.",
+        "See what's coming: dots under the cards bring lunch or the snack to the top.",
+        "The menu's buttons respond as you hold and slide your thumb. Pick a feel under Me › Menu feel."
+      ]
+    },
+    {
+      "id": "2026-10-14-b",
+      "date": "2026-10-14",
+      "notes": [
+        "A notification bell, top right: updates, new meals, tomorrow's shopping, low items, refills and reminders in one place.",
+        "Today is quieter: slimmer Tablet and Walk chips, and explanations only when they matter.",
+        "When daytime is done, Today looks ahead: tonight's prep, what to pick up for tomorrow, and tomorrow's meals.",
+        "Tell the app what supper is tonight and tomorrow's first question is already answered.",
+        "Me shows the version, with Check for updates and What's new."
+      ]
+    },
+    {
+      "id": "2026-10-14-a",
+      "date": "2026-10-14",
+      "notes": [
+        "Progress tab with blood results, and new meals to try as they arrive.",
+        "Had something else, and + Extra, when a meal didn't go to plan.",
+        "Add your own meal, scan a nutrition label, and a doctor summary you can share.",
+        "A Sunday look-back and a gentle backup reminder."
+      ]
+    }
   ]
 }

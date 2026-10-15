@@ -833,3 +833,11 @@ img, svg { -webkit-user-drag: none; }
 .pick-label { position: relative; z-index: 1; font-weight: 700; font-size: 0.95rem; text-align: center; line-height: 1.15; transition: color 180ms ease; }
 .pick-thumb { position: absolute; inset: 0; border-radius: inherit; background: var(--ink); }
 .pick-tile[aria-pressed="true"] .pick-label { color: var(--surface); }
+
+/* What's new: this update on top, older changes folded under their day. */
+.whats-new { margin: 4px 0 10px; }
+.whats-days { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.whats-day { background: var(--page); border-radius: 16px; padding: 0 14px; }
+.whats-day-head { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 56px; border: none; background: transparent; font: inherit; color: var(--ink); text-align: left; }
+.whats-day-head .kname small { display: block; color: var(--muted); font-weight: 500; font-size: 0.82rem; }
+.whats-day .reasons { padding-bottom: 6px; }

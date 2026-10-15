@@ -50,6 +50,13 @@ assert.ok(await p.getByText("You're on the latest version").isVisible(), "says i
 await p.getByRole("button", { name: "What's new" }).click();
 await p.waitForTimeout(600);
 assert.ok(await p.locator(".sheet-title", { hasText: "What's new" }).isVisible(), "notes can be replayed");
+assert.ok(await p.getByText("In this update").isVisible(), "newest release is under In this update");
+const firstDay = p.locator(".whats-day-head").first();
+assert.equal(await firstDay.getAttribute("aria-expanded"), "false", "earlier days start folded");
+await firstDay.click();
+await p.waitForTimeout(450);
+assert.equal(await firstDay.getAttribute("aria-expanded"), "true");
+await p.screenshot({ path: path.join(out, "up0-whatsnew-days.png") });
 await p.keyboard.press("Escape");
 await p.waitForTimeout(500);
 

@@ -27,7 +27,8 @@ import { summarise } from "./core/score";
 import { NewMeals } from "./components/NewMeals";
 import { Sheet } from "./components/Sheets";
 import { targets } from "./core/nutrition";
-import { BUILD_ID, RELEASE_NOTES, newerBuild, whatsNewOnce, type ReleaseNotes } from "./app/updates";
+import { BUILD_ID, RELEASE_NOTES, newerBuild, whatsNewOnce, type WhatsNew } from "./app/updates";
+import { WhatsNewSheet } from "./components/WhatsNew";
 import { useApp } from "./app/useApp";
 import { mealMap, supperMap, toCard, foodMap } from "./app/viewModel";
 import { isLow } from "./core/stock";
@@ -78,7 +79,7 @@ export default function App() {
   const [updateId, setUpdateId] = useState<string | null>(null);
   const [supperOpen, setSupperOpen] = useState(false);
   // Read the release notes only once the main app is showing, so they aren't used up behind Setup.
-  const [whats, setWhats] = useState<ReleaseNotes | null>(null);
+  const [whats, setWhats] = useState<WhatsNew | null>(null);
   const mainShowing = app.ready && !app.needsSetup;
   useEffect(() => { if (mainShowing) setWhats(whatsNewOnce()); }, [mainShowing]);
 
@@ -120,7 +121,7 @@ export default function App() {
     const med = app.med && app.med.pillsLeft >= 0 ? { id: app.med.id, pillsLeft: app.med.pillsLeft, perDay: (app.med.times?.length ?? 1) * (app.med.perDose ?? 1) } : null;
     const lastLab = app.labs.length ? app.labs[app.labs.length - 1].date : null;
     return buildInbox({
-      todayIso, updateId, updateNote: RELEASE_NOTES.notes[0], newMealCount: app.newMealIds.length,
+      todayIso, updateId, updateNote: RELEASE_NOTES.releases[0].notes[0], newMealCount: app.newMealIds.length,
       tomorrowNeeds: unlisted, tomorrowDate, lowNames, med, lastLabDate: lastLab,
       lookback: lookBack ? { headline: lookBack.headline, tip: lookBack.suggestions[0] } : null,
       backup: { due: backup.due, words: backupAgeWords(backup.ageDays) },
@@ -292,7 +293,7 @@ export default function App() {
           onMenuFeel={actions.setMenuFeel}
           about={import.meta.env.MODE === "single" ? undefined : {
             version: BUILD_ID,
-            onWhatsNew: () => setWhats(RELEASE_NOTES),
+            onWhatsNew: () => setWhats({ fresh: 1 }),
             onCheck: async () => {
               const newer = await newerBuild();
               if (newer) setUpdateId(newer.id);
@@ -609,15 +610,7 @@ export default function App() {
         }}
       />
 
-      <Sheet open={!!whats} onOpenChange={(o) => !o && setWhats(null)} title={whats?.title ?? ""}>
-        {whats && (
-          <>
-            <p className="k-sub">Updated just now.</p>
-            <ul className="reasons">{whats.notes.map((n) => (<li key={n}>{n}</li>))}</ul>
-            <div className="sheet-actions"><button className="btn wide" onClick={() => setWhats(null)}>Got it</button></div>
-          </>
-        )}
-      </Sheet>
+      <WhatsNewSheet whats={whats} today={todayIso} onClose={() => setWhats(null)} />
       <TonightSheet
         open={tonightOpen}
         current={app.answer?.tonight ?? "normal"}
