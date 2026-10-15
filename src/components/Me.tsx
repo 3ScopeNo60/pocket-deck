@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
-import { ChevronLeft, Clock, FlaskConical, HardDriveDownload, Info, Pill, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
+import { Clock, FlaskConical, HardDriveDownload, Info, Pill, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
 import type { MenuFeel } from "./RadialMenu";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { Segmented } from "./Segmented";
+import { BackButton } from "./BackButton";
 import { maintenanceKcal, targets } from "../core/nutrition";
 import { toast } from "sonner";
 import { MOVEMENT, chosenMovements } from "../app/movement";
@@ -34,6 +36,13 @@ const SCENARIOS: { key: Scenario; emoji: string; title: string; hint: string }[]
   { key: "reset", emoji: "♻️", title: "Reset everything", hint: "Back to the starter pantry and placeholder profile" },
 ];
 
+/* going deeper slides in from the right and going back from the left, so the screens have a place */
+const PAGE = {
+  in: (d: number) => ({ opacity: 0, x: 28 * d }),
+  center: { opacity: 1, x: 0 },
+  out: (d: number) => ({ opacity: 0, x: -28 * d }),
+};
+
 const FEEL_NAMES = { off: "Off", lens: "Lens", magnet: "Magnet", lean: "Lean" } as const;
 const FEEL_HINTS = {
   off: "Only the option you're aimed at is ringed.",
@@ -61,7 +70,8 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
     timesRef.current = next;
     onMealTimes?.(next);
   };
-  const open = (p: Page) => { setPage(p); window.scrollTo({ top: 0 }); };
+  const [dir, setDir] = useState<1 | -1>(1);
+  const open = (p: Page) => { setDir(p === null ? -1 : 1); setPage(p); window.scrollTo({ top: 0 }); };
   const [movements, setMovements] = useState<string[]>(chosenMovements(profile).map((m) => m.key));
   const [pendingRestore, setPendingRestore] = useState<File | null>(null);
   const toggleMovement = (k: string) => setMovements((cur) => (cur.includes(k) ? (cur.length > 1 ? cur.filter((x) => x !== k) : cur) : [...cur, k]));
@@ -104,11 +114,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
             {field("w", "Weight", "kg")}
             {field("a", "Age", "years")}
           </div>
-          <div className="seg seg-2" role="group" aria-label="Sex">
-            {(["male", "female"] as const).map((s) => (
-              <button key={s} aria-pressed={sex === s} onClick={() => setSex(s)}>{s === "male" ? "Male" : "Female"}</button>
-            ))}
-          </div>
+          <Segmented label="Sex" value={sex} onChange={setSex} options={[{ value: "male", label: "Male" }, { value: "female", label: "Female" }]} />
           <p className="k-sub">Used only to estimate how much energy you need. Nothing leaves this phone.</p>
         </section>
 
@@ -117,7 +123,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
           {ACTIVITY.map((a) => (
             <button key={a.key} className="krow" aria-pressed={activity === a.key} onClick={() => setActivity(a.key)}>
               <span className="kname">{a.label}<small>{a.hint}</small></span>
-              <span className={activity === a.key ? "pill" : "pill ghost"}>{activity === a.key ? "✓" : ""}</span>
+              <motion.span key={activity === a.key ? "on" : "off"} initial={{ scale: activity === a.key ? 0.4 : 1 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 600, damping: 18 }} className={activity === a.key ? "pill" : "pill ghost"}>{activity === a.key ? "✓" : ""}</motion.span>
             </button>
           ))}
         </section>
@@ -129,7 +135,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
             <button key={m.key} className="krow" aria-pressed={movements.includes(m.key)} onClick={() => toggleMovement(m.key)}>
               <span className="emoji">{m.emoji}</span>
               <span className="kname">{m.label}<small>{m.hint}</small></span>
-              <span className={movements.includes(m.key) ? "pill" : "pill ghost"}>{movements.includes(m.key) ? "✓" : ""}</span>
+              <motion.span key={movements.includes(m.key) ? "on" : "off"} initial={{ scale: movements.includes(m.key) ? 0.4 : 1 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 600, damping: 18 }} className={movements.includes(m.key) ? "pill" : "pill ghost"}>{movements.includes(m.key) ? "✓" : ""}</motion.span>
             </button>
           ))}
         </section>
@@ -137,11 +143,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
 
       <section className="k-section">
           <h3 className="section-label">Menu hand</h3>
-          <div className="seg seg-2" role="group" aria-label="Menu hand">
-            {(["right", "left"] as const).map((h) => (
-              <button key={h} aria-pressed={hand === h} onClick={() => { setHand(h); if (!embedded) onHand?.(h); }}>{h === "right" ? "Right-handed" : "Left-handed"}</button>
-            ))}
-          </div>
+          <Segmented label="Menu hand" value={hand} onChange={(h) => { setHand(h); if (!embedded) onHand?.(h); }} options={[{ value: "right", label: "Right-handed" }, { value: "left", label: "Left-handed" }]} />
         </section>
 
       {t && (
@@ -167,12 +169,14 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
 
   return (
     <div className="kitchen" data-hue={here?.hue}>
+      <AnimatePresence mode="wait" initial={false} custom={dir}>
+      <motion.div key={page ?? "home"} className="me-page" custom={dir} variants={PAGE} initial="in" animate="center" exit="out" transition={{ duration: 0.2, ease: "easeOut" }}>
       <header>
         {page && here ? (
           <>
-            <button className="me-back" onClick={() => open(null)}><ChevronLeft size={20} strokeWidth={2} />Me</button>
+            <BackButton label="Me" where="Me" onClick={() => open(null)} />
             <div className="me-hero">
-              <span className="me-tile-icon" aria-hidden="true"><here.Icon size={22} strokeWidth={2} /></span>
+              <motion.span className="me-tile-icon" aria-hidden="true" initial={{ scale: 0.55, rotate: -24 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 420, damping: 16, delay: 0.05 }}><here.Icon size={22} strokeWidth={2} /></motion.span>
               <span className="me-tile-txt"><h1 className="hello">{here.title}</h1><small>{here.status}</small></span>
             </div>
           </>
@@ -186,7 +190,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
           {!profile.setUp && <p className="me-note">These are placeholder numbers. Add your own and the daily saturated-fat limit becomes yours.</p>}
           <div className="me-tiles">
             {TILES.filter((x) => x.show).map((x) => (
-              <motion.button key={x.key} className="me-tile" data-hue={x.hue} whileTap={{ scale: 0.97 }} onClick={() => open(x.key)}>
+              <motion.button key={x.key} className="me-tile" data-hue={x.hue} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 420, damping: 30, delay: 0.04 * TILES.filter((t) => t.show).findIndex((t) => t.key === x.key) }} whileTap={{ scale: 0.96 }} onClick={() => open(x.key)}>
                 <span className="me-tile-icon" aria-hidden="true"><x.Icon size={21} strokeWidth={2} /></span>
                 <span className="me-tile-txt"><b>{x.title}</b><small>{x.status}</small></span>
               </motion.button>
@@ -204,11 +208,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
               {field("w", "Weight", "kg")}
               {field("a", "Age", "years")}
             </div>
-            <div className="seg seg-2" role="group" aria-label="Sex">
-              {(["male", "female"] as const).map((s) => (
-                <button key={s} aria-pressed={sex === s} onClick={() => setSex(s)}>{s === "male" ? "Male" : "Female"}</button>
-              ))}
-            </div>
+            <Segmented label="Sex" value={sex} onChange={setSex} options={[{ value: "male", label: "Male" }, { value: "female", label: "Female" }]} />
             <p className="k-sub">Used only to estimate how much energy you need. Nothing leaves this phone.</p>
           </section>
 
@@ -217,7 +217,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
             {ACTIVITY.map((a) => (
               <button key={a.key} className="krow" aria-pressed={activity === a.key} onClick={() => setActivity(a.key)}>
                 <span className="kname">{a.label}<small>{a.hint}</small></span>
-                <span className={activity === a.key ? "pill" : "pill ghost"}>{activity === a.key ? "✓" : ""}</span>
+                <motion.span key={activity === a.key ? "on" : "off"} initial={{ scale: activity === a.key ? 0.4 : 1 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 600, damping: 18 }} className={activity === a.key ? "pill" : "pill ghost"}>{activity === a.key ? "✓" : ""}</motion.span>
               </button>
             ))}
           </section>
@@ -229,7 +229,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
               <button key={m.key} className="krow" aria-pressed={movements.includes(m.key)} onClick={() => toggleMovement(m.key)}>
                 <span className="emoji">{m.emoji}</span>
                 <span className="kname">{m.label}<small>{m.hint}</small></span>
-                <span className={movements.includes(m.key) ? "pill" : "pill ghost"}>{movements.includes(m.key) ? "✓" : ""}</span>
+                <motion.span key={movements.includes(m.key) ? "on" : "off"} initial={{ scale: movements.includes(m.key) ? 0.4 : 1 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 600, damping: 18 }} className={movements.includes(m.key) ? "pill" : "pill ghost"}>{movements.includes(m.key) ? "✓" : ""}</motion.span>
               </button>
             ))}
           </section>
@@ -321,22 +321,14 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
         <>
       <section className="k-section">
             <h3 className="section-label">Menu hand</h3>
-            <div className="seg seg-2" role="group" aria-label="Menu hand">
-              {(["right", "left"] as const).map((h) => (
-                <button key={h} aria-pressed={hand === h} onClick={() => { setHand(h); if (!embedded) onHand?.(h); }}>{h === "right" ? "Right-handed" : "Left-handed"}</button>
-              ))}
-            </div>
+            <Segmented label="Menu hand" value={hand} onChange={(h) => { setHand(h); if (!embedded) onHand?.(h); }} options={[{ value: "right", label: "Right-handed" }, { value: "left", label: "Left-handed" }]} />
           </section>
 
       {switcher && onSwitcher && !embedded && (
             <section className="k-section">
               <h3 className="section-label">See the other meals</h3>
               <p className="k-sub">A control under the cards that brings lunch or the snack to the top without eating breakfast first.</p>
-              <div className="seg seg-3" role="group" aria-label="Card switcher">
-                {(["off", "dots", "peek"] as const).map((m) => (
-                  <button key={m} aria-pressed={switcher === m} onClick={() => onSwitcher(m)}>{m === "off" ? "Off" : m === "dots" ? "Dots" : "Peek"}</button>
-                ))}
-              </div>
+              <Segmented label="Card switcher" value={switcher} onChange={onSwitcher} options={[{ value: "off", label: "Off" }, { value: "dots", label: "Dots" }, { value: "peek", label: "Peek" }]} />
               <p className="k-sub">{switcher === "off" ? "No control. Cards come in the order of the day." : switcher === "dots" ? "A dot for each meal. Touch one to bring it up, or hold and slide across them to riffle through." : "Tap to bring the next one up. Hold to open a list of everything coming, then slide up to one and let go."}</p>
             </section>
           )}
@@ -345,21 +337,17 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
             <section className="k-section">
               <h3 className="section-label">Menu feel</h3>
               <p className="k-sub">How the menu's buttons respond as you hold and slide your thumb across them. Try each one with the menu.</p>
-              <div className="seg seg-4" role="group" aria-label="Menu feel">
-                {(["off", "lens", "magnet", "lean"] as const).map((m) => (
-                  <button key={m} aria-pressed={menuFeel.mode === m} onClick={() => onMenuFeel({ ...menuFeel, mode: m })}>{FEEL_NAMES[m]}</button>
-                ))}
-              </div>
+              <Segmented label="Menu feel" value={menuFeel.mode} onChange={(m) => onMenuFeel({ ...menuFeel, mode: m })} options={[{ value: "off", label: "Off" }, { value: "lens", label: "Lens" }, { value: "magnet", label: "Magnet" }, { value: "lean", label: "Lean" }]} />
               <p className="k-sub">{FEEL_HINTS[menuFeel.mode]}</p>
               <label className="slider-row">
                 <span>Strength</span>
                 <input type="range" min={0} max={100} step={5} value={menuFeel.strength} aria-label="Strength" onChange={(e) => onMenuFeel({ ...menuFeel, strength: Number(e.target.value) })} />
-                <b>{menuFeel.strength}</b>
+                <motion.b key={menuFeel.strength} initial={{ scale: 1.35 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 18 }}>{menuFeel.strength}</motion.b>
               </label>
               <label className="slider-row">
                 <span>Bounce</span>
                 <input type="range" min={0} max={100} step={5} value={menuFeel.bounce} aria-label="Bounce" onChange={(e) => onMenuFeel({ ...menuFeel, bounce: Number(e.target.value) })} />
-                <b>{menuFeel.bounce}</b>
+                <motion.b key={menuFeel.bounce} initial={{ scale: 1.35 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 18 }}>{menuFeel.bounce}</motion.b>
               </label>
             </section>
           )}
@@ -457,6 +445,8 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
 
         </>
       )}
+      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

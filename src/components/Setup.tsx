@@ -9,6 +9,7 @@ import { foodMap } from "../app/viewModel";
 import { Me } from "./Me";
 import { SwipeStack, type Dir, type SwipeAction } from "./SwipeStack";
 import { TimeWheel, mergeTime } from "./TimeWheel";
+import { BackButton } from "./BackButton";
 
 type Step = "welcome" | "about" | "flavours" | "foods" | "meals" | "gaps" | "meds" | "reminders" | "done";
 const ORDER: Step[] = ["welcome", "about", "flavours", "foods", "meals", "gaps", "meds", "reminders", "done"];
@@ -114,7 +115,7 @@ export function Setup({ profile, prefs, onSaveProfile, onAddToList, onFinish, on
     <div className="setup">
       {step !== "welcome" && step !== "done" && (
         <div className="setup-top">
-          <button className="link setup-back" onClick={goBack}>Back</button>
+          <BackButton label="Back" onClick={goBack} />
           {step === "foods" && <span className="setup-count">{Math.min(fi + 1, foodDeck.length)} of {foodDeck.length}</span>}
           {step === "meals" && <span className="setup-count">Meals · {Math.min(mi + 1, mealDeck.length)} of {mealDeck.length}</span>}
         </div>

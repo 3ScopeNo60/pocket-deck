@@ -35,7 +35,7 @@ const saved = await profile();
 assert.deepEqual([...saved.movements].sort(), ["cycle", "swim", "walk"], "movement is a multi-select");
 assert.equal(saved.weightKg, 95); assert.equal(saved.heightCm, 182); assert.equal(saved.setUp, true);
 console.log("sat limit:", before, "→", await p.locator(".me-targets dd").nth(1).textContent());
-await p.locator(".me-back").click();
+await p.getByRole("button", { name: "Back to Me" }).click();
 await p.waitForTimeout(300);
 assert.equal(await p.locator(".me-note").count(), 0, "warning gone once set up");
 
