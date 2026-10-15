@@ -2,6 +2,13 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-15-i",
+      "date": "2026-10-15",
+      "notes": [
+        "Importing an order no longer takes apple juice for an apple, or egg noodles for an egg. Products that only contain a food's name are left on Skip, with a hint, until you pick them."
+      ]
+    },
+    {
       "id": "2026-10-15-h",
       "date": "2026-10-15",
       "notes": [

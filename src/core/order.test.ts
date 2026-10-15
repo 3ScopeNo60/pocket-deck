@@ -93,4 +93,18 @@ Liquid 750ml
     const l = parseOrder("Padkos Raw Almonds 100g\nQty: 1/1\nBanana 1kg\nQty: 1/1\nSaikav Chick Peas 410g\nQty: 1/1\nSunlight Dishwashing\nLiquid 750ml\n34.99\n36.99");
     expect(l.map((x) => x.total)).toEqual([undefined, undefined, undefined]);
   });
+
+  it("doesn't take a processed product for the food in its name", () => {
+    for (const [name, food, word] of [
+      ["Apple Juice 1l", "apple", "juice"], ["Egg Noodles 500g", "egg", "noodle"], ["Banana Bread 700g", "banana", "bread"],
+      ["Carrot Cake 500g", "carrot", "cake"], ["All Gold Tomato Sauce 700ml", "tomato", "sauce"], ["Garlic Bread 400g", "garlic", "bread"],
+    ] as const) {
+      const m = find(name)!;
+      expect(m.food.id, name).toBe(food);
+      expect(m.unsure, name).toBe(word);
+    }
+    expect(find("Padkos Raw Almonds 100g")?.unsure).toBeUndefined();
+    expect(find("Saikav Chick Peas 410g")?.unsure).toBeUndefined();
+    expect(find("Tastic Wholegrain Long Grain Brown Rice 2kg", 2000)?.unsure).toBeUndefined(); // "rice" is in the food's own name
+  });
 });

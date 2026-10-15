@@ -16,6 +16,8 @@ interface Row {
   packG: string;
   total: string;
   note?: string;
+  /** Why a likely match was left on Skip. */
+  hint?: string;
 }
 
 const money = (n: number | undefined) => (n === undefined ? "" : String(n));
@@ -45,7 +47,9 @@ function Flow({ onApply }: { onApply: (rows: OrderRow[]) => void }) {
     }
     setRows(lines.map((l, i): Row => {
       const m = matchLine(l, foods);
-      return { key: i, name: l.name, foodId: m?.food.id ?? "", packs: l.qty, packG: String(m?.packG ?? l.packG ?? ""), total: money(l.total), note: m?.note };
+      // A processed product that only contains a food's name ("apple juice") is not that food.
+      const hint = m?.unsure ? `Looks like ${m.food.name.toLowerCase()}, but it says "${m.unsure}". Pick the food if it really is.` : undefined;
+      return { key: i, name: l.name, foodId: m && !m.unsure ? m.food.id : "", packs: l.qty, packG: String(m?.packG ?? l.packG ?? ""), total: money(l.total), note: m?.note, hint };
     }));
     setNote(null);
   };
@@ -121,7 +125,7 @@ function Flow({ onApply }: { onApply: (rows: OrderRow[]) => void }) {
               <label className="price"><span>R</span><input inputMode="decimal" placeholder="total" aria-label={`${r.name} price`} value={r.total} onChange={(e) => set(r.key, { total: e.target.value.replace(/[^0-9.,]/g, "") })} /></label>
             </div>
             {r.note && r.foodId && <div className="k-sub">{r.note}</div>}
-            {!r.foodId && <div className="k-sub">Not in your food list. Add it with the plus in Scan a label, then import again.</div>}
+            {!r.foodId && <div className="k-sub">{r.hint ?? "Not one of your foods, so it's left out. If it is food, add it with the plus in Scan a label, then import again."}</div>}
           </div>
         );
       })}

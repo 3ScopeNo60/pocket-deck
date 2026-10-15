@@ -93,9 +93,14 @@ function tokens(s: string): string[] {
   return t.split(/[^a-z0-9]+/).filter(Boolean).map((w) => (w.length > 3 && w.endsWith("ies") ? w.slice(0, -3) + "y" : w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w));
 }
 
+/** Words that mean a product is a made or processed thing that merely contains a food's name. */
+const PROCESSED = new Set(["juice", "sauce", "bread", "cake", "noodle", "chip", "crisp", "cider", "chocolate", "biscuit", "cookie", "rusk", "cereal", "flavoured", "flavour", "drink", "sweet", "candy", "jam", "pie", "pizza", "roll", "ring", "soup", "stew", "dressing", "mayonnaise", "mayo", "ketchup", "chutney", "crumbed", "nugget", "polony", "sausage", "burger", "patty", "finger", "ice", "yoghurt", "yogurt", "muffin", "bar", "spray", "pickled", "pickle", "relish", "paste", "puree", "smoothie", "syrup", "wine", "beer", "tea", "coffee", "shake", "cracker", "pasta", "rice", "pudding", "dessert", "custard", "kit", "bake", "wrap", "salad", "sandwich", "toast"]);
+
 export interface Match {
   food: Food;
   packG: number;
+  /** A word in the line that says it is a different, processed product: the match is only a suggestion. */
+  unsure?: string;
   /** Shown beside the line when the tin's weight was turned into the food's drained one. */
   note?: string;
 }
@@ -113,6 +118,8 @@ export function matchLine(line: OrderLine, foods: Food[]): Match | null {
   }
   if (!best) return null;
   const { food } = best;
+  const foodTok = new Set(tokens(food.name));
+  const unsure = [...lineTok].find((w) => PROCESSED.has(w) && !foodTok.has(w));
   const sizes = food.packSizes;
   let packG = line.packG ?? sizes[0];
   let note: string | undefined;
@@ -122,5 +129,5 @@ export function matchLine(line: OrderLine, foods: Food[]): Match | null {
     packG = sizes.reduce((a, b) => (Math.abs(b - target) < Math.abs(a - target) ? b : a));
     note = `${line.packG} g tin, about ${packG} g drained`;
   }
-  return { food, packG, note };
+  return { food, packG, note, unsure };
 }

@@ -61,15 +61,19 @@ Qty: 2/2
 59.98
 Sunlight Original Dishwashing Liquid 750ml
 Qty: 1/1
-36.99`);
+36.99
+Clover Apple Juice 1l
+Qty: 1/1
+24.99`);
 await p.getByRole("button", { name: "Read the order" }).click();
 await p.waitForTimeout(500);
-assert.ok(await p.getByText("5 items read").isVisible());
+assert.ok(await p.getByText("6 items read").isVisible());
+assert.ok(await p.getByText(/Looks like apple, but it says "juice"/).isVisible(), "apple juice is not an apple");
 await p.screenshot({ path: path.join(out, "or1-review.png") });
 const tuna = p.getByLabel(/Tuna In Water 170g pack size/i);
 assert.equal(await tuna.inputValue(), "120", "tin weight became drained weight");
 assert.equal(await p.getByLabel(/Dishwashing Liquid 750ml what|What Sunlight/i).first().inputValue(), "", "non-food is left out");
-await p.getByRole("button", { name: /Add 4 to the pantry/ }).click();
+await p.getByRole("button", { name: /Add 4 to the pantry · 2 skipped/ }).click();
 await p.waitForTimeout(800);
 
 const stock = await rows("stock");
