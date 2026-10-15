@@ -373,7 +373,7 @@
   },
   {
    "id": "lemon-juice",
-   "name": "Lemon",
+   "name": "Lemon juice",
    "emoji": "🍋",
    "per100": {
     "kcal": 22.0,
@@ -389,14 +389,12 @@
     "squeeze": 10,
     "1 tbsp": 15
    },
-   "keepsDays": 21,
+   "keepsDays": 90,
    "anchors": [],
    "cuisines": [],
-   "packSizes": [
-    500
-   ],
+   "packSizes": [250],
    "cookedYield": null,
-   "source": "USDA SR Legacy 167747 (Lemon juice, raw); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 167747 (Lemon juice, raw); soluble fibre and beta-glucan estimated. Bottled juice; packs are a 250 ml bottle (about 250 g)."
   },
   {
    "id": "almonds",

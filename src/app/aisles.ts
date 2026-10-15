@@ -4,7 +4,7 @@ export type Aisle = (typeof AISLES)[number];
 
 const MAP: Record<string, Aisle> = {
   blueberries: "Fresh produce", apple: "Fresh produce", pear: "Fresh produce", orange: "Fresh produce", banana: "Fresh produce",
-  avocado: "Fresh produce", "lemon-juice": "Fresh produce", greens: "Fresh produce", spinach: "Fresh produce", tomato: "Fresh produce",
+  avocado: "Fresh produce", greens: "Fresh produce", spinach: "Fresh produce", tomato: "Fresh produce",
   cucumber: "Fresh produce", "red-pepper": "Fresh produce", carrot: "Fresh produce", onion: "Fresh produce", "red-onion": "Fresh produce",
   garlic: "Fresh produce", mushrooms: "Fresh produce",
   "milk-lowfat": "Dairy & eggs", "almond-milk": "Dairy & eggs", "yoghurt-lowfat": "Dairy & eggs", egg: "Dairy & eggs", feta: "Dairy & eggs", hummus: "Dairy & eggs",
@@ -14,7 +14,7 @@ const MAP: Record<string, Aisle> = {
   almonds: "Nuts, seeds & oils", walnuts: "Nuts, seeds & oils", "pumpkin-seeds": "Nuts, seeds & oils", chia: "Nuts, seeds & oils",
   flax: "Nuts, seeds & oils", "peanut-butter": "Nuts, seeds & oils", tahini: "Nuts, seeds & oils", "olive-oil": "Nuts, seeds & oils", "canola-oil": "Nuts, seeds & oils",
   "smoked-paprika": "Spices & flavour", cumin: "Spices & flavour", "chilli-flakes": "Spices & flavour", "curry-powder": "Spices & flavour",
-  turmeric: "Spices & flavour", cinnamon: "Spices & flavour", "peri-peri-rub": "Spices & flavour", "soy-sauce-low": "Spices & flavour", salsa: "Spices & flavour",
+  turmeric: "Spices & flavour", cinnamon: "Spices & flavour", "peri-peri-rub": "Spices & flavour", "soy-sauce-low": "Spices & flavour", "lemon-juice": "Spices & flavour", salsa: "Spices & flavour",
 };
 
 /** Anything not listed (tins, grains, pulses, pasta, rice) is "Tins & dry goods". */

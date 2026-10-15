@@ -2,6 +2,15 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-15-d",
+      "date": "2026-10-15",
+      "notes": [
+        "What's new is sorted: this update on top, older changes folded under their day.",
+        "Scan a label opens without the keyboard jumping up and shifting the sheet.",
+        "Lemon is now Lemon juice (a 250 g bottle, in the flavour aisle), and tips that needed zest are changed to match."
+      ]
+    },
+    {
       "id": "2026-10-15-c",
       "date": "2026-10-15",
       "notes": [
