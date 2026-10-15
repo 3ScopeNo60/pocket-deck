@@ -852,3 +852,13 @@ img, svg { -webkit-user-drag: none; }
 .switch-row[aria-checked="true"] .switch { background: var(--accent); }
 .switch-row[aria-checked="true"] .switch-knob { transform: translateX(20px); }
 .rinse-hint { display: block; color: var(--muted); }
+
+/* Import an order: one block per line read. */
+.order-row { background: var(--page); border-radius: 16px; padding: 12px 14px; margin-top: 8px; }
+.order-row[data-skipped="true"] { opacity: 0.7; }
+.order-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; }
+.order-grid { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.order-food { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 12px; padding: 4px 10px; }
+.order-food select { flex: 1; min-width: 0; border: none; background: transparent; font: inherit; font-size: 16px; font-weight: 600; padding: 8px 0; color: var(--ink); }
+.order-row .me-input, .order-row .price { background: var(--surface); }
+.order-row .me-input input { width: 100%; }

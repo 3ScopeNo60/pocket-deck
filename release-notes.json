@@ -2,6 +2,15 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-15-h",
+      "date": "2026-10-15",
+      "notes": [
+        "Import an order (Pantry): screenshot your Sixty60 cart or paste its text. Each item is read with its pack size, quantity and price, matched to your foods, and added to the pantry in one tap.",
+        "A tin's printed weight becomes its drained weight for tinned fish and beans, so a 170 g tuna tin counts as about 120 g of fish.",
+        "Prices from the order replace the rough estimates in your shopping total."
+      ]
+    },
+    {
       "id": "2026-10-15-g",
       "date": "2026-10-15",
       "notes": [

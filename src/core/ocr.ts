@@ -89,3 +89,27 @@ export async function readLabelImage(file: Blob, onProgress?: (p: ReadProgress) 
     await worker.terminate();
   }
 }
+
+/** Plain text from a screenshot or photo (an order screen, not a nutrition table): one pass, no checks. */
+export async function readPlainImage(file: Blob, onProgress?: (p: number) => void): Promise<string> {
+  const { createWorker, PSM } = await import("tesseract.js");
+  const dir = new URL(`${import.meta.env.BASE_URL}ocr`, location.href).href;
+  const worker = await createWorker("eng", 1, {
+    workerPath: `${dir}/worker.min.js`,
+    corePath: dir,
+    langPath: dir,
+    gzip: false,
+    workerBlobURL: false,
+    logger: (m: { status: string; progress: number }) => { if (m.status === "recognizing text") onProgress?.(m.progress); },
+  });
+  const bmp = await createImageBitmap(file);
+  try {
+    await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO });
+    const img = await render(bmp, { max: 2000, contrast: 1, threshold: false, mode: "auto" });
+    const { data } = await worker.recognize(img ?? file);
+    return data.text;
+  } finally {
+    bmp.close?.();
+    await worker.terminate();
+  }
+}

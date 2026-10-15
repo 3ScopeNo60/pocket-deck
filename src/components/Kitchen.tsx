@@ -10,6 +10,7 @@ import { foodMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
 import { OwnMealSheet } from "./OwnMeal";
 import { LabelScanSheet, type LabelResult } from "./LabelScan";
+import { OrderImportSheet } from "./OrderImport";
 import { NO_RINSE_HINT } from "../core/rinse";
 import { OWN_TAG, type MealDraft } from "../core/custom";
 import type { Meal } from "../core/types";
@@ -51,6 +52,7 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
   const [restock, setRestock] = useState<RestockSeed | null>(null);
   const [adjust, setAdjust] = useState<string | null>(null);
   const [picker, setPicker] = useState<"list" | "restock" | null>(null);
+  const [orderOpen, setOrderOpen] = useState(false);
   const [ownOpen, setOwnOpen] = useState(false);
   const [scan, setScan] = useState<{ foodId: string | null; product?: Product; newName?: string } | null>(null);
   const [qty, setQty] = useState<{ foodId: string; packs: number; packG: number; editing: boolean } | null>(null);
@@ -108,6 +110,10 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
               <button className="btn small" onClick={() => setPicker("restock")}>Restock</button>
             </div>
           </div>
+          <button className="krow add-new" onClick={() => setOrderOpen(true)}>
+            <span className="emoji">🧾</span>
+            <span className="kname">Import an order<small>From your Sixty60 cart or order: sizes, quantities and prices</small></span>
+          </button>
           {[...products.values()].some((p) => p.fromLabel) && (
             <div className="aisle">
               <div className="aisle-name">Scanned labels</div>
@@ -285,6 +291,15 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
           actions.restock(rows, ids);
           setRestock(null);
           toast(rows.length === 1 ? "Stocked up" : `${rows.length} things stocked up`);
+        }}
+      />
+      <OrderImportSheet
+        open={orderOpen}
+        onClose={() => setOrderOpen(false)}
+        onApply={(rows) => {
+          actions.restock(rows, []);
+          setOrderOpen(false);
+          toast(`${rows.length} thing${rows.length === 1 ? "" : "s"} added to the pantry`);
         }}
       />
       <AdjustSheet
