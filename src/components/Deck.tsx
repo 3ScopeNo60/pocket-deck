@@ -99,9 +99,8 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
      reorders it, the card that comes up is lifted OUT of the
      stack, sent over the top and dropped in place, while the one
      it replaces settles back with a small nudge: the pair reads
-     as swapped rather than as one fading into the other. The
-     sideways direction alternates so repeated switching riffles
-     instead of always going the same way. */
+     as swapped rather than as one fading into the other. It
+     always leaves the same way, so the gesture is predictable. */
   const fx = useMotionValue(0);
   const fy = useMotionValue(POSES[pos].y);
   const fr = useMotionValue(POSES[pos].rotate);
@@ -115,7 +114,8 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
     seen.current = { pos, shuffle };
     const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (shuffle === was.shuffle || pos === was.pos || reduced) { fz.set(10 - pos); return; }
-    const side = shuffle % 2 === 0 ? 1 : -1;
+    /* always the same way out: to the left, away from the menu */
+    const side = -1;
     const out = Math.min(150, (typeof window !== "undefined" ? window.innerWidth : 390) * 0.38);
     const OUT_MS = 230;
     let timer: number | undefined;
