@@ -75,7 +75,9 @@ export function Me({ profile, onSave, onHand, onScenario, onRedoSetup, onBackedU
     { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No switcher" : switcher === "dots" ? "Dots" : "Peek"}` : ""}`, show: !!(menuFeel || switcher), hue: "sand" },
     { key: "backup", Icon: HardDriveDownload, title: "Back up", status: lastBackupAt ? `Last ${ago(lastBackupAt)}` : "Not backed up yet", show: !!onBackedUp, hue: "sky" },
     { key: "app", Icon: Info, title: "This app", status: about ? `Version ${about.version.slice(0, 12)}` : "Updates and setup", show: !!(about || onRedoSetup), hue: "lilac" },
-    { key: "try", Icon: FlaskConical, title: "Try a scenario", status: "Preview only", show: import.meta.env.MODE === "single" && !!onScenario, hue: "mint" },
+    ...(import.meta.env.MODE === "single" && onScenario
+      ? [{ key: "try" as const, Icon: FlaskConical, title: "Try a scenario", status: "Preview only", show: true, hue: "mint" }]
+      : []),
   ];
   const pageTitle: Record<Exclude<Page, null>, string> = { you: "About you", meds: "Medication", feel: "Menu and cards", backup: "Back up", app: "This app", try: "Try a scenario" };
 
