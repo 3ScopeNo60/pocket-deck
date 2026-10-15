@@ -53,4 +53,19 @@ describe("parseLabel", () => {
     expect(parseLabel("Best before 12/26\n500 g e").packG).toBe(500);
     expect(parseLabel("Per 100 g\nEnergy 100 kcal").packG).toBeUndefined();
   });
+  it("reads a tinned-fish panel as OCR returned it: unit in the heading, kJ read as kd, drained", () => {
+    const p = parseLabel(`TYPICAL NUTRITIONAL INFORMATION (drained)
+per 100 g perSoq sngesering
+Energy (kd) 359 197
+Protein (9 174 96
+of which total sugar (g) 0.0 0.0
+Total Fat (g) 13 0.7
+of which saturated fat (g) 0.5 03
+Dietary Fibre (g) 0.0 0.0
+Total Sodium (rng) 400 220`);
+    expect(p).toMatchObject({ kcal: 86, sat: 0.5, fibre: 0, sodium: 400, drained: true });
+  });
+  it("reads energy given as (kcal) in the heading", () => {
+    expect(parseLabel("Energy (kcal) 86 47").kcal).toBe(86);
+  });
 });

@@ -110,7 +110,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     setValues(next);
     if (p.packG) { setPack(String(p.packG)); setPackRead(true); }
     setConfirm(true);
-    setNote(p.found.length === 0 ? "I couldn't find a nutrition table in that. You can type the numbers in." : p.found.length < 3 ? "I only found a few numbers. Check them against the pack." : null);
+    setNote(p.found.length === 0 ? "I couldn't find a nutrition table in that. You can type the numbers in." : p.found.length < 3 ? "I only found a few numbers. Check them against the pack." : p.drained ? "This table is for the drained food, as printed. The pack size is the whole tin, so check that too." : null);
   };
 
   const fromPhoto = async (file: File | undefined) => {

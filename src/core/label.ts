@@ -19,6 +19,8 @@ export interface LabelNumbers {
 export interface ParsedLabel extends LabelNumbers {
   /** Which printed column the numbers came from. */
   basis: "per100" | "unknown";
+  /** The table says it is for the drained food (tinned fish, beans in brine). */
+  drained: boolean;
   /** Field names that were read, for the "we found N of 7" hint. */
   found: (keyof LabelNumbers)[];
 }
@@ -30,7 +32,8 @@ const toNum = (s: string) => Number(s.replace(",", "."));
 function after(line: string, label: RegExp): number | undefined {
   const m = label.exec(line);
   if (!m) return undefined;
-  const rest = line.slice(m.index + m[0].length);
+  // A unit printed in brackets after the name, "(g)", which OCR often reads as "(9".
+  const rest = line.slice(m.index + m[0].length).replace(/^\s*[(\[]\s*(?:g|9|mg|m9|rng)\s*[)\]]?/i, " ");
   const n = new RegExp(NUM).exec(rest);
   if (!n) return undefined;
   // Printed grams have one decimal. OCR often reads the "g" after "12.3 g" as a 9, giving 12.39.
@@ -55,6 +58,15 @@ export function parseLabel(text: string): ParsedLabel {
 
   for (const line of lines) {
     const low = line.toLowerCase();
+    // Energy with the unit in the heading: "Energy (kJ) 359 197". OCR often reads kJ as "kd".
+    if (/\benerg(y|ie)\b/.test(low) && kj === undefined && out.kcal === undefined) {
+      const head = /energ\w*\s*\(\s*(kcal|k[jd\]l1])\s*\)\s*:?\s*(\d+(?:[.,]\d+)?)/.exec(low);
+      if (head) {
+        if (head[1] === "kcal") out.kcal = toNum(head[2]);
+        else kj = toNum(head[2]);
+        continue;
+      }
+    }
     // Energy: "1050 kJ / 251 kcal" in either order, or one of them alone.
     if (/energy|energie|kilojoule|\bkj\b|kcal/.test(low) && (/kj/.test(low) || /kcal/.test(low))) {
       const kc = /(\d+(?:[.,]\d+)?)\s*kcal/.exec(low);
@@ -95,5 +107,5 @@ export function parseLabel(text: string): ParsedLabel {
 
   const found = (Object.keys(out) as (keyof LabelNumbers)[]).filter((k) => out[k] !== undefined);
   const hasBasis = /per\s*100\s*(g|ml)|100\s*(g|ml)/i.test(text);
-  return { ...out, basis: hasBasis ? "per100" : "unknown", found };
+  return { ...out, basis: hasBasis ? "per100" : "unknown", drained: /\bdrained\b/i.test(text), found };
 }

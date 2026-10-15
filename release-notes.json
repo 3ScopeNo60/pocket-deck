@@ -2,6 +2,14 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-15-e",
+      "date": "2026-10-15",
+      "notes": [
+        "Pulling down on a sheet's contents now scrolls it instead of closing it. Drag the grey handle to close.",
+        "Scan a label reads energy when it's printed in the heading, like \"Energy (kJ) 359\", and tells you when the table is for the drained food."
+      ]
+    },
+    {
       "id": "2026-10-15-d",
       "date": "2026-10-15",
       "notes": [
