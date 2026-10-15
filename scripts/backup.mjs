@@ -20,6 +20,7 @@ await p.getByRole("button", { name: "Plan my day" }).click();
 await p.waitForTimeout(800);
 await p.getByRole("button", { name: "Menu" }).click(); await p.waitForTimeout(450);
 await p.getByRole("button", { name: "Me", exact: true }).click(); await p.waitForTimeout(500);
+await p.locator(".me-tile", { hasText: "Back up" }).click(); await p.waitForTimeout(400);
 assert.match(await p.locator(".k-sub", { hasText: "Last backup" }).textContent(), /never/);
 
 // Back up: a JSON file with every store.
@@ -50,6 +51,7 @@ assert.equal((await rows("days"))[0].lastNight.supperId, "braai", "the day is ba
 fs.writeFileSync(file, '{"hello":"world"}');
 await p.getByRole("button", { name: "Menu" }).click(); await p.waitForTimeout(450);
 await p.getByRole("button", { name: "Me", exact: true }).click(); await p.waitForTimeout(500);
+await p.locator(".me-tile", { hasText: "Back up" }).click(); await p.waitForTimeout(400);
 await p.locator('input[type="file"]').setInputFiles(file);
 await p.waitForTimeout(300);
 await p.getByRole("button", { name: "Replace everything" }).click();

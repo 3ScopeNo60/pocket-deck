@@ -750,3 +750,12 @@ body:has([data-vaul-drawer][data-state="open"]) .fan-scrim { opacity: 0; pointer
 .peek-txt b { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .peek-txt span { font-weight: 700; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .peek-sat { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+/* Me: big buttons for each area, with the detail one tap inside */
+.me-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.me-tile { display: flex; flex-direction: column; justify-content: space-between; gap: 18px; min-height: 148px; text-align: left; border: none; background: var(--surface); border-radius: 26px; padding: 16px; }
+.me-tile-icon { width: 46px; height: 46px; border-radius: 999px; background: var(--ink); color: var(--surface); display: grid; place-items: center; }
+.me-tile-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.me-tile-txt b { font-family: var(--display); font-weight: 800; font-size: 1.12rem; letter-spacing: -0.01em; }
+.me-tile-txt small { color: var(--muted); font-size: 0.8rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.me-back { display: inline-flex; align-items: center; gap: 2px; border: none; background: none; padding: 4px 8px 4px 0; color: var(--muted); font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }

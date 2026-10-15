@@ -279,6 +279,7 @@ export default function App() {
       {screen === "me" && (
         <Me
           profile={app.profile}
+          onHand={(h) => actions.saveProfile({ ...app.profile, hand: h })}
           med={app.med}
           onSaveMed={actions.saveMed}
           switcher={switcherMode}

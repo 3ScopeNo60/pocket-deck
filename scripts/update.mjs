@@ -41,6 +41,8 @@ await p.getByRole("button", { name: "Menu" }).click();
 await p.waitForTimeout(450);
 await p.getByRole("button", { name: "Me", exact: true }).click();
 await p.waitForTimeout(600);
+await p.locator(".me-tile", { hasText: "This app" }).click();
+await p.waitForTimeout(300);
 assert.ok(await p.getByText("About this app").isVisible());
 await p.getByRole("button", { name: "Check for updates" }).click();
 await p.waitForTimeout(900);

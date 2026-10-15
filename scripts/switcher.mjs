@@ -51,6 +51,8 @@ assert.equal(await topSlot(), "breakfast", "back to the day's order");
 
 // Peek mode: tap goes to the next; hold opens the list.
 await menuTo(p, "Me");
+await p.locator(".me-tile", { hasText: "Menu and cards" }).click();
+await p.waitForTimeout(300);
 await p.getByRole("button", { name: "Peek", exact: true }).click();
 await p.waitForTimeout(300);
 await menuTo(p, "Today");

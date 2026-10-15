@@ -7,6 +7,8 @@ const out = process.argv[2] ?? ".";
 const { browser, p, errors, rows } = await launch();
 await toToday(p);
 await menuTo(p, "Me");
+await p.locator(".me-tile", { hasText: "Medication" }).click();
+await p.waitForTimeout(300);
 
 await p.getByRole("button", { name: "Add your medication" }).click();
 await p.waitForTimeout(600);
@@ -36,6 +38,8 @@ assert.ok((await rows("days"))[0].dosesTaken.length === 1, "dose ticked");
 
 // The box arrives: edit the pack.
 await menuTo(p, "Me");
+await p.locator(".me-tile", { hasText: "Medication" }).click();
+await p.waitForTimeout(300);
 await p.locator(".krow", { hasText: "Lipogen" }).click();
 await p.waitForTimeout(600);
 await p.getByLabel("Tablets in a pack").fill("30");

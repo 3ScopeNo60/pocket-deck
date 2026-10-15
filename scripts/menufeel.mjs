@@ -7,6 +7,8 @@ const out = process.argv[2] ?? ".";
 const { browser, p, errors, rows } = await launch();
 await toToday(p);
 await menuTo(p, "Me");
+await p.locator(".me-tile", { hasText: "Menu and cards" }).click();
+await p.waitForTimeout(300);
 
 const widths = () => p.locator(".fan-disc").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().width * 10) / 10));
 
@@ -62,6 +64,8 @@ assert.equal((await rows("prefs"))[0].menuFeel.mode, "magnet");
 await p.reload();
 await p.waitForTimeout(900);
 await menuTo(p, "Me");
+await p.locator(".me-tile", { hasText: "Menu and cards" }).click();
+await p.waitForTimeout(300);
 assert.equal(await p.getByLabel("Menu feel").getByRole("button", { name: "Magnet", exact: true }).getAttribute("aria-pressed"), "true");
 
 console.log("errors:", errors.length ? errors : "none");

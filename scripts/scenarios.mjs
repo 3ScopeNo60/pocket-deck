@@ -16,7 +16,7 @@ await p.locator(".supper-opt", { hasText: "Fish" }).click();
 await p.getByRole("button", { name: "Plan my day" }).click();
 await p.waitForTimeout(800);
 const toMe = async () => { await p.getByRole("button", { name: "Menu" }).click(); await p.waitForTimeout(450); await p.getByRole("button", { name: "Me", exact: true }).click(); await p.waitForTimeout(450); };
-const run = async (title) => { await p.locator(".krow", { hasText: title }).click(); await p.waitForTimeout(800); };
+const run = async (title) => { await p.locator(".me-tile", { hasText: "Try a scenario" }).click(); await p.waitForTimeout(300); await p.locator(".krow", { hasText: title }).click(); await p.waitForTimeout(800); };
 const toast = () => p.locator("[data-sonner-toast]").first().waitFor({ state: "detached", timeout: 8000 }).catch(() => {});
 
 await toMe(); await run("Big braai");

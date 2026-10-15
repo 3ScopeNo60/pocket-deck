@@ -34,6 +34,8 @@ export async function menuTo(p, name) {
 
 export async function scenario(p, title) {
   await menuTo(p, "Me");
+  await p.locator(".me-tile", { hasText: "Try a scenario" }).click();
+  await p.waitForTimeout(300);
   await p.locator(".krow", { hasText: title }).click();
   await p.waitForTimeout(900);
 }
