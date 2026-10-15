@@ -213,7 +213,7 @@ export default function App() {
   const naturalSlots = cards.map((c) => c.slot);
   const orderedSlots = frontSlot && naturalSlots.includes(frontSlot) ? [frontSlot, ...naturalSlots.filter((s) => s !== frontSlot)] : naturalSlots;
   const topMeal = orderedSlots[0] ? cardFor.get(orderedSlots[0]) : undefined;
-  const switcherMode = (app.prefs.switcher ?? "dots") as SwitcherMode;
+  const switcherMode: SwitcherMode = app.prefs.switcher === "off" ? "off" : "dots";
   const switchTo = (slot: string) => {
     if (slot === orderedSlots[0]) return;
     setFlipped(null);

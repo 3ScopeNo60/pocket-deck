@@ -53,7 +53,7 @@ const FEEL_HINTS = {
 
 type Page = null | "you" | "meds" | "times" | "feel" | "backup" | "app" | "try";
 
-export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, onNumbers, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots" | "peek"; onSwitcher?: (m: "off" | "dots" | "peek") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void}; onNumbers?: () => void; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
+export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, onNumbers, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots"; onSwitcher?: (m: "off" | "dots") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void}; onNumbers?: () => void; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
   const [sex, setSex] = useState(profile.sex);
   const [activity, setActivity] = useState(profile.activity);
@@ -96,7 +96,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
     { key: "you", Icon: UserRound, title: "About you", status: profile.setUp ? `${profile.heightCm} cm · ${profile.weightKg} kg${t ? ` · ${t.satCap} g sat fat a day` : ""}` : "Add your numbers", show: true, hue: "sage" },
     { key: "meds", Icon: Pill, title: "Medication", status: med ? `${med.name}${med.dose ? ` ${med.dose}` : ""}` : "Not added yet", show: !!onSaveMed, hue: "blush" },
     { key: "times", Icon: Clock, title: "Meal times", status: Object.values(mealTimes(profile)).join(" · "), show: !!onMealTimes, hue: "peach" },
-    { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No switcher" : switcher === "dots" ? "Dots" : "Peek"}` : ""}`, show: !!(menuFeel || switcher), hue: "sand" },
+    { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No dots" : "Dots"}` : ""}`, show: !!(menuFeel || switcher), hue: "sand" },
     { key: "backup", Icon: HardDriveDownload, title: "Back up", status: lastBackupAt ? `Last ${ago(lastBackupAt)}` : "Not backed up yet", show: !!onBackedUp, hue: "sky" },
     { key: "app", Icon: Info, title: "This app", status: about ? `Version ${about.version.slice(0, 12)}` : "Updates and setup", show: !!(about || onRedoSetup), hue: "lilac" },
     ...(import.meta.env.MODE === "single" && onScenario
@@ -328,8 +328,8 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
             <section className="k-section">
               <h3 className="section-label">See the other meals</h3>
               <p className="k-sub">A control under the cards that brings lunch or the snack to the top without eating breakfast first.</p>
-              <Segmented label="Card switcher" value={switcher} onChange={onSwitcher} options={[{ value: "off", label: "Off" }, { value: "dots", label: "Dots" }, { value: "peek", label: "Peek" }]} />
-              <p className="k-sub">{switcher === "off" ? "No control. Cards come in the order of the day." : switcher === "dots" ? "A dot for each meal. Touch one to bring it up, or hold and slide across them to riffle through." : "Tap to bring the next one up. Hold to open a list of everything coming, then slide up to one and let go."}</p>
+              <Segmented label="Card switcher" value={switcher} onChange={onSwitcher} options={[{ value: "off", label: "Off" }, { value: "dots", label: "Dots" }]} />
+              <p className="k-sub">{switcher === "off" ? "No control. Cards come in the order of the day." : "A dot for each meal. Touch one to bring it up, or hold and slide across them to riffle through."}</p>
             </section>
           )}
 

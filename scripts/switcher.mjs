@@ -1,4 +1,4 @@
-// Card switcher: dots and peek bring another meal to the top. Usage: node scripts/switcher.mjs <out-dir>
+// Card switcher: the dots bring another meal to the top. Usage: node scripts/switcher.mjs <out-dir>
 import assert from "node:assert/strict";
 import path from "node:path";
 import { launch, menuTo, toToday } from "./_common.mjs";
@@ -49,35 +49,16 @@ await p.waitForTimeout(700);
 assert.equal(await slotsLeft(), 2, "two dots left");
 assert.equal(await topSlot(), "breakfast", "back to the day's order");
 
-// Peek mode: tap goes to the next; hold opens the list.
+// The choice to turn it off is remembered.
 await menuTo(p, "Me");
 await p.locator(".me-tile", { hasText: "Menu and cards" }).click();
 await p.waitForTimeout(300);
-await p.getByRole("button", { name: "Peek", exact: true }).click();
+await p.getByLabel("Card switcher").getByRole("button", { name: "Off", exact: true }).click();
 await p.waitForTimeout(300);
 await menuTo(p, "Today");
 await p.waitForTimeout(600);
-const row = await p.locator(".switcher-row").boundingBox();
-const rx = row.x + row.width / 2, ry = row.y + row.height / 2;
-await p.mouse.click(rx, ry);
-await p.waitForTimeout(800);
-assert.equal(await topSlot(), "lunch", "a tap brings the next one up");
-await p.mouse.move(rx, ry);
-await p.mouse.down();
-await p.waitForTimeout(500);
-assert.ok(await p.locator(".peek").isVisible(), "holding opens the list");
-assert.equal(await p.locator(".peek-row").count(), 2);
-await p.screenshot({ path: path.join(out, "sw4-peek.png") });
-const target = await p.locator(".peek-row", { hasText: /breakfast/i }).boundingBox();
-await p.mouse.move(target.x + 40, target.y + target.height / 2, { steps: 8 });
-await p.waitForTimeout(200);
-await p.mouse.up();
-await p.waitForTimeout(900);
-assert.equal(await topSlot(), "breakfast", "sliding up to a row and letting go chooses it");
-assert.equal(await p.locator(".peek").count(), 0, "list is put away");
-
-// And it's remembered.
-assert.equal((await rows("prefs"))[0].switcher, "peek");
+assert.equal(await p.locator(".switch-dot").count(), 0, "no dots when off");
+assert.equal((await rows("prefs"))[0].switcher, "off");
 
 console.log("errors:", errors.length ? errors : "none");
 assert.equal(errors.length, 0);
