@@ -30,7 +30,8 @@ export function listFromShortfalls(
   for (const [foodId, needG] of merged) {
     const food = foods.get(foodId);
     if (!food) continue;
-    const { packG, count } = packsFor(needG, food.packSizes);
+    // Needs are in the pantry's grams (cooked for barley, lentils, rice and pasta); packs are weighed dry.
+    const { packG, count } = packsFor(needG / (food.cookedYield || 1), food.packSizes);
     result.push({
       itemId: foodId,
       kind: "food",

@@ -19,7 +19,7 @@ import { backlogNudge, slotWords } from "./core/backfill";
 import { CardSwitcher, type SwitcherMode } from "./components/CardSwitcher";
 import { NumbersSheet } from "./components/NumbersSheet";
 import { NutrientsSheet } from "./components/NutrientsSheet";
-import { mealTotals } from "./core/nutrients";
+import { mealTotals, withProducts } from "./core/nutrients";
 import { buildInbox, type InboxItem } from "./core/inbox";
 import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
 import { tomorrowPlan } from "./core/tomorrow";
@@ -91,14 +91,16 @@ export default function App() {
 
   // Quiet Sunday look-back and monthly backup reminder.
   const todayIso = iso(new Date());
+  // The same food numbers everywhere a day is scored: the list with scanned packs laid over it.
+  const foodsNow = useMemo(() => withProducts(histFoods, app.products), [app.products]);
   const backlogDue = useMemo(() => backlogNudge(todayIso, app.allDays), [todayIso, app.allDays]);
   const recordedDays = useMemo(() => app.allDays.filter((d) => d.eaten.length > 0 || (d.replaced ?? []).length > 0).length, [app.allDays]);
   const lookBack = useMemo(() => {
     if (!lookbackDue(todayIso, app.prefs.nudges, recordedDays)) return null;
     const byDate = new Map(app.allDays.map((d) => [d.date, d]));
     const cap = targets(app.profile).satCap;
-    return summarise(lastDates(todayIso, 7).map((d) => scoreDate(d, byDate, cap, app.med)), histMeals, histFoods, "week");
-  }, [todayIso, app.prefs.nudges, recordedDays, app.allDays, app.profile, app.med]);
+    return summarise(lastDates(todayIso, 7).map((d) => scoreDate(d, byDate, cap, app.med, foodsNow)), histMeals, foodsNow, "week");
+  }, [todayIso, app.prefs.nudges, recordedDays, app.allDays, app.profile, app.med, foodsNow]);
   const backup = backupDue(todayIso, app.prefs.lastBackupAt, app.prefs.nudges, recordedDays);
 
   // Tomorrow: prep and shopping, worked out once daytime is done (or when asked for).
@@ -117,8 +119,8 @@ export default function App() {
   const todayDot = useMemo(() => {
     if (!daytimeDone) return null;
     const byDate = new Map(app.allDays.map((d) => [d.date, d]));
-    return scoreDate(todayIso, byDate, targets(app.profile).satCap, app.med).state;
-  }, [daytimeDone, app.allDays, app.profile, app.med, todayIso]);
+    return scoreDate(todayIso, byDate, targets(app.profile).satCap, app.med, foodsNow).state;
+  }, [daytimeDone, app.allDays, app.profile, app.med, todayIso, foodsNow]);
   const inbox = useMemo<InboxItem[]>(() => {
     if (!day) return [];
     const lowNames = app.stock
@@ -232,7 +234,7 @@ export default function App() {
     setFrontSlot(slot === naturalSlots[0] ? null : (slot as SlotKey));
     setShuffleTick((t) => t + 1);
   };
-  const budgetShown = Math.round(app.budget * 10) / 10;
+  const budgetShown = Math.round(app.dayBudget * 10) / 10;
 
   async function submit(a: CheckInAnswer) {
     setCheckIn(false);

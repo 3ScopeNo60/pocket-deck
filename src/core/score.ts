@@ -44,10 +44,15 @@ export interface DayScore {
   points: number | null;
   /** How many of the three daytime meals were recorded. */
   slots: number;
+  /** With supper where it is recorded. */
   sat: number;
   satBudget: number;
   fibre: number;
+  /** With supper where it is recorded. */
   sodium: number;
+  /** The daytime meals (and anything swapped in or added) only, without supper. */
+  daytimeSat: number;
+  daytimeSodium: number;
   sodiumBudget: number;
   anchors: Anchor[];
   supper: Supper | null;
@@ -97,7 +102,7 @@ export function scoreDay(i: ScoreInput): DayScore {
   const meds = i.med ? { taken: Math.min(taken, doses), expected: doses, done: taken >= doses && doses > 0 } : null;
   const moved = !!day.walk;
 
-  const base = { slots, sat: round1(satUsed), satBudget: round1(satBudget), fibre: round1(fibre), sodium: Math.round(naUsed), sodiumBudget, anchors: [...anchors], supper: i.supper, meds, moved,
+  const base = { slots, sat: round1(satUsed), satBudget: round1(satBudget), fibre: round1(fibre), sodium: Math.round(naUsed), daytimeSat: round1(sat), daytimeSodium: Math.round(na), sodiumBudget, anchors: [...anchors], supper: i.supper, meds, moved,
     eaten: eatenMeals.map(({ e, meal }) => ({ slot: e.slot, mealId: meal.id, name: meal.name, emoji: meal.emoji })) };
 
   if (slots === 0) return { ...base, state: "none", points: null, notes: ["Nothing recorded for this day."] };
@@ -157,9 +162,12 @@ export interface PeriodSummary {
 
 export function summarise(scores: DayScore[], meals: Map<string, Meal>, foods: Map<string, Food>, label: "week" | "month"): PeriodSummary {
   const rec = scores.filter((s) => s.state !== "none");
+  // Averages leave out days with only one meal recorded: those are a missed log, not a light day.
+  const full = rec.filter((s) => s.slots >= 2);
+  const avgOver = full.length ? full : rec;
   const counts: Record<DayState, number> = { none: 0, partial: 0, green: 0, yellow: 0, red: 0 };
   for (const s of scores) counts[s.state] += 1;
-  const avg = (f: (s: DayScore) => number) => (rec.length ? round1(rec.reduce((t, s) => t + f(s), 0) / rec.length) : 0);
+  const avg = (f: (s: DayScore) => number) => (avgOver.length ? round1(avgOver.reduce((t, s) => t + f(s), 0) / avgOver.length) : 0);
   const anchorDays: Record<Anchor, number> = { betaGlucan: 0, legume: 0, nuts: 0, goodFat: 0 };
   for (const s of rec) for (const a of s.anchors) anchorDays[a] += 1;
   const takeaways = scores.filter((s) => s.supper?.takeaway).length;
@@ -177,7 +185,8 @@ export function summarise(scores: DayScore[], meals: Map<string, Meal>, foods: M
   const topSat = tally((n) => n.sat);
   const topSalty = tally((n) => n.na);
 
-  const avgSat = avg((s) => s.sat), avgFibre = avg((s) => s.fibre), avgSodium = Math.round(avg((s) => s.sodium));
+  // Like for like: the figures are described as daytime, so they leave supper out.
+  const avgSat = avg((s) => s.daytimeSat), avgFibre = avg((s) => s.fibre), avgSodium = Math.round(avg((s) => s.daytimeSodium));
   const n = rec.length;
   const period = label === "week" ? "this week" : "this month";
   const headline = n === 0
@@ -187,7 +196,7 @@ export function summarise(scores: DayScore[], meals: Map<string, Meal>, foods: M
   // Suggestions, most useful first, at most three. Medication comes before any food advice.
   const s: string[] = [];
   const moved = scores.filter((x) => x.moved).length;
-  const satRatio = n ? rec.reduce((t, x) => t + x.sat / x.satBudget, 0) / n : 0;
+  const satRatio = avgOver.length ? avgOver.reduce((t, x) => t + x.sat / x.satBudget, 0) / avgOver.length : 0;
   if (n < 3) {
     s.push("Record a few more days and this gets more useful.");
   } else {

@@ -67,6 +67,36 @@ export function isLow(food: Food, grams: number): boolean {
   return grams > 0 && grams <= 0.25 * Math.min(...food.packSizes);
 }
 
+/** Take a meal's ingredients out of the pantry: never below nothing, and never from a food with no record. `removed` is what actually came out. */
+export function takeStock(stock: StockItem[], grams: Record<string, number>, at: string): { next: StockItem[]; changed: StockItem[]; removed: Record<string, number> } {
+  const byId = new Map(stock.map((s) => [s.itemId, s]));
+  const changed: StockItem[] = [];
+  const removed: Record<string, number> = {};
+  for (const [itemId, g] of Object.entries(grams)) {
+    const cur = byId.get(itemId);
+    const take = cur ? Math.min(cur.grams, g) : 0;
+    if (!cur || take <= 0) continue;
+    const row: StockItem = { ...cur, grams: cur.grams - take, updatedAt: at };
+    byId.set(itemId, row);
+    changed.push(row);
+    removed[itemId] = take;
+  }
+  return { next: [...byId.values()], changed, removed };
+}
+
+export function withStock(stock: StockItem[], grams: Record<string, number>, sign: 1 | -1, at: string): { next: StockItem[]; changed: StockItem[] } {
+  const byId = new Map(stock.map((s) => [s.itemId, s]));
+  const changed: StockItem[] = [];
+  for (const [itemId, g] of Object.entries(grams)) {
+    const cur = byId.get(itemId);
+    if (!cur && sign === -1) continue; // nothing recorded, nothing to take off
+    const row: StockItem = { itemId, kind: "food", grams: Math.max(0, (cur?.grams ?? 0) + sign * g), updatedAt: at };
+    byId.set(itemId, row);
+    changed.push(row);
+  }
+  return { next: [...byId.values()], changed };
+}
+
 /* ── restock ───────────────────────────────────────────────── */
 
 /** Grams that land in the pantry for `packs` packs of `packG`. Dry foods stocked cooked are scaled up. */
@@ -101,7 +131,8 @@ export function addNeeds(list: ShoppingItem[], needs: Need[], foods: Map<string,
     if (!food || n.needG <= 0) continue;
     const cur = byId.get(rowId(n.foodId));
     const needG = Math.max(cur?.needG ?? 0, n.needG);
-    const { packG, count } = packsFor(needG, food.packSizes);
+    // Needs are in the pantry's grams (cooked for barley, lentils, rice and pasta); packs are weighed dry.
+    const { packG, count } = packsFor(needG / (food.cookedYield || 1), food.packSizes);
     byId.set(rowId(n.foodId), {
       id: rowId(n.foodId), itemId: n.foodId, kind: "food", packs: Math.max(1, count), shopUnitG: packG,
       reason: cur?.reason ?? reason, checked: cur?.checked ?? false, needG,

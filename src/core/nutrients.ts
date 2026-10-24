@@ -75,7 +75,8 @@ export function mealTotals(meal: Meal, foods: Map<string, Food>, products: Map<s
   for (const item of meal.items) {
     const food = foods.get(item.foodId);
     const grams = food?.measures[item.measure];
-    if (!food || grams === undefined) continue;
+    // An ingredient that can't be found counts for nothing, so every total is then a floor.
+    if (!food || grams === undefined) { for (const k of NKEYS) t.partial[k] = true; continue; }
     const p = effectivePer100(food, products.get(item.foodId));
     for (const k of NKEYS) {
       const v = p[k];

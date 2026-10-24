@@ -19,10 +19,10 @@ export const REPLACE_OPTIONS: OffOption[] = [
   { label: "Canteen or work lunch", emoji: "🍽️", group: "Work or shop", sat: 6, na: 900 },
   { label: "Sandwich or wrap from a shop", emoji: "🥪", group: "Work or shop", sat: 4, na: 800 },
   { label: "Salad bar", emoji: "🥗", group: "Work or shop", sat: 3, na: 500 },
-  { label: "Pie from a bakery", emoji: "🥧", group: "Work or shop", sat: 9, na: 800 },
+  { label: "Pie from a bakery", emoji: "🥧", group: "Work or shop", sat: 12, na: 1000 },
   { label: "Pastry or muffin", emoji: "🥐", group: "Work or shop", sat: 6, na: 350 },
-  { label: "Burger and chips", emoji: "🍔", group: "Takeaway", sat: 10, na: 1100 },
-  { label: "Fried chicken", emoji: "🍗", group: "Takeaway", sat: 8, na: 1000 },
+  { label: "Burger and chips", emoji: "🍔", group: "Takeaway", sat: 13, na: 1400 },
+  { label: "Fried chicken", emoji: "🍗", group: "Takeaway", sat: 11, na: 1700 },
   { label: "Pizza", emoji: "🍕", group: "Takeaway", sat: 9, na: 1200 },
   { label: "Sushi", emoji: "🍣", group: "Takeaway", sat: 2, na: 900 },
   { label: "Hot chips", emoji: "🍟", group: "Takeaway", sat: 3, na: 500 },
@@ -31,12 +31,12 @@ const FALLBACK_REPLACE = { sat: 5, na: 600 };
 
 /** Unplanned extras on top of the plan. */
 export const EXTRA_OPTIONS: OffOption[] = [
-  { label: "Cake or sweet things", emoji: "🍰", group: "Treats and snacks", sat: 4, na: 150 },
+  { label: "Cake or sweet things", emoji: "🍰", group: "Treats and snacks", sat: 6, na: 250 },
   { label: "Biscuits", emoji: "🍪", group: "Treats and snacks", sat: 3, na: 150 },
-  { label: "Chocolate", emoji: "🍫", group: "Treats and snacks", sat: 5, na: 50 },
+  { label: "Chocolate", emoji: "🍫", group: "Treats and snacks", sat: 8, na: 50 },
   { label: "Ice cream", emoji: "🍨", group: "Treats and snacks", sat: 5, na: 60 },
   { label: "Chips or crisps", emoji: "🥔", group: "Treats and snacks", sat: 2, na: 250 },
-  { label: "Biltong or cheese", emoji: "🧀", group: "Treats and snacks", sat: 4, na: 600 },
+  { label: "Biltong or cheese", emoji: "🧀", group: "Treats and snacks", sat: 6, na: 800 },
   { label: "Cooldrink or juice", emoji: "🥤", group: "Drinks", sat: 0, na: 10 },
   { label: "Alcohol", emoji: "🍺", group: "Drinks", sat: 0, na: 10 },
 ];
@@ -56,7 +56,7 @@ export function replacedNutrition(r: Pick<ReplacedEntry, "what" | "size">): { sa
 
 export function extraNutrition(x: Pick<ExtraEntry, "kind" | "size">): { sat: number; na: number } {
   const base = EXTRA_OPTIONS.find((o) => o.label === x.kind) ?? FALLBACK_EXTRA;
-  const f = x.size === "big" ? 1.6 : x.size === "small" ? 0.5 : 1;
+  const f = factor(x.size);
   return { sat: round1(base.sat * f), na: Math.round(base.na * f) };
 }
 

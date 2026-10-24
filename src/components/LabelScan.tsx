@@ -9,6 +9,8 @@ import type { Food, Product } from "../core/types";
 import { foodMap } from "../app/viewModel";
 import { AISLES } from "../app/aisles";
 import { newFoodProblem } from "../core/newfood";
+import { drainedPack } from "../core/order";
+import { Segmented } from "./Segmented";
 import { Sheet } from "./Sheets";
 
 export interface LabelResult {
@@ -96,6 +98,8 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
   const [merging, setMerging] = useState(false);
   const [sides, setSides] = useState(0);
   const [needsRinse, setNeedsRinse] = useState(!!seed.product?.needsRinse);
+  // Foods bought dry but stored cooked (barley, lentils, rice, pasta): the pack's table is for the dry food.
+  const [basisIs, setBasisIs] = useState<"dry" | "cooked">(seed.product ? "cooked" : "dry");
   const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -137,6 +141,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
       : missingRequired(p).length ? `I couldn't read the ${missingRequired(p).join(" or ")}. Type ${missingRequired(p).length === 1 ? "it" : "them"} in from the pack.`
       : p.found.length < 3 ? "I only found a few numbers. Check them against the pack."
       : p.suspectEnergy ? "The energy doesn't match the protein, carbohydrate and fat beside it. Check it against the pack."
+      : p.basis === "unknown" ? "I couldn't see which column is per 100 g. Check these aren't the per-serving numbers."
       : p.drained ? "This table is for the drained food, as printed. The pack size is the whole tin, so check that too."
       : null,
     );
@@ -165,6 +170,8 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
   const num = (k: string) => { const n = Number((values[k] ?? "").replace(",", ".")); return values[k]?.trim() && Number.isFinite(n) && n >= 0 ? n : undefined; };
   const nutritionOk = FIELDS.filter((f) => f.required).every((f) => num(f.key) !== undefined);
   const packNum = Number(pack) || 0;
+  const yieldF = food?.cookedYield && food.cookedYield > 1 ? food.cookedYield : null;
+  const drained = food && packNum > 0 ? drainedPack(food, packNum) : null;
   const subject = food ?? (fresh && !naming ? { emoji: fresh.emoji, name: fresh.name.trim() } : null);
   const ready = !!subject && nutritionOk && (!!food || packNum > 0);
 
@@ -265,13 +272,21 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
           </label>
         ))}
       </div>
+      {yieldF && (
+        <>
+          <p className="k-sub">{food!.name} is kept as cooked in the app, but a pack's table is for the dry food. Which is this table for?</p>
+          <Segmented label="What the table is for" value={basisIs} options={[{ value: "dry", label: "Dry, as packed" }, { value: "cooked", label: "Cooked" }]} onChange={setBasisIs} />
+          {basisIs === "dry" && <p className="k-sub">The numbers will be divided by {yieldF} to give cooked values, so a cooked portion isn't counted as dry.</p>}
+        </>
+      )}
       <div className="me-grid two">
         <label className="me-field"><span className="me-label">Pack size{food ? <span className="optional"> Optional</span> : ""}</span><span className="me-input"><input inputMode="decimal" value={pack} aria-label="Pack size" placeholder="not found" onChange={(e) => { setPack(e.target.value.replace(/[^0-9.]/g, "")); setPackRead(false); }} /><span>g</span></span></label>
         <label className="me-field"><span className="me-label">One pack cost <span className="optional">Optional</span></span><span className="me-input"><span>R</span><input inputMode="decimal" value={price} aria-label="Price of one pack" onChange={(e) => setPrice(e.target.value.replace(/[^0-9.,]/g, ""))} /></span></label>
       </div>
       {packRead && <p className="k-sub" role="status">Pack size read from the label. Check it against the pack.</p>}
+      {drained && <p className="k-sub" role="status">The app stocks this by drained weight, so it will count as about {drained.packG} g ({drained.note}).</p>}
       <div className="own-row bought">
-        <span className="kname">Add to the pantry now<small>{bought > 0 && packNum > 0 ? `${bought} × ${packNum} g` : "Packs you just bought"}</small></span>
+        <span className="kname">Add to the pantry now<small>{bought > 0 && packNum > 0 ? `${bought} × ${drained?.packG ?? packNum} g` : "Packs you just bought"}</small></span>
         <div className="stepper" role="group" aria-label="Packs bought">
           <button aria-label="One fewer" onClick={() => setBought(Math.max(0, bought - 1))}>−</button>
           <b>{bought}</b>
@@ -285,19 +300,22 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
       {food && <p className="k-sub">Soluble fibre isn't printed on labels, so it's estimated from the food (marked est.).</p>}
       <div className="sheet-actions">
         <motion.button className="btn" whileTap={{ scale: 0.96 }} disabled={!ready} onClick={() => {
-          const fibre = num("fibre");
+          // A dry pack's table, for a food kept cooked: bring every number down to the cooked basis first.
+          const k = yieldF && basisIs === "dry" ? 1 / yieldF : 1;
+          const sc = (v: number | undefined) => (v === undefined ? undefined : Math.round(v * k * 100) / 100);
+          const fibre = sc(num("fibre"));
           const priceNum = Number(price.replace(",", ".")) || undefined;
           onSave({
             foodId: food?.id ?? null,
             name: food ? brand.trim() || food.name : subject.name,
-            packG: packNum, price: priceNum, packsBought: bought || undefined, needsRinse,
+            packG: drained?.packG ?? packNum, price: priceNum, packsBought: bought || undefined, needsRinse,
             newFood: !food && fresh ? { emoji: fresh.emoji, aisle: fresh.aisle } : undefined,
             per100: {
-              kcal: num("kcal")!, sat: num("sat")!, na: num("sodium")!,
+              kcal: sc(num("kcal"))!, sat: sc(num("sat"))!, na: sc(num("sodium"))!,
               ...(fibre !== undefined ? { fibre, ...(food ? { sol: estimateSoluble(food, fibre) } : {}) } : {}),
-              ...(num("protein") !== undefined ? { protein: num("protein") } : {}), ...(num("carbs") !== undefined ? { carbs: num("carbs") } : {}),
-              ...(num("sugar") !== undefined ? { sugar: num("sugar") } : {}), ...(num("fat") !== undefined ? { fat: num("fat") } : {}),
-              ...(num("cholesterol") !== undefined ? { chol: num("cholesterol") } : {}), ...(num("sterols") !== undefined ? { sterols: num("sterols") } : {}),
+              ...(num("protein") !== undefined ? { protein: sc(num("protein")) } : {}), ...(num("carbs") !== undefined ? { carbs: sc(num("carbs")) } : {}),
+              ...(num("sugar") !== undefined ? { sugar: sc(num("sugar")) } : {}), ...(num("fat") !== undefined ? { fat: sc(num("fat")) } : {}),
+              ...(num("cholesterol") !== undefined ? { chol: sc(num("cholesterol")) } : {}), ...(num("sterols") !== undefined ? { sterols: sc(num("sterols")) } : {}),
             },
           });
         }}>{ready ? (food ? "Save label" : "Save new food") : !nutritionOk ? "Energy, saturated fat and sodium needed" : "How big is one pack?"}</motion.button>

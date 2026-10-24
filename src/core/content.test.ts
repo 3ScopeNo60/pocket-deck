@@ -36,7 +36,7 @@ describe("shipped content", () => {
     expect(startingMealIds.length).toBeGreaterThanOrEqual(8);
     expect(suppers.some((s) => s.id === "braai")).toBe(true);
     const braai = suppers.find((x) => x.id === "braai")!;
-    expect(supperSat(braai.sat, "Big")).toBeCloseTo(18.9, 5);
+    expect(supperSat(braai.sat, "Big")).toBeCloseTo(21.6, 5);
     expect(estCost.get("oats-overnight")).toBeGreaterThan(0);
   });
 

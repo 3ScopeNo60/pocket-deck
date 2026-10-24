@@ -79,4 +79,43 @@ Total Sodium (rng) 400 220`);
     expect(parseLabel("Cholesterol-lowering plant sterols 1.5 g").cholesterol).toBeUndefined();
     expect(parseLabel("Cholesterol-lowering plant sterols 1.5 g").sterols).toBe(1500);
   });
+  describe("things the audit found", () => {
+    it("never takes a mono- or polyunsaturated line for saturated fat", () => {
+      expect(parseLabel("Energy 300 kcal\nMonounsaturated fat (g) 12.0\nSaturated fat (g) 3.0").sat).toBe(3);
+      expect(parseLabel("Energy 300 kcal\nPolyunsaturated fat 6.1 g").sat).toBeUndefined();
+      expect(parseLabel("Energy 300 kcal\nof which unsaturated fat 8 g\nof which saturated fat 4 g").sat).toBe(4);
+    });
+    it("reads a space as a thousands separator when one digit leads, not between columns", () => {
+      const p = parseLabel("Energy (kJ) 1 650 495\nSodium (mg) 1 200 360");
+      expect(p.kcal).toBe(394); // 1650 kJ
+      expect(p.sodium).toBe(1200);
+      expect(parseLabel("Sodium (mg) 480 144").sodium).toBe(480);
+      expect(parseLabel("Energy 1 650 kJ / 394 kcal").kcal).toBe(394);
+    });
+    it("takes the per-100 g column when a per-serving column is printed first", () => {
+      const p = parseLabel("Per serving (30 g) Per 100 g\nEnergy (kJ) 450 1500\nSaturated fat (g) 0.9 3.0\nSodium (mg) 90 300");
+      expect(p).toMatchObject({ sat: 3, sodium: 300, kcal: 359 });
+      // and the usual order still works
+      expect(parseLabel("Per 100 g Per 30 g\nSaturated fat (g) 3.0 0.9").sat).toBe(3);
+    });
+    it("leaves a row blank rather than guess when the per-100 g column has no number", () => {
+      expect(parseLabel("Per serving Per 100 g\nSaturated fat (g) 0.9").sat).toBeUndefined();
+    });
+    it("reads units from the heading", () => {
+      expect(parseLabel("Sodium (g) 0.45").sodium).toBe(450);
+      expect(parseLabel("Sodium 0.45").sodium).toBe(450);
+      expect(parseLabel("Sodium (mg) 480").sodium).toBe(480);
+      expect(parseLabel("Plant sterols (mg) 800").sterols).toBe(800);
+      expect(parseLabel("Plant sterols 0.8 g").sterols).toBe(800);
+    });
+    it("keeps genuine two-decimal values", () => {
+      expect(parseLabel("Saturated fat (g) 0.09").sat).toBe(0.09);
+      expect(parseLabel("Total fat 12.39 g").fat).toBe(12.39);
+      expect(parseLabel("Total fat 12.39").fat).toBe(12.3); // OCR's 'g' read as 9
+    });
+    it("only calls it per-100 g when the heading says so", () => {
+      expect(parseLabel("NET 1100 g\nEnergy 100 kcal").basis).toBe("unknown");
+      expect(parseLabel("Per 100 g\nEnergy 100 kcal").basis).toBe("per100");
+    });
+  });
 });

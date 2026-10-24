@@ -94,7 +94,8 @@ function mealCost(meal: Meal, foods: Map<string, Food>, products: Map<string, Pr
   let cost = 0;
   for (const [foodId, g] of Object.entries(mealGrams(meal, foods))) {
     const p = products.get(foodId);
-    if (p && p.lastPrice > 0 && p.packG > 0) cost += (g / p.packG) * p.lastPrice;
+    // Packs are weighed dry for foods kept cooked, so the cooked grams a meal uses come back to dry first.
+    if (p && p.lastPrice > 0 && p.packG > 0) cost += (g / (foods.get(foodId)?.cookedYield || 1) / p.packG) * p.lastPrice;
   }
   return cost;
 }

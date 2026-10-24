@@ -145,6 +145,8 @@ export interface EatenEntry {
   slot: "breakfast" | "lunch" | "snack";
   mealId: string;
   at: string;
+  /** Grams actually taken out of the pantry for this meal, by food, so undo puts back exactly that. */
+  taken?: Record<string, number>;
 }
 
 export interface ExtraEntry {

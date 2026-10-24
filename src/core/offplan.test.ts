@@ -3,16 +3,16 @@ import { doneSlots, extraNutrition, offPlanSat, replacedNutrition } from "./offp
 
 describe("off-plan food", () => {
   it("scales a known option by size", () => {
-    expect(replacedNutrition({ what: "Pie from a bakery", size: "normal" })).toEqual({ sat: 9, na: 800 });
-    expect(replacedNutrition({ what: "Pie from a bakery", size: "small" }).sat).toBe(5.4);
-    expect(replacedNutrition({ what: "Pie from a bakery", size: "big" }).sat).toBe(13.5);
+    expect(replacedNutrition({ what: "Pie from a bakery", size: "normal" })).toEqual({ sat: 12, na: 1000 });
+    expect(replacedNutrition({ what: "Pie from a bakery", size: "small" }).sat).toBe(7.2);
+    expect(replacedNutrition({ what: "Pie from a bakery", size: "big" }).sat).toBe(18);
   });
   it("treats skipping as nothing and unknown text as an average meal", () => {
     expect(replacedNutrition({ what: "Pie from a bakery", size: "skipped" })).toEqual({ sat: 0, na: 0 });
     expect(replacedNutrition({ what: "Mom's lasagne", size: "normal" }).sat).toBeGreaterThan(0);
   });
   it("handles extras", () => {
-    expect(extraNutrition({ kind: "Chocolate", size: "big" }).sat).toBe(8);
+    expect(extraNutrition({ kind: "Chocolate", size: "big" }).sat).toBe(12); // the same factors as a swapped meal
     expect(extraNutrition({ kind: "Alcohol", size: "normal" }).sat).toBe(0);
   });
   it("counts replaced and eaten slots as done", () => {

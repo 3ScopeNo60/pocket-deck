@@ -42,16 +42,16 @@
    "name": "Oat bran",
    "emoji": "🌾",
    "per100": {
-    "kcal": 246.0,
-    "sat": 1.33,
-    "mono": 2.38,
-    "poly": 2.77,
-    "na": 4.0,
-    "fibre": 15.4,
-    "protein": 17.3,
-    "carbs": 66.22,
-    "sugar": 1.45,
-    "fat": 7.03,
+    "kcal": 364.0,
+    "sat": 1.43,
+    "mono": 2.61,
+    "poly": 3.03,
+    "na": 5.0,
+    "fibre": 14.3,
+    "protein": 17.03,
+    "carbs": 62.94,
+    "sugar": 1.43,
+    "fat": 7.97,
     "chol": 0.0,
     "sol": 7.2,
     "betaGlucan": 7.0
@@ -69,7 +69,7 @@
     500
    ],
    "cookedYield": null,
-   "source": "USDA SR Legacy 168872 (Oat bran, raw); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 174626 (Cereals, QUAKER, Oat Bran, QUAKER/MOTHER'S Oat Bran, dry); soluble fibre and beta-glucan estimated. Quaker oat bran (dry) is used because the generic USDA oat bran row gives only 246 kcal against about 365 on packs."
   },
   {
    "id": "barley-cooked",
@@ -655,16 +655,16 @@
    "name": "Peanut butter (100% peanuts)",
    "emoji": "🥜",
    "per100": {
-    "kcal": 598.0,
-    "sat": 10.32,
-    "mono": 25.94,
-    "poly": 12.54,
-    "na": 17.0,
-    "fibre": 5.0,
-    "protein": 22.21,
-    "carbs": 22.31,
-    "sugar": 10.49,
-    "fat": 51.36,
+    "kcal": 587.0,
+    "sat": 7.72,
+    "mono": 26.18,
+    "poly": 9.77,
+    "na": 6.0,
+    "fibre": 8.4,
+    "protein": 24.35,
+    "carbs": 21.26,
+    "sugar": 4.9,
+    "fat": 49.66,
     "chol": 0.0,
     "sol": 0.8,
     "betaGlucan": 0
@@ -682,7 +682,7 @@
     400
    ],
    "cookedYield": null,
-   "source": "USDA SR Legacy 172470 (Peanut butter, smooth style, without salt); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 173806 (Peanuts, all types, dry-roasted, without salt); soluble fibre and beta-glucan estimated. Peanut butter made only from peanuts has the composition of the peanuts themselves (dry-roasted, no salt); the USDA smooth peanut butter row has added oil and sugar and would overstate saturated fat by about a third."
   },
   {
    "id": "tahini",
@@ -743,7 +743,7 @@
     500
    ],
    "cookedYield": null,
-   "source": "Typical psyllium husk label (not in USDA SR Legacy). Soluble fibre estimated."
+   "source": "Typical psyllium husk label (not in USDA SR Legacy). Soluble fibre estimated. A level teaspoon of powder is about 5 g. Whole husks are lighter, so a teaspoon of them is about half of that."
   },
   {
    "id": "egg",
@@ -808,7 +808,7 @@
     1000
    ],
    "cookedYield": null,
-   "source": "USDA SR Legacy 172388 (Chicken, broilers or fryers, thigh, meat only, cooked, roasted); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 172388 (Chicken, broilers or fryers, thigh, meat only, cooked, roasted); soluble fibre and beta-glucan estimated. Fresh, unbrined chicken. Frozen portions are often brine-injected and can carry several times the sodium: scan the label."
   },
   {
    "id": "chicken-breast",
@@ -841,7 +841,7 @@
     1000
    ],
    "cookedYield": null,
-   "source": "USDA SR Legacy 171477 (Chicken, broilers or fryers, breast, meat only, cooked, roasted); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 171477 (Chicken, broilers or fryers, breast, meat only, cooked, roasted); soluble fibre and beta-glucan estimated. Fresh, unbrined chicken. Frozen portions are often brine-injected and can carry several times the sodium: scan the label."
   },
   {
    "id": "tuna-water",
@@ -1009,7 +1009,7 @@
     240
    ],
    "cookedYield": null,
-   "source": "USDA SR Legacy 175188 (Beans, black turtle, mature seeds, canned); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 175188 (Beans, black turtle, mature seeds, canned); soluble fibre and beta-glucan estimated. USDA values are for the whole tin, liquid included. The meals say to rinse, which lowers the sodium, so this overstates it."
   },
   {
    "id": "kidney-beans",
@@ -1031,7 +1031,7 @@
     "betaGlucan": 0
    },
    "measures": {
-    "½ cup": 128
+    "½ cup": 90
    },
    "keepsDays": 3,
    "anchors": [
@@ -1042,7 +1042,7 @@
     240
    ],
    "cookedYield": null,
-   "source": "USDA SR Legacy 174285 (Beans, kidney, red, mature seeds, canned, drained solids); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 174285 (Beans, kidney, red, mature seeds, canned, drained solids); soluble fibre and beta-glucan estimated. Drained solids: a drained half cup is about 90 g (USDA: 158 g to a cup of rinsed beans)."
   },
   {
    "id": "butter-beans",
@@ -1074,7 +1074,7 @@
     240
    ],
    "cookedYield": null,
-   "source": "USDA SR Legacy 174254 (Lima beans, large, mature seeds, canned); soluble fibre and beta-glucan estimated."
+   "source": "USDA SR Legacy 174254 (Lima beans, large, mature seeds, canned); soluble fibre and beta-glucan estimated. USDA values are for the whole tin, liquid included. Rinsing lowers the sodium, so this overstates it."
   },
   {
    "id": "lentils",

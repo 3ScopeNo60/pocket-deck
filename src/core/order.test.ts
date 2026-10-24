@@ -107,4 +107,19 @@ Liquid 750ml
     expect(find("Saikav Chick Peas 410g")?.unsure).toBeUndefined();
     expect(find("Tastic Wholegrain Long Grain Brown Rice 2kg", 2000)?.unsure).toBeUndefined(); // "rice" is in the food's own name
   });
+
+  it("turns a tin's printed weight into the drained weight, for any food kept by drained weight", async () => {
+    const { drainedPack } = await import("./order");
+    const tuna = foods.find((f) => f.id === "tuna-water")!;
+    expect(drainedPack(tuna, 170)).toMatchObject({ packG: 120 });
+    expect(drainedPack(tuna, 100)).toBeNull(); // already small
+    expect(drainedPack(foods.find((f) => f.id === "rolled-oats")!, 1000)).toBeNull(); // not a drained food
+  });
+
+  it("reads a multipack as the sum of its tins", () => {
+    expect(parseOrder("Koo Baked Beans 6 x 410g\nQty: 1/1\n89.99")[0].packG).toBe(2460);
+    expect(parseOrder("Yoghurt 4x175g\nQty: 2/2\n40.00")[0].packG).toBe(700);
+    expect(parseOrder("Saikav Chick Peas 410g\nQty: 2/2\n59.98")[0].packG).toBe(410);
+  });
 });
+

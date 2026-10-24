@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { addNeeds, addToStock, formatAmount, isLow, listTotal, restockGrams, stepGrams, unlockList, unitFor } from "./stock";
+import { addNeeds, addToStock, formatAmount, isLow, listTotal, restockGrams, stepGrams, takeStock, unlockList, unitFor, withStock } from "./stock";
 import { FOODS, MEALS, PREFS, stock } from "./fixtures";
 import { foods as realFoods } from "./content";
-import type { Food, Product } from "./types";
+import type { Food, Product, StockItem } from "./types";
 
 const real = new Map(realFoods.map((f) => [f.id, f]));
 const food = (id: string) => real.get(id)!;
@@ -115,3 +115,36 @@ describe("meals to unlock", () => {
     expect(ids).not.toContain("feta-bowl");
   });
 });
+
+describe("the audit's stock fixes", () => {
+  const row = (itemId: string, grams: number): StockItem => ({ itemId, kind: "food", grams, updatedAt: "" });
+  const gramsOf = (st: StockItem[], id: string) => st.find((r) => r.itemId === id)?.grams;
+
+  it("puts back exactly what came out, even when the pantry was short", () => {
+    const st = [row("oats", 50)];
+    const out = takeStock(st, { oats: 80, ghost: 30 }, "t");
+    expect(gramsOf(out.next, "oats")).toBe(0);
+    expect(out.removed).toEqual({ oats: 50 }); // no row for 'ghost': nothing taken
+    const back = withStock(out.next, out.removed, 1, "t");
+    expect(gramsOf(back.next, "oats")).toBe(50);
+    expect(gramsOf(back.next, "ghost")).toBeUndefined(); // undo doesn't invent stock
+  });
+  it("takes the full amount when there is enough", () => {
+    const out = takeStock([row("oats", 500)], { oats: 80 }, "t");
+    expect(out.removed).toEqual({ oats: 80 });
+    expect(gramsOf(out.next, "oats")).toBe(420);
+  });
+
+  it("buys dry packs for cooked quantities", () => {
+    // 1200 g of cooked lentils is 480 g dry: one 500 g pack, not three
+    const lentils = food("lentils");
+    const rows = addNeeds([], [{ foodId: "lentils", needG: 1200 }], real, "plan");
+    expect(lentils.cookedYield).toBeGreaterThan(1);
+    expect(rows[0].packs).toBe(1);
+    expect(rows[0].shopUnitG).toBe(500);
+    // foods without a yield are unchanged
+    const oats = addNeeds([], [{ foodId: "rolled-oats", needG: 1200 }], real, "plan");
+    expect(oats[0].packs * oats[0].shopUnitG).toBeGreaterThanOrEqual(1200);
+  });
+});
+

@@ -64,6 +64,9 @@ export function parseOrder(text: string): OrderLine[] {
       if (name && qty > 0) {
         let packG: number | undefined;
         for (const m of name.matchAll(SIZE)) packG = Math.round(num(m[1]) * (/^(kg|l)$/i.test(m[2]) ? 1000 : 1));
+        // A multipack, "6 x 410g": the whole pack is every tin in it.
+        const multi = /(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s?(kg|g|ml|l)\b/i.exec(name);
+        if (multi) packG = Math.round(Number(multi[1]) * num(multi[2]) * (/^(kg|l)$/i.test(multi[3]) ? 1000 : 1));
         out.push({ name, packG, qty, total: price });
       }
       block = [];
@@ -96,6 +99,19 @@ function tokens(s: string): string[] {
 /** Words that mean a product is a made or processed thing that merely contains a food's name. */
 const PROCESSED = new Set(["juice", "sauce", "bread", "cake", "noodle", "chip", "crisp", "cider", "chocolate", "biscuit", "cookie", "rusk", "cereal", "flavoured", "flavour", "drink", "sweet", "candy", "jam", "pie", "pizza", "roll", "ring", "soup", "stew", "dressing", "mayonnaise", "mayo", "ketchup", "chutney", "crumbed", "nugget", "polony", "sausage", "burger", "patty", "finger", "ice", "yoghurt", "yogurt", "muffin", "bar", "spray", "pickled", "pickle", "relish", "paste", "puree", "smoothie", "syrup", "wine", "beer", "tea", "coffee", "shake", "cracker", "pasta", "rice", "pudding", "dessert", "custard", "kit", "bake", "wrap", "salad", "sandwich", "toast"]);
 
+/**
+ * Tinned foods are stocked by their drained weight: a 170 g tin of tuna is about 120 g of fish. For a
+ * food whose numbers are for drained solids and a printed weight above its biggest pack, the weight
+ * the app should stock (its nearest pack size to 65 % of the tin) and a note saying so; else null.
+ */
+export function drainedPack(food: Food, printedG: number): { packG: number; note: string } | null {
+  const sizes = food.packSizes;
+  if (!/drained/i.test(food.source) || printedG <= Math.max(...sizes) * 1.1) return null;
+  const target = printedG * 0.65;
+  const packG = sizes.reduce((a, b) => (Math.abs(b - target) < Math.abs(a - target) ? b : a));
+  return { packG, note: `${printedG} g tin, about ${packG} g drained` };
+}
+
 export interface Match {
   food: Food;
   packG: number;
@@ -121,13 +137,6 @@ export function matchLine(line: OrderLine, foods: Food[]): Match | null {
   const foodTok = new Set(tokens(food.name));
   const unsure = [...lineTok].find((w) => PROCESSED.has(w) && !foodTok.has(w));
   const sizes = food.packSizes;
-  let packG = line.packG ?? sizes[0];
-  let note: string | undefined;
-  // Tinned foods are stocked by their drained weight: a 170 g tin of tuna is about 120 g of fish.
-  if (line.packG && /drained/i.test(food.source) && line.packG > Math.max(...sizes) * 1.1) {
-    const target = line.packG * 0.65;
-    packG = sizes.reduce((a, b) => (Math.abs(b - target) < Math.abs(a - target) ? b : a));
-    note = `${line.packG} g tin, about ${packG} g drained`;
-  }
-  return { food, packG, note, unsure };
+  const d = line.packG ? drainedPack(food, line.packG) : null;
+  return { food, packG: d?.packG ?? line.packG ?? sizes[0], note: d?.note, unsure };
 }

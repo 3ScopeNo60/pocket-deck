@@ -11,8 +11,9 @@ import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
 import { mealGrams, mealNutrition, targets } from "../core/nutrition";
 import { doneSlots, offPlanSat } from "../core/offplan";
 import { dayBudget, deal, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
-import type { Day, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
-import { addNeeds, addToStock, restockGrams, type Need } from "../core/stock";
+import type { Day, Food, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
+import { withProducts } from "../core/nutrients";
+import { addNeeds, addToStock, restockGrams, takeStock, withStock, type Need } from "../core/stock";
 import { needsFor, planWeek, swapInWeek, tagTonight, type WeekPlan } from "../core/week";
 import { DEFAULT_PROFILE, defaultPrefs, starterStock } from "./defaults";
 import { foodMap, mealMap, supperMap } from "./viewModel";
@@ -34,34 +35,21 @@ function newDay(date: string, a: Answer, plan: Day["plan"]): Day {
 }
 
 /** Saturated fat from unplanned food today, beyond what the plan already counts. */
-function overageOf(d: Day | null): number {
+function overageOf(d: Day | null, foods: Map<string, Food>): number {
   if (!d) return 0;
   return offPlanSat(d, (slot) => {
     const id = d.plan[slot as Slot];
     const m = id ? mealMap.get(id) : null;
-    return m ? mealNutrition(m, foodMap).sat : 0;
+    return m ? mealNutrition(m, foods).sat : 0;
   });
 }
 
 /** Today's saturated fat for the meals in `plan`, using each meal's real nutrition. */
-function planSat(plan: Day["plan"]): number {
+function planSat(plan: Day["plan"], foods: Map<string, Food>): number {
   return SLOTS.reduce((t, s) => {
     const m = plan[s] ? mealMap.get(plan[s]!) : null;
-    return t + (m ? mealNutrition(m, foodMap).sat : 0);
+    return t + (m ? mealNutrition(m, foods).sat : 0);
   }, 0);
-}
-
-function withStock(stock: StockItem[], grams: Record<string, number>, sign: 1 | -1, at: string): { next: StockItem[]; changed: StockItem[] } {
-  const byId = new Map(stock.map((s) => [s.itemId, s]));
-  const changed: StockItem[] = [];
-  for (const [itemId, g] of Object.entries(grams)) {
-    const cur = byId.get(itemId);
-    if (!cur && sign === -1) continue; // nothing recorded, nothing to take off
-    const row: StockItem = { itemId, kind: "food", grams: Math.max(0, (cur?.grams ?? 0) + sign * g), updatedAt: at };
-    byId.set(itemId, row);
-    changed.push(row);
-  }
-  return { next: [...byId.values()], changed };
 }
 
 export function useApp() {
@@ -78,9 +66,11 @@ export function useApp() {
   const [labs, setLabs] = useState<Lab[]>([]);
   const [memoryOnly, setMemoryOnly] = useState(false);
   const date = useRef(todayKey()).current;
-  const latest = useRef({ profile, prefs, stock, day, shopping, products, weekRow, med, allDays });
-  latest.current = { profile, prefs, stock, day, shopping, products, weekRow, med, allDays };
   const productByFood = useMemo(() => new Map(products.map((p) => [p.foodId, p])), [products]);
+  /** The food list with the numbers from packs he scanned laid over it: what every total and budget here uses. */
+  const foodsNow = useMemo(() => withProducts(foodMap, productByFood), [productByFood]);
+  const latest = useRef({ profile, prefs, stock, day, shopping, products, weekRow, med, allDays, foodsNow: foodMap });
+  latest.current = { profile, prefs, stock, day, shopping, products, weekRow, med, allDays, foodsNow };
 
   // Load everything once, seeding defaults the first time the app runs.
   useEffect(() => {
@@ -122,7 +112,7 @@ export function useApp() {
   }, [date]);
 
   const answer: Answer | null = day ? { lastNight: day.lastNight, tonight: day.tonight } : null;
-  const { budget, carry } = useMemo(() => {
+  const { budget, carry, whole } = useMemo(() => {
     const night = day?.lastNight ? supperMap.get(day.lastNight.supperId) : null;
     const base = dayBudget({
       satCap: targets(profile).satCap,
@@ -130,8 +120,8 @@ export function useApp() {
       tonight: day?.tonight ?? "normal",
     });
     // Unplanned food comes out of what's left for the meals still to come.
-    return { budget: base.budget - overageOf(day), carry: base.carry };
-  }, [profile, day?.lastNight, day?.tonight, day?.replaced, day?.extras, day?.plan]);
+    return { budget: base.budget - overageOf(day, foodsNow), carry: base.carry, whole: base.budget };
+  }, [profile, day?.lastNight, day?.tonight, day?.replaced, day?.extras, day?.plan, foodsNow]);
 
   const eatenSlots = (d: Day | null) => (d ? (doneSlots(d) as Slot[]) : []);
 
@@ -165,15 +155,15 @@ export function useApp() {
       const planned = latest.current.weekRow?.days[date]?.plan;
       const ids = planned ? SLOTS.map((s) => planned[s]) : [];
       const usable = planned && ids.every((id) => id && mealMap.get(id)) &&
-        planSat(planned) <= b && ids.every((id) => isReady(mealMap.get(id!)!, st, {}, foodMap));
+        planSat(planned, latest.current.foodsNow) <= b && ids.every((id) => isReady(mealMap.get(id!)!, st, {}, foodMap));
       if (usable) { await saveDay(newDay(date, a, { ...planned! })); return []; }
       const r = deal({ meals, foods: foodMap, products: new Map(latest.current.products.map((p) => [p.foodId, p])), budget: b, stock: st, prefs: pr, today: date });
       await saveDay(newDay(date, a, r.pick));
       return [];
     }
     const next: Day = { ...cur, lastNight: a.lastNight, tonight: a.tonight };
-    const bLeft = b - overageOf(cur);
-    if (planSat(cur.plan) <= bLeft) {
+    const bLeft = b - overageOf(cur, latest.current.foodsNow);
+    if (planSat(cur.plan, latest.current.foodsNow) <= bLeft) {
       await saveDay(next);
       return [];
     }
@@ -187,7 +177,7 @@ export function useApp() {
   const swap = useCallback((slot: Slot, dir: 1 | -1): boolean => {
     const { profile: pf, prefs: pr, stock: st, day: cur } = latest.current;
     if (!cur) return false;
-    const id = nextFitting(optionsFor(cur, budgetFor(pf, { lastNight: cur.lastNight, tonight: cur.tonight }).budget - overageOf(cur), st, pr), slot, dir);
+    const id = nextFitting(optionsFor(cur, budgetFor(pf, { lastNight: cur.lastNight, tonight: cur.tonight }).budget - overageOf(cur, latest.current.foodsNow), st, pr), slot, dir);
     if (!id || id === cur.plan[slot]) return false;
     void saveDay({ ...cur, plan: { ...cur.plan, [slot]: id } });
     return true;
@@ -197,13 +187,13 @@ export function useApp() {
     const { stock: st, day: cur } = latest.current;
     const id = cur?.plan[slot];
     const meal = id ? mealMap.get(id) : null;
-    if (!cur || !meal || cur.eaten.some((e) => e.slot === slot)) return;
+    if (!cur || !meal || doneSlots(cur).includes(slot)) return;
     const at = new Date();
-    const { next, changed } = withStock(st, meal.bought ? {} : mealGrams(meal, foodMap), -1, at.toISOString());
+    const { next, changed, removed } = takeStock(st, meal.bought ? {} : mealGrams(meal, foodMap), at.toISOString());
     latest.current.stock = next;
     setStock(next);
     await Promise.all(changed.map((row) => persist(db.put("stock", row))));
-    await saveDay({ ...cur, eaten: [...cur.eaten, { slot, mealId: meal.id, at: hhmm(at) }] });
+    await saveDay({ ...cur, eaten: [...cur.eaten, { slot, mealId: meal.id, at: hhmm(at), taken: removed }] });
   }, []);
 
   const undo = useCallback(async (slot: Slot) => {
@@ -211,7 +201,8 @@ export function useApp() {
     const entry = cur?.eaten.find((e) => e.slot === slot);
     const meal = entry ? mealMap.get(entry.mealId) : null;
     if (!cur || !entry || !meal) return;
-    const { next, changed } = withStock(st, meal.bought ? {} : mealGrams(meal, foodMap), 1, new Date().toISOString());
+    // Put back exactly what came out (older entries didn't record it: they get the meal's full amounts).
+    const { next, changed } = withStock(st, meal.bought ? {} : entry.taken ?? mealGrams(meal, foodMap), 1, new Date().toISOString());
     latest.current.stock = next;
     setStock(next);
     await Promise.all(changed.map((row) => persist(db.put("stock", row))));
@@ -380,11 +371,11 @@ export function useApp() {
     const cur = dayOn(d);
     if (!meal || doneSlots(cur).includes(slot)) return;
     const at = mealTimes(latest.current.profile)[slot];
-    const { next, changed } = withStock(latest.current.stock, meal.bought ? {} : mealGrams(meal, foodMap), -1, new Date().toISOString());
+    const { next, changed, removed } = takeStock(latest.current.stock, meal.bought ? {} : mealGrams(meal, foodMap), new Date().toISOString());
     latest.current.stock = next;
     setStock(next);
     await Promise.all(changed.map((row) => persist(db.put("stock", row))));
-    await saveAny({ ...cur, plan: { ...cur.plan, [slot]: cur.plan[slot] ?? mealId }, eaten: [...cur.eaten, { slot, mealId, at }] });
+    await saveAny({ ...cur, plan: { ...cur.plan, [slot]: cur.plan[slot] ?? mealId }, eaten: [...cur.eaten, { slot, mealId, at, taken: removed }] });
   }, []);
   /** Something else, or nothing, for that slot on that day. */
   const logElseOn = useCallback(async (d: string, slot: Slot, what: string, size: string) => {
@@ -398,7 +389,7 @@ export function useApp() {
     const entry = cur.eaten.find((e) => e.slot === slot);
     const meal = entry ? mealMap.get(entry.mealId) : null;
     if (entry && meal) {
-      const { next, changed } = withStock(latest.current.stock, meal.bought ? {} : mealGrams(meal, foodMap), 1, new Date().toISOString());
+      const { next, changed } = withStock(latest.current.stock, meal.bought ? {} : entry.taken ?? mealGrams(meal, foodMap), 1, new Date().toISOString());
       latest.current.stock = next;
       setStock(next);
       await Promise.all(changed.map((row) => persist(db.put("stock", row))));
@@ -801,7 +792,9 @@ export function useApp() {
     needsSetup: ready && !prefs.setupDone,
     needsCheckIn: ready && !day,
     cards: view.cards, emptySlots: view.empty,
-    daySat: day ? planSat(day.plan) + overageOf(day) : 0,
+    /** What the day has had so far: the plan plus anything unplanned. Compare it with `dayBudget`, not `budget` (which already has the unplanned food taken off). */
+    daySat: day ? planSat(day.plan, foodsNow) + overageOf(day, foodsNow) : 0,
+    dayBudget: whole,
     actions: {
       submitAnswer, swap, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
       addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveMed, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,

@@ -123,3 +123,27 @@ describe("summarise", () => {
     expect(s.suggestions.join(" ")).not.toMatch(/Record a few more/);
   });
 });
+
+describe("the audit's score fixes", () => {
+  const week = (...days: DayScore[]) => summarise(days, mealMap, foodMap, "week");
+  it("keeps the daytime totals apart from the ones with supper", () => {
+    const withSupper = score(day({ eaten: ate(...GOOD) }), kfc);
+    const without = score(day({ eaten: ate(...GOOD) }), null);
+    expect(withSupper.daytimeSodium).toBe(without.daytimeSodium);
+    expect(withSupper.daytimeSat).toBe(without.daytimeSat);
+    expect(withSupper.sodium).toBeGreaterThan(withSupper.daytimeSodium + 2000);
+  });
+  it("describes averages as daytime, so a logged supper doesn't leak into them", () => {
+    const a = week(score(day({ eaten: ate(...GOOD) }), kfc), score(day({ date: "2026-10-15", eaten: ate(...GOOD) }), null));
+    expect(a.avgSodium).toBe(Math.round(score(day({ eaten: ate(...GOOD) })).daytimeSodium));
+  });
+  it("leaves days with one meal logged out of the averages", () => {
+    const fullDay = score(day({ eaten: ate(...GOOD) }), light);
+    const oneMeal = score(day({ date: "2026-10-15", eaten: ate("egg-toast") }), light);
+    expect(oneMeal.slots).toBe(1);
+    expect(week(fullDay, oneMeal).avgSodium).toBe(week(fullDay).avgSodium);
+    // ...but when only partial days exist there's still something to show
+    expect(week(oneMeal).avgSodium).toBeGreaterThan(0);
+  });
+});
+

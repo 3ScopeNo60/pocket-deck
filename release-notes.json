@@ -2,6 +2,19 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-24-c",
+      "date": "2026-10-24",
+      "notes": [
+        "A nutrient audit fixed the numbers. Scanning a dry pack of barley, lentils, rice or pasta now asks whether the table is dry or cooked, instead of counting dry numbers as cooked (about three times too much).",
+        "The label reader no longer takes mono- or polyunsaturated fat for saturated, reads \"1 200\" as 1,200, picks the per-100 g column when a per-serving one comes first, and reads sodium or sterols given in grams.",
+        "A scanned tin is kept by its drained weight, like an imported order. Undo puts back exactly what a meal took out of the pantry.",
+        "Peanut butter now uses pure-peanut numbers (less saturated fat), oat bran uses a pack's energy, kidney beans a drained half cup, and the Bircher beta-glucan tip is corrected.",
+        "Takeaway and treat estimates are higher where they were low: chocolate, pies, burgers, fried chicken, braai, pasta, KFC and Mochachos.",
+        "\"Day so far\" no longer counts unplanned food twice. Cards, day scores and the look-back all use your scanned numbers. The doctor summary keeps daytime and supper apart, and leaves one-meal days out of averages.",
+        "Shopping buys dry packs for cooked quantities, so 1.2 kg of cooked lentils is one pack, not three."
+      ]
+    },
+    {
       "id": "2026-10-24-b",
       "date": "2026-10-24",
       "notes": [
