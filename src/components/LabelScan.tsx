@@ -23,7 +23,7 @@ export interface LabelResult {
   /** Needs draining and rinsing before use. */
   needsRinse?: boolean;
   newFood?: { emoji: string; aisle: string };
-  per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number };
+  per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number; protein?: number; carbs?: number; sugar?: number; fat?: number; chol?: number; sterols?: number };
 }
 
 type Seed = { foodId: string | null; product?: Product; /** Start a new food with this name. */ newName?: string };
@@ -38,6 +38,9 @@ const FIELDS: { key: keyof LabelNumbers; label: string; unit: string; required?:
   { key: "fat", label: "Total fat", unit: "g" },
   { key: "carbs", label: "Carbohydrate", unit: "g" },
   { key: "protein", label: "Protein", unit: "g" },
+  { key: "sugar", label: "Total sugar", unit: "g" },
+  { key: "cholesterol", label: "Cholesterol", unit: "mg" },
+  { key: "sterols", label: "Plant sterols", unit: "mg" },
 ];
 
 const REQUIRED_NAMES: [keyof LabelNumbers, string][] = [["kcal", "energy"], ["sat", "saturated fat"], ["sodium", "sodium"]];
@@ -83,7 +86,8 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
   const [values, setValues] = useState<Record<string, string>>((): Record<string, string> => {
     const p = seed.product;
     if (!p) return {};
-    return { kcal: String(p.per100.kcal), sat: String(p.per100.sat), sodium: String(p.per100.na), fibre: p.per100.fibre !== undefined ? String(p.per100.fibre) : "" };
+    const s = (n: number | undefined) => (n !== undefined ? String(n) : "");
+    return { kcal: String(p.per100.kcal), sat: String(p.per100.sat), sodium: String(p.per100.na), fibre: s(p.per100.fibre), fat: s(p.per100.fat), carbs: s(p.per100.carbs), protein: s(p.per100.protein), sugar: s(p.per100.sugar), cholesterol: s(p.per100.chol), sterols: s(p.per100.sterols) };
   });
   const [brand, setBrand] = useState(seed.product?.name ?? "");
   const [pack, setPack] = useState(seed.product?.packG ? String(seed.product.packG) : "");
@@ -288,7 +292,13 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
             name: food ? brand.trim() || food.name : subject.name,
             packG: packNum, price: priceNum, packsBought: bought || undefined, needsRinse,
             newFood: !food && fresh ? { emoji: fresh.emoji, aisle: fresh.aisle } : undefined,
-            per100: { kcal: num("kcal")!, sat: num("sat")!, na: num("sodium")!, ...(fibre !== undefined ? { fibre, ...(food ? { sol: estimateSoluble(food, fibre) } : {}) } : {}) },
+            per100: {
+              kcal: num("kcal")!, sat: num("sat")!, na: num("sodium")!,
+              ...(fibre !== undefined ? { fibre, ...(food ? { sol: estimateSoluble(food, fibre) } : {}) } : {}),
+              ...(num("protein") !== undefined ? { protein: num("protein") } : {}), ...(num("carbs") !== undefined ? { carbs: num("carbs") } : {}),
+              ...(num("sugar") !== undefined ? { sugar: num("sugar") } : {}), ...(num("fat") !== undefined ? { fat: num("fat") } : {}),
+              ...(num("cholesterol") !== undefined ? { chol: num("cholesterol") } : {}), ...(num("sterols") !== undefined ? { sterols: num("sterols") } : {}),
+            },
           });
         }}>{ready ? (food ? "Save label" : "Save new food") : !nutritionOk ? "Energy, saturated fat and sodium needed" : "How big is one pack?"}</motion.button>
       </div>

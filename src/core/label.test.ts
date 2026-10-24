@@ -72,4 +72,11 @@ Total Sodium (rng) 400 220`);
     expect(parseLabel("Drain and rinse before use").rinse).toBe(true);
     expect(parseLabel("Energy 100 kcal").rinse).toBe(false);
   });
+  it("reads cholesterol and plant sterols when a pack prints them", () => {
+    const p = parseLabel("Cholesterol 12 mg\nPlant sterols 0.8 g\nEnergy 100 kcal");
+    expect(p.cholesterol).toBe(12);
+    expect(p.sterols).toBe(800);
+    expect(parseLabel("Cholesterol-lowering plant sterols 1.5 g").cholesterol).toBeUndefined();
+    expect(parseLabel("Cholesterol-lowering plant sterols 1.5 g").sterols).toBe(1500);
+  });
 });

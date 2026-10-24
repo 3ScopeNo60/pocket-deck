@@ -2,11 +2,13 @@ import { useMemo, useState } from "react";
 import { LayoutGroup, motion } from "motion/react";
 import { toast } from "sonner";
 import { ANCHOR_WORDS, stateWord, summarise, type DayScore, type DayState } from "../core/score";
-import type { Day, Lab, Med } from "../core/types";
+import type { Day, Lab, Med, Product } from "../core/types";
 import { addDays, foodMap, iso, lastDates, mealMap, scoreDate } from "../app/history";
 import { doctorSummary, toText } from "../core/doctor";
 import { Sheet } from "./Sheets";
 import { canBackfill } from "../core/backfill";
+import { NutrientsSheet } from "./NutrientsSheet";
+import { dayTotals, withProducts } from "../core/nutrients";
 
 type Section = "days" | "summary" | "results";
 const SECTIONS: { key: Section; label: string }[] = [
@@ -23,6 +25,8 @@ interface Props {
   onDeleteLab: (date: string) => void;
   /** Open "fill in a day" for a recent date. */
   onFillIn: (date: string) => void;
+  /** Numbers read from packs he scanned, by food. */
+  products: Map<string, Product>;
 }
 
 const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -32,7 +36,7 @@ const LEGEND: { s: DayState; label: string }[] = [
   { s: "none", label: "Nothing recorded" }, { s: "green", label: "Went well" }, { s: "yellow", label: "Mixed" }, { s: "red", label: "Tough" },
 ];
 
-export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab, onFillIn }: Props) {
+export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab, onFillIn, products }: Props) {
   const [section, setSection] = useState<Section>("days");
   const [open, setOpen] = useState<string | null>(null);
   const [period, setPeriod] = useState<"week" | "month">("week");
@@ -41,7 +45,16 @@ export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab, onFi
 
   const today = iso(new Date());
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
-  const score = (d: string) => scoreDate(d, byDate, satCap, med);
+  const foodsNow = useMemo(() => withProducts(foodMap, products), [products]);
+  const score = (d: string) => scoreDate(d, byDate, satCap, med, foodsNow);
+  const [nutrientsDate, setNutrientsDate] = useState<string | null>(null);
+  const dayNutrients = useMemo(() => {
+    if (!nutrientsDate) return null;
+    const day = byDate.get(nutrientsDate);
+    if (!day) return null;
+    const sc = scoreDate(nutrientsDate, byDate, satCap, med, foodsNow);
+    return dayTotals(day, mealMap, foodsNow, new Map(), { supper: sc.supper ? { sat: sc.supper.sat, na: sc.supper.na } : null });
+  }, [nutrientsDate, byDate, satCap, med, foodsNow]);
   const go = (s: Section) => { setSection(s); window.scrollTo({ top: 0 }); };
 
   return (
@@ -69,8 +82,20 @@ export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab, onFi
         <ResultsView labs={labs} onAdd={() => setLabSheet("new")} onOpen={setLabSheet} onBack={() => go("summary")} />
       )}
 
+      <NutrientsSheet
+        open={!!nutrientsDate}
+        title={nutrientsDate ? longDate(nutrientsDate) : ""}
+        subtitle="Everything we track, added up for the meals ticked off that day."
+        totals={dayNutrients}
+        limits={{ sat: { limit: satCap, kind: "max", unit: "g" }, na: { limit: 2000, kind: "max", unit: "mg" }, sol: { limit: 10, kind: "goal", unit: "g" } }}
+        notes={[
+          "Supper, anything you swapped in and extras are only counted for saturated fat and sodium, so every other figure is at least what the meals gave.",
+          "The soluble fibre goal is for the whole day; daytime meals are asked for 7 g and supper covers the rest.",
+        ]}
+        onClose={() => setNutrientsDate(null)}
+      />
       <DoctorSheet open={doctor} onClose={() => setDoctor(false)} today={today} score={score} labs={labs} med={med} satCap={satCap} />
-      <DaySheet date={open} score={open ? score(open) : null} onClose={() => setOpen(null)} onFillIn={open && canBackfill(open, today) ? () => { const d = open; setOpen(null); onFillIn(d); } : null} />
+      <DaySheet date={open} score={open ? score(open) : null} hasNutrients={!!open && byDate.has(open)} onNutrients={() => { const d = open; setOpen(null); setNutrientsDate(d); }} onClose={() => setOpen(null)} onFillIn={open && canBackfill(open, today) ? () => { const d = open; setOpen(null); onFillIn(d); } : null} />
       <LabSheet seed={labSheet} onClose={() => setLabSheet(null)} onSave={(l) => { onSaveLab(l); setLabSheet(null); toast("Result saved"); }} onDelete={(d) => { onDeleteLab(d); setLabSheet(null); }} today={today} />
     </div>
   );
@@ -109,7 +134,7 @@ function DaysGrid({ today, score, onOpen, hasMed }: { today: string; score: (d: 
   );
 }
 
-function DaySheet({ date, score, onClose, onFillIn }: { date: string | null; score: DayScore | null; onClose: () => void; onFillIn: (() => void) | null }) {
+function DaySheet({ date, score, onClose, onFillIn, hasNutrients, onNutrients }: { date: string | null; score: DayScore | null; onClose: () => void; onFillIn: (() => void) | null; hasNutrients: boolean; onNutrients: () => void }) {
   return (
     <Sheet open={!!date && !!score} onOpenChange={(o) => !o && onClose()} title={date ? longDate(date) : ""}>
       {date && score && (
@@ -134,6 +159,7 @@ function DaySheet({ date, score, onClose, onFillIn }: { date: string | null; sco
             {score.meds && <li>{score.meds.done ? "Tablet taken." : score.meds.taken > 0 ? `Tablet: ${score.meds.taken} of ${score.meds.expected} doses.` : "Tablet wasn't ticked."}</li>}
             {score.moved && <li>You moved today.</li>}
           </ul>
+          {hasNutrients && <button className="btn ghost small all-nutrients" onClick={onNutrients}>All nutrients for the day</button>}
           {onFillIn && (
             <div className="sheet-actions"><button className="btn wide" onClick={onFillIn}>{score.slots < 3 ? "Fill in what you had" : "Change what you had"}</button></div>
           )}

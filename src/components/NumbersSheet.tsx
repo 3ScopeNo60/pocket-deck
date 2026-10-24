@@ -8,7 +8,7 @@ export function NumbersSheet({ open, onClose }: { open: boolean; onClose: () => 
 
       <h3 className="section-label">Solid</h3>
       <ul className="reasons">
-        <li>Energy, saturated fat, sodium and total fibre for each food come from the USDA food database, which is laboratory-analysed and public.</li>
+        <li>Energy, protein, carbohydrate, sugar, fats (total, saturated, mono- and polyunsaturated), cholesterol, sodium and total fibre for each food come from the USDA food database, which is laboratory-analysed and public. Plant sterols are only recorded there for a few foods, so most meals show them as "not known".</li>
         <li>Anything you scan from a pack uses the numbers printed on that pack, per 100 g.</li>
       </ul>
 
@@ -17,7 +17,7 @@ export function NumbersSheet({ open, onClose }: { open: boolean; onClose: () => 
         <li><b>Soluble fibre and beta-glucan.</b> Food databases don't publish them, so these are typical values for each food. Treat them as a guide.</li>
         <li><b>Portions.</b> "Half a cup" is a typical weight. Your cup may hold a bit more or less.</li>
         <li><b>Suppers and takeaways.</b> Typical plate sizes. They tell a light night from a heavy one, not an exact amount.</li>
-        <li><b>"Something else" and extras.</b> Rough guesses by kind and size.</li>
+        <li><b>"Something else" and extras.</b> Rough guesses by kind and size, counted for saturated fat and sodium only.</li>
       </ul>
 
       <h3 className="section-label">How close</h3>

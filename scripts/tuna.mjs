@@ -54,6 +54,8 @@ assert.equal(prod.packG, 170);
 assert.equal(prod.needsRinse, true);
 assert.equal(prod.per100.na, 400);
 assert.equal(prod.per100.kcal, 86);
+assert.equal(prod.per100.protein, 17.4, "protein kept from the label");
+assert.equal(prod.per100.fat, 1.3, "total fat kept from the label");
 
 // The pantry tags it; the list suggests something that needs no rinse.
 await p.getByRole("button", { name: "Restock" }).click();

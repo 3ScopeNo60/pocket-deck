@@ -553,7 +553,7 @@ export function useApp() {
     foodId: string | null; name: string; packG: number; price?: number; packsBought?: number;
     newFood?: { emoji: string; aisle: string };
     needsRinse?: boolean;
-    per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number };
+    per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number; protein?: number; carbs?: number; sugar?: number; fat?: number; chol?: number; sterols?: number };
   }): string | null => {
     let foodId = r.foodId;
     if (!foodId) {

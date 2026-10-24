@@ -10,7 +10,7 @@ export interface NewFoodDraft {
   aisle: string;
   /** Grams (or ml) in one pack. */
   packG: number;
-  per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number };
+  per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number; protein?: number; carbs?: number; sugar?: number; fat?: number; chol?: number; sterols?: number };
 }
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "food";
@@ -31,7 +31,10 @@ export function buildFood(d: NewFoodDraft, taken: Set<string>): Food {
     id,
     name: d.name.trim(),
     emoji: d.emoji || "🛒",
-    per100: { kcal: d.per100.kcal, sat: d.per100.sat, mono: 0, poly: 0, na: d.per100.na, fibre: d.per100.fibre ?? 0, sol: d.per100.sol ?? 0, betaGlucan: 0 },
+    per100: {
+      kcal: d.per100.kcal, sat: d.per100.sat, mono: 0, poly: 0, na: d.per100.na, fibre: d.per100.fibre ?? 0, sol: d.per100.sol ?? 0, betaGlucan: 0,
+      ...Object.fromEntries((["protein", "carbs", "sugar", "fat", "chol", "sterols"] as const).filter((k) => d.per100[k] !== undefined).map((k) => [k, d.per100[k]])),
+    },
     // Portions in a meal: by weight, or the whole pack.
     measures: { "50 g": 50, "100 g": 100, "1 pack": pack },
     keepsDays: null,

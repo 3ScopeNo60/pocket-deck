@@ -26,6 +26,14 @@ export interface Per100 {
   fibre: number;
   sol: number;
   betaGlucan: number;
+  /** Optional: not every food has them. Protein, carbohydrate, total sugar and total fat in g. */
+  protein?: number;
+  carbs?: number;
+  sugar?: number;
+  fat?: number;
+  /** Cholesterol and plant sterols, in mg per 100 g. */
+  chol?: number;
+  sterols?: number;
 }
 
 export type Anchor = "betaGlucan" | "legume" | "nuts" | "goodFat";

@@ -2,6 +2,16 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-24-b",
+      "date": "2026-10-24",
+      "notes": [
+        "All nutrients, when you want them: a button on the back of every card, and \"All nutrients for the day\" in Progress. Energy, protein, carbohydrate, sugar, total, saturated, mono- and polyunsaturated fat, cholesterol, plant sterols, fibre (total, soluble, beta-glucan) and sodium, with your limits where there are any.",
+        "Scanning a pack now keeps its protein, carbohydrate, sugar, fat, cholesterol and plant sterols too.",
+        "Cards and day scores now use the numbers from packs you've scanned, the same as the planner does.",
+        "Filling in a day has a Done button."
+      ]
+    },
+    {
       "id": "2026-10-24-a",
       "date": "2026-10-24",
       "notes": [

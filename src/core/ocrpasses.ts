@@ -27,14 +27,14 @@ function fits(kcal: number, expected: number | null): boolean {
  */
 export function mergeReads(texts: string[]): MergedLabel {
   const reads = texts.map((t) => parseLabel(t));
-  const keys = ["protein", "carbs", "sugar", "fat", "sat", "fibre", "sodium", "packG"] as const;
+  const keys = ["protein", "carbs", "sugar", "fat", "sat", "fibre", "sodium", "cholesterol", "sterols", "packG"] as const;
   const out: LabelNumbers = {};
   for (const k of keys) {
     const vals = reads.map((r) => r[k]).filter((v): v is number => v !== undefined);
     if (!vals.length) continue;
     let pick = vals[0];
     // Grams are printed with one decimal; a lost point turns 1.3 into 13 and 17.4 into 174.
-    if (k !== "sodium" && k !== "packG") {
+    if (k !== "sodium" && k !== "packG" && k !== "cholesterol" && k !== "sterols") {
       const smaller = vals.find((v) => v > 0 && Math.abs(pick - v * 10) < 1e-9);
       if (smaller !== undefined) pick = smaller;
     }

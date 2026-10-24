@@ -874,3 +874,15 @@ img, svg { -webkit-user-drag: none; }
 .back-chips .chip { padding: 10px 14px; min-height: 44px; }
 .back-chips .chip.primary { background: var(--accent); color: var(--accent-ink); }
 .back-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-weight: 600; }
+
+/* The full nutrient list. */
+.nut-group { margin-top: 6px; }
+.nut-list { margin: 4px 0 0; display: flex; flex-direction: column; background: var(--page); border-radius: 16px; padding: 2px 14px; }
+.nut-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.nut-row:last-child { border-bottom: none; }
+.nut-row dt { font-weight: 700; }
+.nut-row.sub dt { font-weight: 500; padding-left: 14px; color: var(--muted); }
+.nut-row dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+.nut-row[data-known="false"] dd { color: var(--muted); font-weight: 500; }
+.nut-pct { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+.nut-pct[data-over="true"] { color: #b2412e; }

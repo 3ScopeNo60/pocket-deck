@@ -18,6 +18,8 @@ import { BackLogSheet } from "./components/BackLog";
 import { backlogNudge, slotWords } from "./core/backfill";
 import { CardSwitcher, type SwitcherMode } from "./components/CardSwitcher";
 import { NumbersSheet } from "./components/NumbersSheet";
+import { NutrientsSheet } from "./components/NutrientsSheet";
+import { mealTotals } from "./core/nutrients";
 import { buildInbox, type InboxItem } from "./core/inbox";
 import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
 import { tomorrowPlan } from "./core/tomorrow";
@@ -73,6 +75,7 @@ export default function App() {
   const [offPlan, setOffPlan] = useState<OffPlanTarget>(null);
   const [tomorrowOpen, setTomorrowOpen] = useState(false);
   const [numbersOpen, setNumbersOpen] = useState(false);
+  const [nutrientsOf, setNutrientsOf] = useState<string | null>(null);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [backlogDate, setBacklogDate] = useState<string | null>(null);
   const [eatenOpen, setEatenOpen] = useState(false);
@@ -191,15 +194,16 @@ export default function App() {
   const doseCount = app.med?.times?.length ?? 1;
   const taken = day?.dosesTaken ?? (day?.tabletAt ? [day.tabletAt] : []);
 
+  const productMap = app.products;
   const rinseIds = useMemo(() => new Set([...app.products.values()].filter((p) => p.needsRinse).map((p) => p.foodId)), [app.products]);
   const cardFor = useMemo(() => {
     const map = new Map<SlotKey, ReturnType<typeof toCard>>();
     for (const c of cards) {
       const meal = mealMap.get(c.mealId);
-      if (meal) map.set(c.slot, toCard(meal, c.nearMiss ? app.stock : undefined, rinseIds));
+      if (meal) map.set(c.slot, toCard(meal, c.nearMiss ? app.stock : undefined, rinseIds, productMap));
     }
     return map;
-  }, [cards, app.stock, rinseIds]);
+  }, [cards, app.stock, rinseIds, productMap]);
 
   if (!app.ready) return null;
   if (app.needsSetup) {
@@ -284,6 +288,7 @@ export default function App() {
           onSaveLab={actions.saveLab}
           onDeleteLab={actions.deleteLab}
           onFillIn={setBacklogDate}
+          products={productMap}
         />
       )}
 
@@ -372,6 +377,7 @@ export default function App() {
         slots={orderedSlots}
         times={mealTimes(app.profile)}
         onNumbers={() => setNumbersOpen(true)}
+        onNutrients={setNutrientsOf}
         shuffle={shuffleTick}
         mealFor={(slot) => cardFor.get(slot)!}
         exit={exit}
@@ -608,6 +614,15 @@ export default function App() {
         onClear={() => { actions.setSupperTonight(null); setSupperOpen(false); }}
       />
 
+      <NutrientsSheet
+        open={!!nutrientsOf}
+        title={nutrientsOf ? mealMap.get(nutrientsOf)?.name ?? "" : ""}
+        subtitle="Everything we track, for one serving of this meal."
+        totals={nutrientsOf && mealMap.get(nutrientsOf) ? mealTotals(mealMap.get(nutrientsOf)!, foodMap, productMap) : null}
+        limits={{ sat: { limit: targets(app.profile).satCap, kind: "max", unit: "g" }, na: { limit: targets(app.profile).sodiumMax, kind: "max", unit: "mg" }, sol: { limit: targets(app.profile).solMin, kind: "goal", unit: "g" } }}
+        notes={["Percentages are the share of a whole day's limit or goal."]}
+        onClose={() => setNutrientsOf(null)}
+      />
       <NumbersSheet open={numbersOpen} onClose={() => setNumbersOpen(false)} />
       <OffPlanSheet
         target={offPlan}

@@ -12,6 +12,9 @@ export interface LabelNumbers {
   fibre?: number;
   /** Milligrams per 100 g (or per 100 ml). */
   sodium?: number;
+  /** Milligrams per 100 g. Few packs print these two. */
+  cholesterol?: number;
+  sterols?: number;
   /** What's in one pack, in grams (ml are taken as grams): "NET 425 g" or "425 g e". */
   packG?: number;
 }
@@ -89,6 +92,16 @@ export function parseLabel(text: string): ParsedLabel {
     if (/sodium/.test(low) && out.sodium === undefined) {
       const mg = /sodium[^\d<]*(?:<\s*)?(\d+(?:[.,]\d+)?)\s*(mg|g)?/.exec(low);
       if (mg) out.sodium = mg[2] === "g" ? toNum(mg[1]) * 1000 : toNum(mg[1]);
+      continue;
+    }
+    if (/(?<!chole)sterol|stanol/.test(low) && out.sterols === undefined) {
+      const m = /(?:(?<!chole)sterol|stanol)s?[^\d<]*(?:<\s*)?(\d+(?:[.,]\d+)?)\s*(mg|g)?/.exec(low);
+      if (m) out.sterols = m[2] === "mg" ? toNum(m[1]) : toNum(m[1]) * 1000;
+      continue;
+    }
+    if (/cholesterol/.test(low) && out.cholesterol === undefined) {
+      const m = /cholesterol[^\d<]*(?:<\s*)?(\d+(?:[.,]\d+)?)\s*(mg|g)?/.exec(low);
+      if (m) out.cholesterol = m[2] === "g" ? toNum(m[1]) * 1000 : toNum(m[1]);
       continue;
     }
     if (/\bsalt\b/.test(low) && salt === undefined) { salt = after(low, /\bsalt\b/); continue; }

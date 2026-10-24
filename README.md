@@ -29,6 +29,7 @@ node scripts/nudges.mjs   <shots-dir>   # Sunday look-back, backup reminder (fix
 node scripts/ownmeal.mjs  <shots-dir>   # add your own meal
 node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm run build)
 node scripts/tomorrow.mjs <shots-dir>   # daytime done: prep, shopping, tell supper now
+node scripts/nutrients.mjs <shots-dir>    # every nutrient marker for a meal and for a day
 node scripts/backfill.mjs <shots-dir>      # fill in yesterday: meals, supper, habits, extras, undo, bell nudge
 node scripts/order.mjs <shots-dir> [screenshot.png]  # import an order: pasted text, and a real screenshot via the reader
 node scripts/tuna.mjs <shots-dir>        # two sides of a tin merged, needs-rinse, list hint

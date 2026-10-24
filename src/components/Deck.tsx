@@ -32,6 +32,8 @@ interface BackInfo {
   times?: Partial<Record<SlotKey, string>>;
   /** Opens the explanation of where the numbers come from. */
   onNumbers?: () => void;
+  /** Opens every nutrient marker for this meal. */
+  onNutrients?: (mealId: string) => void;
   /** For a near-miss card: put its missing ingredients on the shopping list. */
   onAddToList: (slot: SlotKey) => void;
 }
@@ -266,6 +268,7 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
                   <div><dt>Day so far</dt><dd>≈ {back.daySat.toFixed(1)}/{back.allowance} g</dd></div>
                 </dl>
                 <p className="rough">Estimates from a food database and typical portions: close, not exact. <button className="link" onClick={() => back.onNumbers?.()} tabIndex={flipped ? 0 : -1}>How they're worked out</button></p>
+                <button className="btn ghost small all-nutrients" onClick={() => back.onNutrients?.(meal.id)} tabIndex={flipped ? 0 : -1}>All nutrients</button>
                 <div className="actions back-actions">
                   <button className="btn ghost" onClick={() => back.onNotFeelingIt(slot)} tabIndex={flipped ? 0 : -1}>Not feeling it</button>
                   <button className="btn ghost" onClick={() => back.onSomethingElse(slot)} tabIndex={flipped ? 0 : -1}>Had something else</button>

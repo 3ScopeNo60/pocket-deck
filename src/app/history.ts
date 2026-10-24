@@ -3,7 +3,7 @@
 import { foodIndex, mealIndex, suppers } from "../core/content";
 import { PLATE } from "../core/planner";
 import { scoreDay, type DayScore, type Supper } from "../core/score";
-import type { Day, Med } from "../core/types";
+import type { Day, Food, Med } from "../core/types";
 
 const mealMap = mealIndex;
 const foodMap = foodIndex;
@@ -26,9 +26,9 @@ export function supperOf(next: Day | undefined): Supper | null {
   return { id: s.id, name: s.name, takeaway: s.group === "Takeaway", sat: s.sat * k, na: s.na * k };
 }
 
-export function scoreDate(date: string, byDate: Map<string, Day>, satCap: number, med: Pick<Med, "times"> | null): DayScore {
+export function scoreDate(date: string, byDate: Map<string, Day>, satCap: number, med: Pick<Med, "times"> | null, foods: Map<string, Food> = foodMap): DayScore {
   const day = byDate.get(date);
   const empty: Day = { date, lastNight: null, tonight: "normal", plan: { breakfast: null, lunch: null, snack: null }, eaten: [], extras: [], replaced: [], walk: false };
-  return scoreDay({ day: day ?? empty, meals: mealMap, foods: foodMap, satCap, supper: supperOf(byDate.get(addDays(date, 1))), med });
+  return scoreDay({ day: day ?? empty, meals: mealMap, foods, satCap, supper: supperOf(byDate.get(addDays(date, 1))), med });
 }
 export { mealMap, foodMap };
