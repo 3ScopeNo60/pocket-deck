@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { motion } from "motion/react";
+import { toast } from "sonner";
 import { meals as allMeals } from "../core/content";
 import { SLOTS, slotWords, type BackSlot } from "../core/backfill";
 import { mealNutrition } from "../core/nutrition";
@@ -47,7 +49,7 @@ export function BackLogSheet({ date, today, day, supper, med, actions, onClose }
     <Sheet open={!!date} onOpenChange={(o) => { if (!o) { setView(null); onClose(); } }} title={title}>
       {date && (
         <div key={view ? view.kind + ("slot" in view ? view.slot : "") : "home"}>
-          {view === null && <Home date={date} day={day} supper={supper} med={med} actions={actions} setView={setView} />}
+          {view === null && <Home date={date} day={day} supper={supper} med={med} actions={actions} setView={setView} onDone={(left) => { setView(null); onClose(); toast(left === 0 ? `${dayWords(date, today)[0].toUpperCase()}${dayWords(date, today).slice(1)} is filled in` : "Saved. A meal or two are still blank.") }} />}
           {view?.kind === "meal" && <MealPicker slot={view.slot} planned={day?.plan[view.slot] ?? null} onBack={() => setView(null)} onPick={(id) => { void actions.logMealOn(date, view.slot, id); setView(null); }} />}
           {view?.kind === "else" && (
             <>
@@ -73,7 +75,8 @@ export function BackLogSheet({ date, today, day, supper, med, actions, onClose }
   );
 }
 
-function Home({ date, day, supper, med, actions, setView }: {
+function Home({ date, day, supper, med, actions, setView, onDone }: {
+  onDone: (mealsLeft: number) => void;
   date: string; day: Day | undefined; supper: LastNight | null; med: Med | null; actions: BackLogActions; setView: (v: View) => void;
 }) {
   const eaten = (s: BackSlot) => day?.eaten.find((e) => e.slot === s);
@@ -85,7 +88,7 @@ function Home({ date, day, supper, med, actions, setView }: {
   return (
     <>
       <p className="k-sub">
-        {longDate(date)}. Tick off what you had. {open.length > 0 ? `${slotWords(open)} ${open.length === 1 ? "isn't" : "aren't"} recorded yet.` : "Every meal is recorded."}
+        {longDate(date)}. Tick off what you had; it saves as you go. {open.length > 0 ? `${slotWords(open)} ${open.length === 1 ? "isn't" : "aren't"} recorded yet.` : "Every meal is recorded."}
       </p>
       {SLOTS.map((slot) => {
         const e = eaten(slot);
@@ -147,6 +150,11 @@ function Home({ date, day, supper, med, actions, setView }: {
         ))}
       </section>
       <p className="k-sub">Meals you pick come out of the pantry, and the day's score and the week's numbers update.</p>
+      <div className="sheet-actions">
+        <motion.button className="btn wide" whileTap={{ scale: 0.96 }} onClick={() => onDone(open.length)}>
+          {open.length === 0 ? "Done" : `Done · ${open.length} ${open.length === 1 ? "meal" : "meals"} still blank`}
+        </motion.button>
+      </div>
     </>
   );
 }

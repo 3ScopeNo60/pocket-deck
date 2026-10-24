@@ -74,12 +74,18 @@ await p.waitForTimeout(500);
 assert.equal((await dayRow(yesterday)).extras.length, 1);
 await p.screenshot({ path: path.join(out, "bl2-filled.png") });
 
+// Done closes the sheet and says so.
+assert.ok(await p.getByRole("button", { name: "Done", exact: true }).isVisible());
+
 // Undo a meal.
 await p.locator(".back-slot", { hasText: "Breakfast" }).getByRole("button", { name: "Undo" }).click();
 await p.waitForTimeout(500);
 assert.equal((await dayRow(yesterday)).eaten.length, 0);
-await p.keyboard.press("Escape");
+assert.ok(await p.getByRole("button", { name: /Done · 1 meal still blank/ }).isVisible(), "says what's still blank");
+await p.getByRole("button", { name: /Done/ }).click();
 await p.waitForTimeout(600);
+assert.ok(await p.getByText("Saved. A meal or two are still blank.").isVisible(), "confirms on Done");
+assert.equal(await p.locator(".sheet").count(), 0, "Done closes the sheet");
 
 // The day's dot now counts it, and the sheet can be reopened.
 await p.locator('.dot[aria-label*="23 October"]').click();
