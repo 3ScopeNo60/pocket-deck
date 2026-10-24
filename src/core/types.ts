@@ -69,6 +69,8 @@ export interface Product {
   fromLabel?: boolean;
   /** Needs draining and rinsing before use (tinned fish or beans in brine). */
   needsRinse?: boolean;
+  /** What one household measure of this pack weighs, read from its label ("1 tsp" = 5 g). */
+  serving?: { label: string; g: number };
 }
 
 export interface MealItem {

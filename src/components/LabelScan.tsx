@@ -24,6 +24,8 @@ export interface LabelResult {
   packsBought?: number;
   /** Needs draining and rinsing before use. */
   needsRinse?: boolean;
+  /** What a household measure of it weighs, from the label ("1 tsp" = 5 g). */
+  serving?: { label: string; g: number };
   newFood?: { emoji: string; aisle: string };
   per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number; protein?: number; carbs?: number; sugar?: number; fat?: number; chol?: number; sterols?: number };
 }
@@ -98,6 +100,9 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
   const [merging, setMerging] = useState(false);
   const [sides, setSides] = useState(0);
   const [needsRinse, setNeedsRinse] = useState(!!seed.product?.needsRinse);
+  // The serving size: what one measure ("1 tsp") weighs on this pack.
+  const [servLabel, setServLabel] = useState(seed.product?.serving?.label ?? "");
+  const [servG, setServG] = useState(seed.product?.serving?.g ? String(seed.product.serving.g) : "");
   // Foods bought dry but stored cooked (barley, lentils, rice, pasta): the pack's table is for the dry food.
   const [basisIs, setBasisIs] = useState<"dry" | "cooked">(seed.product ? "cooked" : "dry");
   const [pasted, setPasted] = useState("");
@@ -132,6 +137,8 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
     setValues(merging ? { ...next, ...Object.fromEntries(Object.entries(values).filter(([, v]) => v?.trim())) } : next);
     if (p.packG && (!merging || !pack.trim())) { setPack(String(p.packG)); setPackRead(true); }
     if (p.rinse) setNeedsRinse(true);
+    // Only a household measure is filled in for him ("1 tsp (5 g)"); a bare serving weight is left for him to choose.
+    if (p.serving && p.serving.label !== "1 serving" && (!merging || !servG.trim())) { setServLabel(p.serving.label); setServG(String(p.serving.g)); }
     setSides((n) => (merging ? n + 1 : 1));
     setMerging(false);
     setConfirm(true);
@@ -283,6 +290,11 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
         <label className="me-field"><span className="me-label">Pack size{food ? <span className="optional"> Optional</span> : ""}</span><span className="me-input"><input inputMode="decimal" value={pack} aria-label="Pack size" placeholder="not found" onChange={(e) => { setPack(e.target.value.replace(/[^0-9.]/g, "")); setPackRead(false); }} /><span>g</span></span></label>
         <label className="me-field"><span className="me-label">One pack cost <span className="optional">Optional</span></span><span className="me-input"><span>R</span><input inputMode="decimal" value={price} aria-label="Price of one pack" onChange={(e) => setPrice(e.target.value.replace(/[^0-9.,]/g, ""))} /></span></label>
       </div>
+      <div className="me-grid two">
+        <label className="me-field"><span className="me-label">A serving is <span className="optional">Optional</span></span><span className="me-input"><input value={servLabel} placeholder="e.g. 1 tsp" aria-label="Serving measure" onChange={(e) => setServLabel(e.target.value)} /></span></label>
+        <label className="me-field"><span className="me-label">and weighs</span><span className="me-input"><input inputMode="decimal" value={servG} aria-label="Serving weight" onChange={(e) => setServG(e.target.value.replace(/[^0-9.,]/g, ""))} /><span>g</span></span></label>
+      </div>
+      <p className="k-sub">{servG.trim() ? `Meals and your own recipes will count ${servLabel.trim() || "1 serving"} as ${servG} g.` : "Fill this in from the label's serving size and a measure like 1 tsp will weigh what your pack says."}</p>
       {packRead && <p className="k-sub" role="status">Pack size read from the label. Check it against the pack.</p>}
       {drained && <p className="k-sub" role="status">The app stocks this by drained weight, so it will count as about {drained.packG} g ({drained.note}).</p>}
       <div className="own-row bought">
@@ -308,6 +320,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
           onSave({
             foodId: food?.id ?? null,
             name: food ? brand.trim() || food.name : subject.name,
+            serving: Number(servG.replace(",", ".")) > 0 ? { label: servLabel.trim() || "1 serving", g: Number(servG.replace(",", ".")) } : undefined,
             packG: drained?.packG ?? packNum, price: priceNum, packsBought: bought || undefined, needsRinse,
             newFood: !food && fresh ? { emoji: fresh.emoji, aisle: fresh.aisle } : undefined,
             per100: {

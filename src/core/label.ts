@@ -19,6 +19,9 @@ export interface LabelNumbers {
   packG?: number;
 }
 
+/** A serving as the label gives it: "1 tsp (5 g)" is { label: "1 tsp", g: 5 }; a bare "30 g" is "1 serving". */
+export interface Serving { label: string; g: number }
+
 export interface ParsedLabel extends LabelNumbers {
   /** Which printed column the numbers came from. */
   basis: "per100" | "unknown";
@@ -26,6 +29,8 @@ export interface ParsedLabel extends LabelNumbers {
   drained: boolean;
   /** The pack says to rinse it. */
   rinse: boolean;
+  /** The serving size, when the label gives one. */
+  serving?: Serving;
   /** Field names that were read, for the "we found N of 7" hint. */
   found: (keyof LabelNumbers)[];
 }
@@ -56,7 +61,8 @@ const headUnit = (u: string): "g" | "mg" => (/^(mg|m9|mq|rng)$/i.test(u) ? "mg" 
  */
 function per100Column(text: string): number {
   const i100 = text.search(/per\s*100\s*(g|ml)/i);
-  const iServ = text.search(/per\s*(serving|portion)|serving\s*size|per\s*(?!100\b)\d{1,3}\s*(g|ml)\b/i);
+  // "Serving size: 1 tsp" on its own line is not a column; "per serving" and "per 30 g" are.
+  const iServ = text.search(/per\s*(serving|portion)|per\s*(?!100\b)\d{1,3}\s*(g|ml)\b/i);
   return i100 >= 0 && iServ >= 0 && iServ < i100 ? 1 : 0;
 }
 
@@ -156,6 +162,32 @@ export function parseLabel(text: string): ParsedLabel {
   }
 
   const found = (Object.keys(out) as (keyof LabelNumbers)[]).filter((k) => out[k] !== undefined);
+  const serving = parseServing(text);
   const hasBasis = /per\s*100\s*(g|ml)|(?<!\d)100\s*(g|ml)/i.test(text);
-  return { ...out, basis: hasBasis ? "per100" : "unknown", drained: /\bdrained\b/i.test(text), rinse: /\brins(e|ing)\b/i.test(text), found };
+  return { ...out, basis: hasBasis ? "per100" : "unknown", drained: /\bdrained\b/i.test(text), rinse: /\brins(e|ing)\b/i.test(text), ...(serving ? { serving } : {}), found };
+}
+
+const UNITS: Record<string, string> = { tsp: "tsp", teaspoon: "tsp", teaspoons: "tsp", tbsp: "tbsp", tablespoon: "tbsp", tablespoons: "tbsp", cup: "cup", cups: "cup", scoop: "scoop", scoops: "scoop", slice: "slice", slices: "slice", biscuit: "biscuit", biscuits: "biscuit", piece: "piece", pieces: "piece" };
+const FRACTION: Record<string, number> = { "½": 0.5, "¼": 0.25, "¾": 0.75 };
+
+/**
+ * The serving size: a household measure with its weight ("Serving size: 1 tbsp (10 g)", "2 tsp (10g)"),
+ * else just a weight ("Serving size 30 g", "per 30 g serving", "per serving (30 g)"). Several of a unit are
+ * brought down to one ("2 tbsp (30 g)" is 1 tbsp = 15 g).
+ */
+export function parseServing(text: string): Serving | undefined {
+  const m = /(\d+(?:[.,]\d+)?|[½¼¾])?\s*(tsp|teaspoons?|tbsp|tablespoons?|cups?|scoops?|slices?|biscuits?|pieces?)\b\.?\s*\(\s*(\d+(?:[.,]\d+)?)\s*g\s*\)/i.exec(text);
+  if (m) {
+    const count = m[1] ? (FRACTION[m[1]] ?? toNum(m[1])) : 1;
+    const g = toNum(m[3]);
+    if (count > 0 && g > 0 && g / count <= 500) return { label: `1 ${UNITS[m[2].toLowerCase()]}`, g: Math.round((g / count) * 100) / 100 };
+  }
+  const grams = /serving\s*size\s*[:\-]?\s*(\d+(?:[.,]\d+)?)\s*g\b/i.exec(text)
+    ?? /per\s*(\d+(?:[.,]\d+)?)\s*g\s*(?:single\s*)?serving/i.exec(text)
+    ?? /per\s*serving\s*\(\s*(\d+(?:[.,]\d+)?)\s*g\s*\)/i.exec(text);
+  if (grams) {
+    const g = toNum(grams[1]);
+    if (g > 0 && g <= 500 && g !== 100) return { label: "1 serving", g };
+  }
+  return undefined;
 }

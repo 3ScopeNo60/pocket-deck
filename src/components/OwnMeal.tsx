@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { foods } from "../core/content";
 import { buildCustomMeal, draftProblem, type MealDraft } from "../core/custom";
 import { mealNutrition } from "../core/nutrition";
-import type { Meal } from "../core/types";
+import type { Meal, Product } from "../core/types";
 import { foodMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
 import { LabelFlow, type LabelResult } from "./LabelScan";
@@ -13,15 +13,15 @@ const SLOT_LABEL: Record<Meal["slot"], string> = { breakfast: "Breakfast", lunch
 const BLANK: MealDraft = { name: "", emoji: "🍳", slot: "lunch", items: [], steps: "" };
 
 /** "Add your own meal": pick ingredients and amounts; the numbers are worked out from the food list. */
-export function OwnMealSheet({ open, onClose, onSave, onNewFood }: { open: boolean; onClose: () => void; onSave: (d: MealDraft) => void; onNewFood: (r: LabelResult) => string | null }) {
+export function OwnMealSheet({ open, onClose, onSave, onNewFood, products }: { open: boolean; onClose: () => void; onSave: (d: MealDraft) => void; onNewFood: (r: LabelResult) => string | null; products: Map<string, Product> }) {
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Add your own meal">
-      {open && <Form onSave={onSave} onNewFood={onNewFood} />}
+      {open && <Form onSave={onSave} onNewFood={onNewFood} products={products} />}
     </Sheet>
   );
 }
 
-function Form({ onSave, onNewFood }: { onSave: (d: MealDraft) => void; onNewFood: (r: LabelResult) => string | null }) {
+function Form({ onSave, onNewFood, products }: { onSave: (d: MealDraft) => void; onNewFood: (r: LabelResult) => string | null; products: Map<string, Product> }) {
   const [d, setD] = useState<MealDraft>(BLANK);
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
@@ -32,8 +32,8 @@ function Form({ onSave, onNewFood }: { onSave: (d: MealDraft) => void; onNewFood
   const nums = useMemo(() => {
     if (d.items.length === 0 || draftProblem({ ...d, name: "x" }, foodMap)) return null;
     const m = buildCustomMeal({ ...d, name: "x" }, new Set(), foodMap);
-    return mealNutrition(m, foodMap);
-  }, [d]);
+    return mealNutrition(m, foodMap, products);
+  }, [d, products]);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();

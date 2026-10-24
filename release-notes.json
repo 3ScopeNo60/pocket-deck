@@ -2,6 +2,14 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-24-d",
+      "date": "2026-10-24",
+      "notes": [
+        "Scan a label reads the serving size: \"1 tsp (5 g)\" or \"2 tbsp (30 g)\". It fills in \"A serving is… and weighs…\", and from then on that measure weighs what your pack says in meals and your own recipes (useful for psyllium).",
+        "Your own meal's numbers now use the numbers from packs you've scanned."
+      ]
+    },
+    {
       "id": "2026-10-24-c",
       "date": "2026-10-24",
       "notes": [

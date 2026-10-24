@@ -54,6 +54,7 @@ export function mergeReads(texts: string[]): MergedLabel {
     basis: reads.some((r) => r.basis === "per100") ? "per100" : "unknown",
     drained: reads.some((r) => r.drained),
     rinse: reads.some((r) => r.rinse),
+    serving: reads.find((r) => r.serving)?.serving,
     found,
     suspectEnergy,
   };

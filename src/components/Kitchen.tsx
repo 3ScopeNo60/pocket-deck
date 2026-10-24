@@ -311,7 +311,7 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
           setAdjust(null);
         }}
       />
-      <OwnMealSheet open={ownOpen} onClose={() => setOwnOpen(false)} onNewFood={(r) => actions.saveLabel(r)} onSave={(d) => { setOwnOpen(false); void actions.addOwnMeal(d).then((m) => toast(`${m.name} is in your rotation`)); }} />
+      <OwnMealSheet open={ownOpen} onClose={() => setOwnOpen(false)} products={products} onNewFood={(r) => actions.saveLabel(r)} onSave={(d) => { setOwnOpen(false); void actions.addOwnMeal(d).then((m) => toast(`${m.name} is in your rotation`)); }} />
       <LabelScanSheet seed={scan} onClose={() => setScan(null)} onSave={(r) => {
         const id = actions.saveLabel(r);
         setScan(null);

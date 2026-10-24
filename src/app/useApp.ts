@@ -13,6 +13,7 @@ import { doneSlots, offPlanSat } from "../core/offplan";
 import { dayBudget, deal, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
 import type { Day, Food, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
 import { withProducts } from "../core/nutrients";
+import { applyServing } from "../core/serving";
 import { addNeeds, addToStock, restockGrams, takeStock, withStock, type Need } from "../core/stock";
 import { needsFor, planWeek, swapInWeek, tagTonight, type WeekPlan } from "../core/week";
 import { DEFAULT_PROFILE, defaultPrefs, starterStock } from "./defaults";
@@ -89,11 +90,12 @@ export function useApp() {
         const d = (await db.get("days", date)) ?? null;
         const sh = await db.getAll("shopping");
         const pd = await db.getAll("products");
+        // Foods he added from a label come first, so a serving read from a pack can be applied to any food.
+        for (const f of await db.getAll("foods")) { addCustomFood(f); setCustomAisle(f.id, f.aisle); }
+        for (const q of pd) applyServing(foodMap.get(q.foodId), q.serving);
         const wk = (await db.getAll("week")).sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0] ?? null;
         const md = (await db.getAll("meds"))[0] ?? null;
         // His own meals live in the database; bring them into the library before anything is dealt.
-        // ...and so are foods he added from a label, which his meals and pantry may use.
-        for (const f of await db.getAll("foods")) { addCustomFood(f); setCustomAisle(f.id, f.aisle); }
         for (const own of await db.getAll("meals")) addCustomMeal(own);
         // New meals that arrived with this build wait for a decision before they're ever dealt.
         const found = discoverMeals(meals.filter((m) => !m.id.startsWith(OWN_PREFIX)).map((m) => m.id), pr);
@@ -522,7 +524,7 @@ export function useApp() {
       // A restock updates the pack and price but keeps numbers read from a label.
       const product: Product = {
         id: r.foodId, foodId: r.foodId, name: prev?.name ?? food.name, packG: r.packG, lastPrice: perPack,
-        estimated: prev?.estimated ?? [], fromLabel: prev?.fromLabel, needsRinse: prev?.needsRinse,
+        estimated: prev?.estimated ?? [], fromLabel: prev?.fromLabel, needsRinse: prev?.needsRinse, serving: prev?.serving,
         per100: prev?.per100 ?? { kcal: food.per100.kcal, sat: food.per100.sat, na: food.per100.na },
       };
       pd = [...pd.filter((p) => p.foodId !== r.foodId), product];
@@ -541,7 +543,7 @@ export function useApp() {
    * added to the pantry.
    */
   const saveLabel = useCallback((r: {
-    foodId: string | null; name: string; packG: number; price?: number; packsBought?: number;
+    foodId: string | null; name: string; packG: number; price?: number; packsBought?: number; serving?: { label: string; g: number };
     newFood?: { emoji: string; aisle: string };
     needsRinse?: boolean;
     per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number; protein?: number; carbs?: number; sugar?: number; fat?: number; chol?: number; sterols?: number };
@@ -559,8 +561,9 @@ export function useApp() {
     const packG = r.packG || prev?.packG || 0;
     const product: Product = {
       id: foodId, foodId, name: r.name, packG, lastPrice: r.price && r.price > 0 ? r.price : prev?.lastPrice ?? 0,
-      per100: r.per100, estimated: r.per100.sol !== undefined ? ["sol"] : [], fromLabel: true, ...(r.needsRinse ? { needsRinse: true } : {}),
+      per100: r.per100, estimated: r.per100.sol !== undefined ? ["sol"] : [], fromLabel: true, ...(r.needsRinse ? { needsRinse: true } : {}), ...((r.serving ?? prev?.serving) ? { serving: r.serving ?? prev?.serving } : {}),
     };
+    applyServing(foodMap.get(foodId), product.serving);
     const pd = [...latest.current.products.filter((p) => p.foodId !== foodId), product];
     latest.current.products = pd;
     setProducts(pd);

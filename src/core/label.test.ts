@@ -118,4 +118,8 @@ Total Sodium (rng) 400 220`);
       expect(parseLabel("Per 100 g\nEnergy 100 kcal").basis).toBe("per100");
     });
   });
+  it("a serving-size line above the table doesn't make per-100 g the second column", () => {
+    const p = parseLabel("Serving size: 1 tsp (3 g)\nPer 100 g\nEnergy 1000 kJ / 240 kcal\nSaturated fat 0.1 g\nSodium 50 mg");
+    expect(p).toMatchObject({ kcal: 240, sat: 0.1, sodium: 50 });
+  });
 });
