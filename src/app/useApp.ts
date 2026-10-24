@@ -5,6 +5,8 @@ import { buildFood } from "../core/newfood";
 import { setCustomAisle } from "./aisles";
 import { buildCustomMeal, OWN_PREFIX, type MealDraft } from "../core/custom";
 import { addDays } from "./history";
+import { blankDay } from "../core/backfill";
+import { mealTimes } from "../data/meals";
 import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
 import { mealGrams, mealNutrition, targets } from "../core/nutrition";
 import { doneSlots, offPlanSat } from "../core/offplan";
@@ -76,8 +78,8 @@ export function useApp() {
   const [labs, setLabs] = useState<Lab[]>([]);
   const [memoryOnly, setMemoryOnly] = useState(false);
   const date = useRef(todayKey()).current;
-  const latest = useRef({ profile, prefs, stock, day, shopping, products, weekRow, med });
-  latest.current = { profile, prefs, stock, day, shopping, products, weekRow, med };
+  const latest = useRef({ profile, prefs, stock, day, shopping, products, weekRow, med, allDays });
+  latest.current = { profile, prefs, stock, day, shopping, products, weekRow, med, allDays };
   const productByFood = useMemo(() => new Map(products.map((p) => [p.foodId, p])), [products]);
 
   // Load everything once, seeding defaults the first time the app runs.
@@ -359,6 +361,89 @@ export function useApp() {
   const removeExtra = useCallback(async (index: number) => {
     const cur = latest.current.day;
     if (cur) await saveDay({ ...cur, extras: (cur.extras ?? []).filter((_, i) => i !== index) });
+  }, []);
+
+  /* ── filling in a day that has passed ───────────────────── */
+
+  /** The stored day for a date (blank when nothing was recorded). Today comes from the live day. */
+  const dayOn = (d: string): Day => (d === date ? latest.current.day ?? blankDay(d) : latest.current.allDays.find((x) => x.date === d) ?? blankDay(d));
+  const saveAny = (d: Day): Promise<void> => {
+    if (d.date === date) return saveDay(d);
+    latest.current.allDays = [...latest.current.allDays.filter((x) => x.date !== d.date), d];
+    setAllDays((all) => [...all.filter((x) => x.date !== d.date), d]);
+    return persist(db.put("days", d));
+  };
+
+  /** He ate a library meal in that slot on that day: it counts, and comes out of the pantry. */
+  const logMealOn = useCallback(async (d: string, slot: Slot, mealId: string) => {
+    const meal = mealMap.get(mealId);
+    const cur = dayOn(d);
+    if (!meal || doneSlots(cur).includes(slot)) return;
+    const at = mealTimes(latest.current.profile)[slot];
+    const { next, changed } = withStock(latest.current.stock, meal.bought ? {} : mealGrams(meal, foodMap), -1, new Date().toISOString());
+    latest.current.stock = next;
+    setStock(next);
+    await Promise.all(changed.map((row) => persist(db.put("stock", row))));
+    await saveAny({ ...cur, plan: { ...cur.plan, [slot]: cur.plan[slot] ?? mealId }, eaten: [...cur.eaten, { slot, mealId, at }] });
+  }, []);
+  /** Something else, or nothing, for that slot on that day. */
+  const logElseOn = useCallback(async (d: string, slot: Slot, what: string, size: string) => {
+    const cur = dayOn(d);
+    if (doneSlots(cur).includes(slot)) return;
+    await saveAny({ ...cur, replaced: [...(cur.replaced ?? []), { slot, what, size, at: mealTimes(latest.current.profile)[slot] }] });
+  }, []);
+  /** Take a logged slot back (a meal eaten goes back into the pantry). */
+  const unlogOn = useCallback(async (d: string, slot: Slot) => {
+    const cur = dayOn(d);
+    const entry = cur.eaten.find((e) => e.slot === slot);
+    const meal = entry ? mealMap.get(entry.mealId) : null;
+    if (entry && meal) {
+      const { next, changed } = withStock(latest.current.stock, meal.bought ? {} : mealGrams(meal, foodMap), 1, new Date().toISOString());
+      latest.current.stock = next;
+      setStock(next);
+      await Promise.all(changed.map((row) => persist(db.put("stock", row))));
+    }
+    await saveAny({ ...cur, eaten: cur.eaten.filter((e) => e.slot !== slot), replaced: (cur.replaced ?? []).filter((r) => r.slot !== slot) });
+  }, []);
+  const addExtraOn = useCallback(async (d: string, kind: string, size: string) => {
+    const cur = dayOn(d);
+    await saveAny({ ...cur, extras: [...(cur.extras ?? []), { kind, size, at: "" }] });
+  }, []);
+  const removeExtraOn = useCallback(async (d: string, index: number) => {
+    const cur = dayOn(d);
+    await saveAny({ ...cur, extras: (cur.extras ?? []).filter((_, i) => i !== index) });
+  }, []);
+  const setWalkOn = useCallback(async (d: string, walked: boolean) => {
+    await saveAny({ ...dayOn(d), walk: walked });
+  }, []);
+  /** Say how many of that day's doses were taken (the tablet count follows). */
+  const setDosesOn = useCallback(async (d: string, count: number) => {
+    const cur = dayOn(d);
+    const m = latest.current.med;
+    const times = m?.times?.length ? m.times : ["20:00"];
+    const was = cur.dosesTaken?.length ?? (cur.tabletAt ? 1 : 0);
+    const n = Math.max(0, Math.min(count, times.length));
+    if (m && n !== was) {
+      const updated: Med = { ...m, pillsLeft: Math.max(0, m.pillsLeft - (n - was) * (m.perDose ?? 1)) };
+      latest.current.med = updated;
+      setMed(updated);
+      void persist(db.put("meds", updated));
+    }
+    const doses = times.slice(0, n);
+    await saveAny({ ...cur, dosesTaken: doses, tabletAt: doses[0] });
+  }, []);
+  /** That day's supper is recorded as the next day's "last night"; with no next day yet it waits for today's check-in. */
+  const setSupperOn = useCallback(async (d: string, s: LastNight | null) => {
+    const next = addDays(d, 1);
+    if (next === date && !latest.current.day) {
+      const { supperTonight: _drop, ...rest } = latest.current.prefs;
+      const pr: Prefs = s ? { ...rest, supperTonight: { date: d, ...s } } : rest;
+      latest.current.prefs = pr;
+      setPrefs(pr);
+      void persist(db.put("prefs", pr));
+      return;
+    }
+    await saveAny({ ...dayOn(next), lastNight: s });
   }, []);
 
   const toggleWalk = useCallback(async () => {
@@ -718,7 +803,7 @@ export function useApp() {
     cards: view.cards, emptySlots: view.empty,
     daySat: day ? planSat(day.plan) + overageOf(day) : 0,
     actions: {
-      submitAnswer, swap, eat, undo, notFeelingIt, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
+      submitAnswer, swap, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
       addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveMed, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },

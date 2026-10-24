@@ -862,3 +862,15 @@ img, svg { -webkit-user-drag: none; }
 .order-food select { flex: 1; min-width: 0; border: none; background: transparent; font: inherit; font-size: 16px; font-weight: 600; padding: 8px 0; color: var(--ink); }
 .order-row .me-input, .order-row .price { background: var(--surface); }
 .order-row .me-input input { width: 100%; }
+
+/* Fill in a day that has passed. */
+.back-slot { background: var(--page); border-radius: 16px; padding: 12px 14px; margin-top: 10px; }
+.back-slot[data-done="true"] { background: color-mix(in srgb, var(--accent) 8%, var(--page)); }
+.back-head { display: flex; align-items: center; gap: 8px; }
+.back-head b { flex: 1; font-size: 1rem; }
+.back-what { margin-top: 6px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.back-what.muted { color: var(--muted); font-weight: 500; }
+.back-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.back-chips .chip { padding: 10px 14px; min-height: 44px; }
+.back-chips .chip.primary { background: var(--accent); color: var(--accent-ink); }
+.back-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-weight: 600; }

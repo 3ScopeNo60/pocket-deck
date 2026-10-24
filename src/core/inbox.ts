@@ -2,7 +2,7 @@
 // Items are worked out from the app's state each time, so they vanish when resolved.
 // Only "read" is remembered, by item id.
 
-export type InboxKind = "update" | "newmeals" | "shopping" | "low" | "refill" | "labs" | "lookback" | "backup";
+export type InboxKind = "update" | "backlog" | "newmeals" | "shopping" | "low" | "refill" | "labs" | "lookback" | "backup";
 
 export interface InboxAction {
   key: "open" | "dismiss";
@@ -28,6 +28,8 @@ export interface InboxInput {
   tomorrowNeeds: string[] | null;
   tomorrowDate: string;
   lowNames: string[];
+  /** A recent day with meals not recorded: when it was ("Yesterday") and which meals. */
+  backlog?: { date: string; when: string; words: string } | null;
   med: { id: string; pillsLeft: number; perDay: number } | null;
   lastLabDate: string | null;
   lookback: { headline: string; tip?: string } | null;
@@ -45,6 +47,14 @@ export function buildInbox(i: InboxInput): InboxItem[] {
 
   if (i.updateId) {
     out.push({ id: `update:${i.updateId}`, kind: "update", title: "A new version is ready", detail: i.updateNote ?? "Update to get the latest.", actions: [{ key: "open", label: "Update now" }] });
+  }
+  if (i.backlog) {
+    out.push({
+      id: `backlog:${i.backlog.date}:${i.backlog.words}`, kind: "backlog",
+      title: `${i.backlog.when} isn't fully logged`,
+      detail: `${i.backlog.words} ${i.backlog.words.includes(" and ") || i.backlog.words.includes(",") ? "aren't" : "isn't"} ticked off yet. You can still fill it in.`,
+      actions: [{ key: "open", label: "Fill it in" }],
+    });
   }
   if (i.newMealCount > 0) {
     out.push({

@@ -2,6 +2,15 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-24-a",
+      "date": "2026-10-24",
+      "notes": [
+        "Fill in a day you missed: Progress › tap yesterday or the day before › Fill in what you had. Log each meal (the planned one, another from the list, something else, or skipped), supper, the tablet, a walk and extras.",
+        "The bell reminds you when yesterday's meals aren't logged, and quietly drops it once they are.",
+        "Meals you log after the fact come out of the pantry, and that day's score updates."
+      ]
+    },
+    {
       "id": "2026-10-15-i",
       "date": "2026-10-15",
       "notes": [

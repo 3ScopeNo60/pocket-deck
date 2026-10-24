@@ -14,6 +14,8 @@ import { Setup } from "./components/Setup";
 import { Progress } from "./components/Progress";
 import { OffPlanSheet, type OffPlanTarget } from "./components/OffPlan";
 import { BellButton, InboxSheet } from "./components/Inbox";
+import { BackLogSheet } from "./components/BackLog";
+import { backlogNudge, slotWords } from "./core/backfill";
 import { CardSwitcher, type SwitcherMode } from "./components/CardSwitcher";
 import { NumbersSheet } from "./components/NumbersSheet";
 import { buildInbox, type InboxItem } from "./core/inbox";
@@ -72,6 +74,7 @@ export default function App() {
   const [tomorrowOpen, setTomorrowOpen] = useState(false);
   const [numbersOpen, setNumbersOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
+  const [backlogDate, setBacklogDate] = useState<string | null>(null);
   const [eatenOpen, setEatenOpen] = useState(false);
   /* the card he has chosen to see first, and a count for the shuffle animation */
   const [frontSlot, setFrontSlot] = useState<SlotKey | null>(null);
@@ -85,6 +88,7 @@ export default function App() {
 
   // Quiet Sunday look-back and monthly backup reminder.
   const todayIso = iso(new Date());
+  const backlogDue = useMemo(() => backlogNudge(todayIso, app.allDays), [todayIso, app.allDays]);
   const recordedDays = useMemo(() => app.allDays.filter((d) => d.eaten.length > 0 || (d.replaced ?? []).length > 0).length, [app.allDays]);
   const lookBack = useMemo(() => {
     if (!lookbackDue(todayIso, app.prefs.nudges, recordedDays)) return null;
@@ -123,10 +127,11 @@ export default function App() {
     return buildInbox({
       todayIso, updateId, updateNote: RELEASE_NOTES.releases[0].notes[0], newMealCount: app.newMealIds.length,
       tomorrowNeeds: unlisted, tomorrowDate, lowNames, med, lastLabDate: lastLab,
+      backlog: backlogDue ? { date: backlogDue.date, when: backlogDue.when, words: slotWords(backlogDue.missing) } : null,
       lookback: lookBack ? { headline: lookBack.headline, tip: lookBack.suggestions[0] } : null,
       backup: { due: backup.due, words: backupAgeWords(backup.ageDays) },
     });
-  }, [day, app.stock, app.med, app.labs, app.newMealIds, tomorrow, listedIds, todayIso, updateId, tomorrowDate, lookBack, backup.due, backup.ageDays]);
+  }, [day, app.stock, app.med, app.labs, app.newMealIds, tomorrow, listedIds, todayIso, updateId, tomorrowDate, lookBack, backup.due, backup.ageDays, backlogDue]);
   const unread = inbox.filter((x) => !(app.prefs.inboxRead ?? []).includes(x.id));
   const act = (item: InboxItem, key: "open" | "dismiss") => {
     if (key === "dismiss") {
@@ -138,6 +143,7 @@ export default function App() {
     actions.markInboxRead(inbox.map((x) => x.id));
     switch (item.kind) {
       case "update": window.location.reload(); break;
+      case "backlog": if (backlogDue) setBacklogDate(backlogDue.date); break;
       case "newmeals": setReviewing(true); break;
       case "shopping": if (tomorrow) { const n = actions.addToList(tomorrow.needs, "plan"); toast(n ? `Added ${n} ${n === 1 ? "thing" : "things"} to your list` : "Already on your list"); } break;
       case "low": setScreen("kitchen"); break;
@@ -277,6 +283,7 @@ export default function App() {
           satCap={targets(app.profile).satCap}
           onSaveLab={actions.saveLab}
           onDeleteLab={actions.deleteLab}
+          onFillIn={setBacklogDate}
         />
       )}
 
@@ -541,6 +548,15 @@ export default function App() {
       </>)}
 
       {day && !app.needsCheckIn && !checkIn && <BellButton count={unread.length} onOpen={() => setInboxOpen(true)} />}
+      <BackLogSheet
+        date={backlogDate}
+        today={todayIso}
+        day={backlogDate ? app.allDays.find((d) => d.date === backlogDate) : undefined}
+        supper={backlogDate ? (app.allDays.find((d) => d.date === addDays(backlogDate, 1))?.lastNight ?? (app.prefs.supperTonight?.date === backlogDate ? { supperId: app.prefs.supperTonight.supperId, plate: app.prefs.supperTonight.plate } : null)) : null}
+        med={app.med}
+        actions={actions}
+        onClose={() => setBacklogDate(null)}
+      />
       <InboxSheet
         open={inboxOpen}
         items={inbox}

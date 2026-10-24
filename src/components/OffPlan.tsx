@@ -14,12 +14,12 @@ const SIZES = Object.keys(SIZE_LABEL) as Exclude<OffSize, "skipped">[];
 export function OffPlanSheet({ target, onClose, onSave }: { target: OffPlanTarget; onClose: () => void; onSave: (what: string, size: OffSize) => void }) {
   return (
     <Sheet open={!!target} onOpenChange={(o) => !o && onClose()} title={target?.mode === "replace" ? `What did you have for ${target.slotLabel.toLowerCase()}?` : "What was the extra?"}>
-      {target && <Form key={target.mode === "replace" ? target.slot : "extra"} target={target} onSave={onSave} />}
+      {target && <OffPlanForm key={target.mode === "replace" ? target.slot : "extra"} target={target} onSave={onSave} />}
     </Sheet>
   );
 }
 
-function Form({ target, onSave }: { target: NonNullable<OffPlanTarget>; onSave: (what: string, size: OffSize) => void }) {
+export function OffPlanForm({ target, onSave }: { target: NonNullable<OffPlanTarget>; onSave: (what: string, size: OffSize) => void }) {
   const options = target.mode === "replace" ? REPLACE_OPTIONS : EXTRA_OPTIONS;
   const groups = [...new Set(options.map((o) => o.group))];
   const [what, setWhat] = useState<string | null>(null);

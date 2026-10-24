@@ -102,7 +102,7 @@ export function SupperNowSheet({ open, current, onClose, onSave, onClear }: { op
   );
 }
 
-function SupperForm({ current, onSave, onClear }: { current: SupperNow | null; onSave: (s: SupperNow) => void; onClear: () => void }) {
+export function SupperForm({ current, onSave, onClear }: { current: SupperNow | null; onSave: (s: SupperNow) => void; onClear: () => void }) {
   const [chosen, setChosen] = useState<string | null>(current?.supperId ?? null);
   const [plate, setPlate] = useState<Plate>(current?.plate ?? "Normal");
   return (

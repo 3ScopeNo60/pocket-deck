@@ -1,9 +1,9 @@
-import { Bell, CalendarCheck, Droplets, Package, Pill, RefreshCw, Save, ShoppingCart, Sparkles, type LucideIcon } from "lucide-react";
+import { Bell, CalendarCheck, NotebookPen, Droplets, Package, Pill, RefreshCw, Save, ShoppingCart, Sparkles, type LucideIcon } from "lucide-react";
 import type { InboxItem, InboxKind } from "../core/inbox";
 import { Sheet } from "./Sheets";
 
 const ICONS: Record<InboxKind, LucideIcon> = {
-  update: RefreshCw, newmeals: Sparkles, shopping: ShoppingCart, low: Package, refill: Pill, labs: Droplets, lookback: CalendarCheck, backup: Save,
+  update: RefreshCw, backlog: NotebookPen, newmeals: Sparkles, shopping: ShoppingCart, low: Package, refill: Pill, labs: Droplets, lookback: CalendarCheck, backup: Save,
 };
 
 /** The bell: the same glass disc and line icon as the menu's options, top right. */

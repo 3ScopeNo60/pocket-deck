@@ -6,6 +6,7 @@ import type { Day, Lab, Med } from "../core/types";
 import { addDays, foodMap, iso, lastDates, mealMap, scoreDate } from "../app/history";
 import { doctorSummary, toText } from "../core/doctor";
 import { Sheet } from "./Sheets";
+import { canBackfill } from "../core/backfill";
 
 type Section = "days" | "summary" | "results";
 const SECTIONS: { key: Section; label: string }[] = [
@@ -20,6 +21,8 @@ interface Props {
   satCap: number;
   onSaveLab: (l: Lab) => void;
   onDeleteLab: (date: string) => void;
+  /** Open "fill in a day" for a recent date. */
+  onFillIn: (date: string) => void;
 }
 
 const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -29,7 +32,7 @@ const LEGEND: { s: DayState; label: string }[] = [
   { s: "none", label: "Nothing recorded" }, { s: "green", label: "Went well" }, { s: "yellow", label: "Mixed" }, { s: "red", label: "Tough" },
 ];
 
-export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab }: Props) {
+export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab, onFillIn }: Props) {
   const [section, setSection] = useState<Section>("days");
   const [open, setOpen] = useState<string | null>(null);
   const [period, setPeriod] = useState<"week" | "month">("week");
@@ -67,7 +70,7 @@ export function Progress({ days, med, labs, satCap, onSaveLab, onDeleteLab }: Pr
       )}
 
       <DoctorSheet open={doctor} onClose={() => setDoctor(false)} today={today} score={score} labs={labs} med={med} satCap={satCap} />
-      <DaySheet date={open} score={open ? score(open) : null} onClose={() => setOpen(null)} />
+      <DaySheet date={open} score={open ? score(open) : null} onClose={() => setOpen(null)} onFillIn={open && canBackfill(open, today) ? () => { const d = open; setOpen(null); onFillIn(d); } : null} />
       <LabSheet seed={labSheet} onClose={() => setLabSheet(null)} onSave={(l) => { onSaveLab(l); setLabSheet(null); toast("Result saved"); }} onDelete={(d) => { onDeleteLab(d); setLabSheet(null); }} today={today} />
     </div>
   );
@@ -106,7 +109,7 @@ function DaysGrid({ today, score, onOpen, hasMed }: { today: string; score: (d: 
   );
 }
 
-function DaySheet({ date, score, onClose }: { date: string | null; score: DayScore | null; onClose: () => void }) {
+function DaySheet({ date, score, onClose, onFillIn }: { date: string | null; score: DayScore | null; onClose: () => void; onFillIn: (() => void) | null }) {
   return (
     <Sheet open={!!date && !!score} onOpenChange={(o) => !o && onClose()} title={date ? longDate(date) : ""}>
       {date && score && (
@@ -131,6 +134,9 @@ function DaySheet({ date, score, onClose }: { date: string | null; score: DaySco
             {score.meds && <li>{score.meds.done ? "Tablet taken." : score.meds.taken > 0 ? `Tablet: ${score.meds.taken} of ${score.meds.expected} doses.` : "Tablet wasn't ticked."}</li>}
             {score.moved && <li>You moved today.</li>}
           </ul>
+          {onFillIn && (
+            <div className="sheet-actions"><button className="btn wide" onClick={onFillIn}>{score.slots < 3 ? "Fill in what you had" : "Change what you had"}</button></div>
+          )}
           {score.state !== "none" && (
             <div className="anchors">
               {(Object.keys(ANCHOR_WORDS) as (keyof typeof ANCHOR_WORDS)[]).map((a) => (
