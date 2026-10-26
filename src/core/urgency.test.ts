@@ -50,6 +50,7 @@ describe("urgency of a list row", () => {
   it("groups rows for the week, by him, and for unlocking", () => {
     expect(["plan", "low", "manual", "unlock"].map((r) => groupOf({ reason: r as never }))).toEqual(["week", "week", "mine", "unlock"]);
   });
+});
 
 describe("daily habits in the projection", () => {
   it("runs a daily portion out of the pantry day after day", () => {
