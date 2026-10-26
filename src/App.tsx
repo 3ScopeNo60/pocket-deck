@@ -19,6 +19,7 @@ import { backlogNudge, slotWords } from "./core/backfill";
 import { CardSwitcher, type SwitcherMode } from "./components/CardSwitcher";
 import { NumbersSheet } from "./components/NumbersSheet";
 import { NutrientsSheet } from "./components/NutrientsSheet";
+import { MealDetailSheet } from "./components/MealDetail";
 import { mealTotals, withProducts } from "./core/nutrients";
 import { buildInbox, type InboxItem } from "./core/inbox";
 import { doneSlots } from "./core/offplan";
@@ -80,6 +81,8 @@ export default function App() {
   const [tomorrowOpen, setTomorrowOpen] = useState(false);
   const [numbersOpen, setNumbersOpen] = useState(false);
   const [nutrientsOf, setNutrientsOf] = useState<string | null>(null);
+  /** A meal opened from the Week tab to read its ingredients and steps. */
+  const [mealOpen, setMealOpen] = useState<string | null>(null);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [backlogDate, setBacklogDate] = useState<string | null>(null);
   const [eatenOpen, setEatenOpen] = useState(false);
@@ -311,6 +314,7 @@ export default function App() {
           onToList={actions.weekToList}
           onOpenList={() => setScreen("kitchen")}
           listCount={app.shopping.length}
+          onOpenMeal={setMealOpen}
         />
       )}
 
@@ -670,6 +674,11 @@ export default function App() {
         onClear={() => { actions.setSupperTonight(null); setSupperOpen(false); }}
       />
 
+      <MealDetailSheet
+        meal={mealOpen && mealMap.get(mealOpen) ? toCard(mealMap.get(mealOpen)!, undefined, rinseIds, productMap) : null}
+        onClose={() => setMealOpen(null)}
+        onNutrients={(id) => { setMealOpen(null); setNutrientsOf(id); }}
+      />
       <NutrientsSheet
         open={!!nutrientsOf}
         title={nutrientsOf ? mealMap.get(nutrientsOf)?.name ?? "" : ""}

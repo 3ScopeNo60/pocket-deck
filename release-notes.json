@@ -2,6 +2,13 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-26-d",
+      "date": "2026-10-26",
+      "notes": [
+        "Week: tap any meal, or anything under Cook ahead, to see its ingredients, how to make it, ways to make it tastier and its numbers, as on the back of its card. All nutrients opens from there too."
+      ]
+    },
+    {
       "id": "2026-10-26-c",
       "date": "2026-10-26",
       "notes": [

@@ -14,6 +14,8 @@ interface Props {
   onToList: () => number;
   onOpenList: () => void;
   listCount: number;
+  /** Open a meal's ingredients and steps. */
+  onOpenMeal: (mealId: string) => void;
 }
 
 const day = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" });
@@ -21,7 +23,7 @@ const short = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("e
 const TAGS: Tonight[] = ["light", "normal", "heavy"];
 
 /** The coming week: tag the evenings you know about, see what you'd eat, and what to buy. */
-export function WeekScreen({ week, summary, onPlan, onTag, onSwap, onToList, onOpenList, listCount }: Props) {
+export function WeekScreen({ week, summary, onPlan, onTag, onSwap, onToList, onOpenList, listCount, onOpenMeal }: Props) {
   if (!week || !summary) {
     return (
       <div className="kitchen">
@@ -81,8 +83,17 @@ export function WeekScreen({ week, summary, onPlan, onTag, onSwap, onToList, onO
               const m = w.plan[s.key] ? mealMap.get(w.plan[s.key]!) : null;
               return (
                 <div key={s.key} className="krow static day-meal">
-                  <span className="emoji">{m?.emoji ?? "—"}</span>
-                  <span className="kname">{m?.name ?? "Nothing fits yet"}<small>{s.label}</small></span>
+                  {m ? (
+                    <button className="meal-open" aria-label={`${m.name}: ingredients and how to make it`} onClick={() => onOpenMeal(m.id)}>
+                      <span className="emoji">{m.emoji}</span>
+                      <span className="kname">{m.name}<small>{s.label}</small></span>
+                    </button>
+                  ) : (
+                    <>
+                      <span className="emoji">—</span>
+                      <span className="kname">Nothing fits yet<small>{s.label}</small></span>
+                    </>
+                  )}
                   <button className="link" aria-label={`Another ${s.label.toLowerCase()} for ${short(d)}`} onClick={() => { if (!onSwap(d, s.key, 1)) toast("That's the only one that fits"); }}>Swap</button>
                 </div>
               );
@@ -96,14 +107,16 @@ export function WeekScreen({ week, summary, onPlan, onTag, onSwap, onToList, onO
           <h3 className="section-label">Cook ahead</h3>
           {prep.map((p) => (
             <div key={p.mealId} className="krow static">
-              <span className="emoji">{p.emoji}</span>
-              <span className="kname">
-                {p.name}
-                <small>
-                  {p.dates.map(short).join(", ")} · keeps {p.keepsDays} {p.keepsDays === 1 ? "day" : "days"}
-                  {p.splits ? " · cook it twice" : ""}
-                </small>
-              </span>
+              <button className="meal-open" aria-label={`${p.name}: ingredients and how to make it`} onClick={() => onOpenMeal(p.mealId)}>
+                <span className="emoji">{p.emoji}</span>
+                <span className="kname">
+                  {p.name}
+                  <small>
+                    {p.dates.map(short).join(", ")} · keeps {p.keepsDays} {p.keepsDays === 1 ? "day" : "days"}
+                    {p.splits ? " · cook it twice" : ""}
+                  </small>
+                </span>
+              </button>
             </div>
           ))}
         </section>
