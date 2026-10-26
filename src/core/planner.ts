@@ -36,7 +36,7 @@ export function reserved(plannedMealIds: string[], meals: Map<string, Meal>, foo
   for (const id of plannedMealIds) {
     const meal = meals.get(id);
     if (!meal || meal.bought) continue;
-    for (const [foodId, g] of Object.entries(mealGrams(meal, foods))) out[foodId] = (out[foodId] ?? 0) + g;
+    for (const [foodId, g] of Object.entries(mealGrams(meal, foods, { required: true }))) out[foodId] = (out[foodId] ?? 0) + g;
   }
   return out;
 }
@@ -52,7 +52,7 @@ export function shortfall(meal: Meal, stock: StockItem[], reservedGrams: Record<
   if (meal.bought) return [];
   const have = available(stock);
   const out: ShortfallItem[] = [];
-  for (const [foodId, needG] of Object.entries(mealGrams(meal, foods))) {
+  for (const [foodId, needG] of Object.entries(mealGrams(meal, foods, { required: true }))) {
     const haveG = Math.max(0, (have[foodId] ?? 0) - (reservedGrams[foodId] ?? 0));
     if (haveG < needG) out.push({ foodId, needG, haveG });
   }
@@ -148,7 +148,7 @@ function needs(meals: (Meal | null)[], foods: Map<string, Food>): Record<string,
   const out: Record<string, number> = {};
   for (const m of meals) {
     if (!m || m.bought) continue;
-    for (const [f, g] of Object.entries(mealGrams(m, foods))) out[f] = (out[f] ?? 0) + g;
+    for (const [f, g] of Object.entries(mealGrams(m, foods, { required: true }))) out[f] = (out[f] ?? 0) + g;
   }
   return out;
 }

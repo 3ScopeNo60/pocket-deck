@@ -82,10 +82,10 @@ export function scoreDay(i: ScoreInput): DayScore {
 
   let sat = 0, na = 0, fibre = 0;
   const anchors = new Set<Anchor>();
-  for (const { meal } of eatenMeals) {
-    const n = mealNutrition(meal, i.foods);
+  for (const { e, meal } of eatenMeals) {
+    const n = mealNutrition(meal, i.foods, undefined, e.left);
     sat += n.sat; na += n.na; fibre += n.sol;
-    for (const it of meal.items) for (const a of i.foods.get(it.foodId)?.anchors ?? []) anchors.add(a);
+    for (const it of meal.items) if (!e.left?.includes(it.foodId)) for (const a of i.foods.get(it.foodId)?.anchors ?? []) anchors.add(a);
   }
   // Something else, or an extra, isn't in the library: use the rough estimate for what it was.
   // Food he picked from the food list brings its soluble fibre too; the rough guesses only know saturated fat and sodium.

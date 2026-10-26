@@ -25,7 +25,7 @@ export function projectStock(stock: StockItem[], plans: PlannedDay[], meals: Map
     const uses: Record<string, number>[] = [];
     for (const id of day.mealIds) {
       const m = meals.get(id);
-      if (m && !m.bought) uses.push(mealGrams(m, foods));
+      if (m && !m.bought) uses.push(mealGrams(m, foods, { required: true }));
     }
     for (const p of day.portions ?? []) {
       const g = foods.get(p.foodId)?.measures[p.measure];

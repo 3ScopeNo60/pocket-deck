@@ -901,3 +901,9 @@ img, svg { -webkit-user-drag: none; }
 
 /* My diet in plain words. */
 .diet-sec { margin-top: 10px; }
+
+/* An ingredient that isn't needed (milk on oats): tap to go without. */
+.opt-tag { color: var(--muted); font-weight: 500; font-size: 0.78rem; }
+.item.left .what { color: var(--muted); }
+button.pill.opt { border: none; cursor: pointer; }
+button.pill.opt[aria-pressed="true"] { background: var(--track); color: var(--ink); }

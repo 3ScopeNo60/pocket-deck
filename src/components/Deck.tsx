@@ -34,6 +34,8 @@ interface BackInfo {
   onNumbers?: () => void;
   /** Opens every nutrient marker for this meal. */
   onNutrients?: (mealId: string) => void;
+  /** Go without an optional ingredient today (the milk on oats), or have it again. */
+  onLeftOut?: (slot: SlotKey, foodId: string) => void;
   /** For a near-miss card: put its missing ingredients on the shopping list. */
   onAddToList: (slot: SlotKey) => void;
 }
@@ -211,13 +213,22 @@ function MealCard({ slot, meal, pos, flipped, onFlip, onSwap, onEat, back, shuff
                   {meal.tags.map((t) => <span key={t} className="tag">{t}</span>)}
                 </div>
                 <ul className="items">
-                  {meal.items.map(([e, w, q]) => (
-                    <li key={w} className={meal.missing?.includes(w) ? "item need" : "item"}>
-                      <span className="emoji">{e}</span>
-                      <span className="what">{w}</span>
-                      {q && <span className="pill">{q}</span>}
-                    </li>
-                  ))}
+                  {meal.items.map(([e, w, q]) => {
+                    const opt = meal.optional?.find((o) => o.name === w);
+                    return (
+                      <li key={w} className={meal.missing?.includes(w) ? "item need" : opt?.left ? "item left" : "item"}>
+                        <span className="emoji">{e}</span>
+                        <span className="what">{w}{opt && <small className="opt-tag"> optional</small>}</span>
+                        {opt ? (
+                          <button className="pill opt" aria-pressed={opt.left} aria-label={opt.left ? `Have ${w} again` : `Go without ${w}`} onPointerDown={(ev) => ev.stopPropagation()} onClick={(ev) => { ev.stopPropagation(); back.onLeftOut?.(slot, opt.foodId); }}>
+                            {opt.left ? "Water instead" : `${q} · tap to skip`}
+                          </button>
+                        ) : (
+                          q && <span className="pill">{q}</span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
                 <div className="actions">
                   <span className="hint">{meal.missing?.length ? `Need ${meal.missing.length} of ${meal.items.length} · closest fit` : "Swipe to swap · tap for steps"}</span>

@@ -23,7 +23,7 @@ interface RawMeal {
   name: string;
   cuisine: string;
   mine?: boolean;
-  items: [string, string][];
+  items: ([string, string] | [string, string, "opt"])[];
   tags: string[];
   keepsDays: number;
   prepGroup?: string;
@@ -41,7 +41,7 @@ export const meals: Meal[] = (mealsJson.meals as unknown as RawMeal[]).map((m) =
   slot: m.slot,
   name: m.name,
   emoji: m.emoji,
-  items: m.items.map(([foodId, measure]) => ({ foodId, measure })),
+  items: m.items.map(([foodId, measure, opt]) => ({ foodId, measure, ...(opt === "opt" ? { optional: true } : {}) })),
   steps: m.steps,
   boosters: m.boosters,
   tags: m.tags,

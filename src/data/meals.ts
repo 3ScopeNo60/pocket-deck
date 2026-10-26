@@ -17,6 +17,8 @@ export interface Meal {
   sol: number; // g soluble fibre
   kcal: number;
   cost: number; // rand
+  /** Ingredients that aren't needed (milk on oats), and whether he is going without it today. */
+  optional?: { name: string; foodId: string; left: boolean }[];
   /** Names of ingredients the kitchen is short of, for a near-miss card. */
   missing?: string[];
   /** Extra order notes for a bought meal, e.g. "Ask for no feta". */

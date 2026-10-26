@@ -34,7 +34,7 @@ describe("planWeek", () => {
     for (const d of dates) for (const s of SLOTS) {
       const m = byId.get(r.days[d].plan[s]!)!;
       if (m.bought) continue;
-      for (const [f, g] of Object.entries(mealGrams(m, foodMap))) total[f] = (total[f] ?? 0) + g;
+      for (const [f, g] of Object.entries(mealGrams(m, foodMap, { required: true }))) total[f] = (total[f] ?? 0) + g;
     }
     const need = Object.fromEntries(r.needs.map((n) => [n.foodId, n.needG]));
     for (const [f, g] of Object.entries(total)) expect(need[f]).toBe(Math.round(g));

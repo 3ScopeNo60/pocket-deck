@@ -76,6 +76,8 @@ export interface Product {
 export interface MealItem {
   foodId: string;
   measure: string;
+  /** Not needed to make the meal (milk on oats can be water): it never blocks a meal, and is left out of the numbers when he leaves it out or has none. */
+  optional?: boolean;
 }
 
 export interface BoughtMeal {
@@ -151,6 +153,8 @@ export interface EatenEntry {
   at: string;
   /** Grams actually taken out of the pantry for this meal, by food, so undo puts back exactly that. */
   taken?: Record<string, number>;
+  /** Optional ingredients that were left out (no milk, so water), so they are not counted. */
+  left?: string[];
 }
 
 /** A portion of a food from the food list: `qty` of `measure` ("2" of "1 tsp"). */
@@ -207,6 +211,8 @@ export interface Day {
     snack: string | null;
   };
   eaten: EatenEntry[];
+  /** Optional ingredients he has chosen to leave out of a meal today, by slot. */
+  leftOut?: Partial<Record<"breakfast" | "lunch" | "snack", string[]>>;
   extras: ExtraEntry[];
   replaced: ReplacedEntry[];
   tabletAt?: string;

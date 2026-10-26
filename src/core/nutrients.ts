@@ -63,7 +63,7 @@ export function withProducts(foods: Map<string, Food>, products: Map<string, Pro
 }
 
 /** A meal's totals. A bought meal only has what its entry lists. */
-export function mealTotals(meal: Meal, foods: Map<string, Food>, products: Map<string, Product> = new Map()): Totals {
+export function mealTotals(meal: Meal, foods: Map<string, Food>, products: Map<string, Product> = new Map(), leave: string[] = []): Totals {
   const t = empty();
   if (meal.bought) {
     const per = meal.bought.per as unknown as Partial<Record<NKey, number>>;
@@ -73,6 +73,7 @@ export function mealTotals(meal: Meal, foods: Map<string, Food>, products: Map<s
     return t;
   }
   for (const item of meal.items) {
+    if (leave.includes(item.foodId)) continue;
     const food = foods.get(item.foodId);
     const grams = food?.measures[item.measure];
     // An ingredient that can't be found counts for nothing, so every total is then a floor.
@@ -117,7 +118,7 @@ export function dayTotals(day: Day, meals: Map<string, Meal>, foods: Map<string,
   };
   for (const e of day.eaten) {
     const meal = meals.get(e.mealId);
-    if (meal) add(mealTotals(meal, foods, products));
+    if (meal) add(mealTotals(meal, foods, products, e.left));
   }
   // Food picked from the food list counts in full; swapped meals and extras that aren't known foods, and supper, only for saturated fat and sodium.
   const rough: { sat: number; na: number }[] = [];

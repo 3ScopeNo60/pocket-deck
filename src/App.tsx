@@ -34,7 +34,7 @@ import { iso, lastDates, mealMap as histMeals, foodMap as histFoods, scoreDate }
 import { summarise } from "./core/score";
 import { NewMeals } from "./components/NewMeals";
 import { Sheet } from "./components/Sheets";
-import { targets } from "./core/nutrition";
+import { leftOutFor, targets } from "./core/nutrition";
 import { BUILD_ID, RELEASE_NOTES, newerBuild, whatsNewOnce, type WhatsNew } from "./app/updates";
 import { WhatsNewSheet } from "./components/WhatsNew";
 import { useApp } from "./app/useApp";
@@ -225,10 +225,10 @@ export default function App() {
     const map = new Map<SlotKey, ReturnType<typeof toCard>>();
     for (const c of cards) {
       const meal = mealMap.get(c.mealId);
-      if (meal) map.set(c.slot, toCard(meal, c.nearMiss ? app.stock : undefined, rinseIds, productMap));
+      if (meal) map.set(c.slot, toCard(meal, c.nearMiss ? app.stock : undefined, rinseIds, productMap, leftOutFor(meal, (id) => app.stock.filter((s) => s.kind === "food" && s.itemId === id).reduce((t, s) => t + s.grams, 0), day?.leftOut?.[c.slot])));
     }
     return map;
-  }, [cards, app.stock, rinseIds, productMap]);
+  }, [cards, app.stock, rinseIds, productMap, day?.leftOut]);
 
   if (!app.ready) return null;
   if (app.needsSetup) {
@@ -416,6 +416,7 @@ export default function App() {
         times={mealTimes(app.profile)}
         onNumbers={() => setNumbersOpen(true)}
         onNutrients={setNutrientsOf}
+        onLeftOut={(slot, foodId) => void actions.toggleLeftOut(slot as never, foodId)}
         shuffle={shuffleTick}
         mealFor={(slot) => cardFor.get(slot)!}
         exit={exit}

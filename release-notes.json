@@ -2,6 +2,13 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-26-c",
+      "date": "2026-10-26",
+      "notes": [
+        "Milk on oats is optional. Porridge, overnight oats and Bircher are on offer even when you have no milk, and they're counted as made with water. With milk in the pantry you can tap \"tap to skip\" on the milk row of a card to go without it that day."
+      ]
+    },
+    {
       "id": "2026-10-26-b",
       "date": "2026-10-26",
       "notes": [

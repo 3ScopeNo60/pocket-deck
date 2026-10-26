@@ -54,7 +54,9 @@ function getPer100(food: Food, product: Product | undefined): Per100 {
 export function mealNutrition(
   meal: Meal,
   foods: Map<string, Food>,
-  products: Map<string, Product> = new Map()
+  products: Map<string, Product> = new Map(),
+  /** Ingredients left out (an optional one, like milk, he had none of). */
+  leave: string[] = [],
 ): Per100 {
   if (meal.bought) {
     return meal.bought.per;
@@ -70,6 +72,7 @@ export function mealNutrition(
     betaGlucan: 0,
   };
   for (const item of meal.items) {
+    if (leave.includes(item.foodId)) continue;
     const food = foods.get(item.foodId);
     if (!food) continue;
     const grams = food.measures[item.measure];
@@ -91,9 +94,14 @@ export function mealNutrition(
   return total;
 }
 
-export function mealGrams(meal: Meal, foods: Map<string, Food>): Record<string, number> {
+/**
+ * Grams of each food a meal uses. `required` leaves out optional ingredients (what must be in the
+ * pantry to make it); `leave` leaves out the ones he is going without this time.
+ */
+export function mealGrams(meal: Meal, foods: Map<string, Food>, o: { required?: boolean; leave?: string[] } = {}): Record<string, number> {
   const grams: Record<string, number> = {};
   for (const item of meal.items) {
+    if ((o.required && item.optional) || o.leave?.includes(item.foodId)) continue;
     const food = foods.get(item.foodId);
     if (!food) continue;
     const g = food.measures[item.measure];
@@ -103,4 +111,11 @@ export function mealGrams(meal: Meal, foods: Map<string, Food>): Record<string, 
     grams[item.foodId] = (grams[item.foodId] ?? 0) + g;
   }
   return grams;
+}
+/**
+ * The optional ingredients of a meal that are being left out: ones he chose to leave out, and ones
+ * he has none of (no milk, so it's water). `haveG` is the pantry by food.
+ */
+export function leftOutFor(meal: Meal, haveG: (foodId: string) => number, chosen: string[] = []): string[] {
+  return meal.items.filter((i) => i.optional && (chosen.includes(i.foodId) || haveG(i.foodId) <= 0)).map((i) => i.foodId);
 }

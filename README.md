@@ -29,6 +29,7 @@ node scripts/nudges.mjs   <shots-dir>   # Sunday look-back, backup reminder (fix
 node scripts/ownmeal.mjs  <shots-dir>   # add your own meal
 node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm run build)
 node scripts/tomorrow.mjs <shots-dir>   # daytime done: prep, shopping, tell supper now
+node scripts/optional.mjs <shots-dir>     # milk on oats is optional
 node scripts/daily.mjs <shots-dir>        # daily psyllium: set up, tick, count, pantry, yesterday
 node scripts/shoplist.mjs <shots-dir>     # running out, sorted list, take off when restocked by hand
 node scripts/replan.mjs <shots-dir>       # why a swipe found nothing, and Plan again

@@ -90,7 +90,7 @@ export function needsFor(days: WeekPlan, o: Pick<PlanWeekInput, "meals" | "foods
       if (!m) continue;
       cost += o.costOf?.(m) ?? 0;
       if (m.bought) continue;
-      for (const [f, g] of Object.entries(mealGrams(m, o.foods))) need[f] = (need[f] ?? 0) + g;
+      for (const [f, g] of Object.entries(mealGrams(m, o.foods, { required: true }))) need[f] = (need[f] ?? 0) + g;
     }
   }
   const spoken = reserved(o.heldIds ?? [], byId, o.foods);

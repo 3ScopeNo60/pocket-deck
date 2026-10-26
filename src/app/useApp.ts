@@ -8,7 +8,7 @@ import { addDays } from "./history";
 import { blankDay } from "../core/backfill";
 import { mealTimes } from "../data/meals";
 import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
-import { mealGrams, mealNutrition, targets } from "../core/nutrition";
+import { leftOutFor, mealGrams, mealNutrition, targets } from "../core/nutrition";
 import { doneSlots, offPlanSat } from "../core/offplan";
 import { dayBudget, deal, eligible, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
 import type { DailyItem, Day, Food, FoodPortion, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
@@ -186,6 +186,15 @@ export function useApp() {
     return true;
   }, [optionsFor]);
 
+  /** Leave an optional ingredient (the milk on oats) out of today's meal in a slot, or put it back. */
+  const toggleLeftOut = useCallback(async (slot: Slot, foodId: string) => {
+    const cur = latest.current.day;
+    if (!cur) return;
+    const now = cur.leftOut?.[slot] ?? [];
+    const next = now.includes(foodId) ? now.filter((x) => x !== foodId) : [...now, foodId];
+    await saveDay({ ...cur, leftOut: { ...(cur.leftOut ?? {}), [slot]: next } });
+  }, []);
+
   /** Why swiping a card found nothing else, in words he can act on. */
   const swapWhy = useCallback((slot: Slot): string => {
     const { stock: st, prefs: pr, day: cur } = latest.current;
@@ -219,11 +228,14 @@ export function useApp() {
     const meal = id ? mealMap.get(id) : null;
     if (!cur || !meal || doneSlots(cur).includes(slot)) return;
     const at = new Date();
-    const { next, changed, removed } = takeStock(st, meal.bought ? {} : mealGrams(meal, foodMap), at.toISOString());
+    // Optional ingredients he left out, or has none of (no milk: water), aren't counted or taken from the pantry.
+    const have = (id: string) => st.filter((s) => s.kind === "food" && s.itemId === id).reduce((t, s) => t + s.grams, 0);
+    const left = leftOutFor(meal, have, cur.leftOut?.[slot]);
+    const { next, changed, removed } = takeStock(st, meal.bought ? {} : mealGrams(meal, foodMap, { leave: left }), at.toISOString());
     latest.current.stock = next;
     setStock(next);
     await Promise.all(changed.map((row) => persist(db.put("stock", row))));
-    await saveDay({ ...cur, eaten: [...cur.eaten, { slot, mealId: meal.id, at: hhmm(at), taken: removed }] });
+    await saveDay({ ...cur, eaten: [...cur.eaten, { slot, mealId: meal.id, at: hhmm(at), taken: removed, ...(left.length ? { left } : {}) }] });
   }, []);
 
   const undo = useCallback(async (slot: Slot) => {
@@ -401,11 +413,13 @@ export function useApp() {
     const cur = dayOn(d);
     if (!meal || doneSlots(cur).includes(slot)) return;
     const at = mealTimes(latest.current.profile)[slot];
-    const { next, changed, removed } = takeStock(latest.current.stock, meal.bought ? {} : mealGrams(meal, foodMap), new Date().toISOString());
+    const have = (id: string) => latest.current.stock.filter((s) => s.kind === "food" && s.itemId === id).reduce((t, s) => t + s.grams, 0);
+    const left = leftOutFor(meal, have, cur.leftOut?.[slot]);
+    const { next, changed, removed } = takeStock(latest.current.stock, meal.bought ? {} : mealGrams(meal, foodMap, { leave: left }), new Date().toISOString());
     latest.current.stock = next;
     setStock(next);
     await Promise.all(changed.map((row) => persist(db.put("stock", row))));
-    await saveAny({ ...cur, plan: { ...cur.plan, [slot]: cur.plan[slot] ?? mealId }, eaten: [...cur.eaten, { slot, mealId, at, taken: removed }] });
+    await saveAny({ ...cur, plan: { ...cur.plan, [slot]: cur.plan[slot] ?? mealId }, eaten: [...cur.eaten, { slot, mealId, at, taken: removed, ...(left.length ? { left } : {}) }] });
   }, []);
   /** Something else, or nothing, for that slot on that day. */
   const logElseOn = useCallback(async (d: string, slot: Slot, what: string, size: string, food?: FoodPortion) => {
@@ -869,7 +883,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan, foodsNow) + overageOf(day, foodsNow) : 0,
     dayBudget: whole,
     actions: {
-      submitAnswer, swap, swapWhy, replanRest, toggleDaily, toggleDailyOn, saveDaily, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
+      submitAnswer, swap, toggleLeftOut, swapWhy, replanRest, toggleDaily, toggleDailyOn, saveDaily, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
       addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveMed, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },
