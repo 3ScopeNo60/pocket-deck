@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Clock, FlaskConical, HardDriveDownload, Info, Pill, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
+import { Clock, FlaskConical, HardDriveDownload, HeartHandshake, Info, Pill, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
+import { dietExplainer } from "../core/diet";
 import type { MenuFeel } from "./RadialMenu";
 import { AnimatePresence, motion } from "motion/react";
 import { Segmented } from "./Segmented";
@@ -51,7 +52,7 @@ const FEEL_HINTS = {
   lean: "A softer lens, and the whole fan tips toward your thumb.",
 } as const;
 
-type Page = null | "you" | "meds" | "times" | "feel" | "backup" | "app" | "try";
+type Page = null | "you" | "meds" | "times" | "feel" | "backup" | "diet" | "app" | "try";
 
 export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, onNumbers, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots"; onSwitcher?: (m: "off" | "dots") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void}; onNumbers?: () => void; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
@@ -97,6 +98,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
     { key: "meds", Icon: Pill, title: "Medication", status: med ? `${med.name}${med.dose ? ` ${med.dose}` : ""}` : "Not added yet", show: !!onSaveMed, hue: "blush" },
     { key: "times", Icon: Clock, title: "Meal times", status: Object.values(mealTimes(profile)).join(" · "), show: !!onMealTimes, hue: "peach" },
     { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No dots" : "Dots"}` : ""}`, show: !!(menuFeel || switcher), hue: "sand" },
+    { key: "diet", Icon: HeartHandshake, title: "My diet in plain words", status: "To share with anyone who asks", show: !embedded, hue: "mint" },
     { key: "backup", Icon: HardDriveDownload, title: "Back up", status: lastBackupAt ? `Last ${ago(lastBackupAt)}` : "Not backed up yet", show: !!onBackedUp, hue: "sky" },
     { key: "app", Icon: Info, title: "This app", status: about ? `Version ${about.version.slice(0, 12)}` : "Updates and setup", show: !!(about || onRedoSetup), hue: "lilac" },
     ...(import.meta.env.MODE === "single" && onScenario
@@ -354,6 +356,44 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
 
         </>
       )}
+      {page === "diet" && (() => {
+        const lim = targets(profile);
+        const d = dietExplainer({ satCap: lim.satCap, sodiumMax: lim.sodiumMax, solMin: lim.solMin, onMedication: !!med });
+        return (
+          <>
+            <section className="k-section">
+              <p className="k-sub">{d.intro}</p>
+              {d.sections.map((sec) => (
+                <div key={sec.heading} className="diet-sec">
+                  <h3 className="section-label">{sec.heading}</h3>
+                  <ul className="reasons">{sec.lines.map((l) => (<li key={l}>{l}</li>))}</ul>
+                </div>
+              ))}
+              <p className="k-sub">{d.closing}</p>
+              <div className="blood-actions">
+                <button
+                  className="btn"
+                  onClick={async () => {
+                    try {
+                      if (navigator.share) { await navigator.share({ title: d.title, text: d.text }); return; }
+                    } catch (e) { if ((e as Error).name === "AbortError") return; }
+                    try { await navigator.clipboard.writeText(d.text); toast("Copied. Paste it into a message."); } catch { toast("Couldn't copy from this view."); }
+                  }}
+                >
+                  Share
+                </button>
+                <button
+                  className="btn ghost"
+                  onClick={async () => { try { await navigator.clipboard.writeText(d.text); toast("Copied. Paste it into a message."); } catch { toast("Couldn't copy from this view."); } }}
+                >
+                  Copy the text
+                </button>
+              </div>
+              <p className="k-sub">Your own limits are filled in from Me › About you. This isn't medical advice; your doctor's word comes first.</p>
+            </section>
+          </>
+        );
+      })()}
       {page === "backup" && (
         <>
       {onBackedUp && !embedded && (

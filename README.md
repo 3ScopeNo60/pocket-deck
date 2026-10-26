@@ -29,6 +29,9 @@ node scripts/nudges.mjs   <shots-dir>   # Sunday look-back, backup reminder (fix
 node scripts/ownmeal.mjs  <shots-dir>   # add your own meal
 node scripts/update.mjs   <shots-dir>   # update toast + what's new (needs npm run build)
 node scripts/tomorrow.mjs <shots-dir>   # daytime done: prep, shopping, tell supper now
+node scripts/shoplist.mjs <shots-dir>     # running out, sorted list, take off when restocked by hand
+node scripts/replan.mjs <shots-dir>       # why a swipe found nothing, and Plan again
+node scripts/diet.mjs <shots-dir>         # My diet in plain words
 node scripts/serving.mjs <shots-dir>      # serving size from a label becomes a measure
 node scripts/auditfixes.mjs <shots-dir>  # dry-vs-cooked label, drained tin, per-100 g column
 node scripts/nutrients.mjs <shots-dir>    # every nutrient marker for a meal and for a day

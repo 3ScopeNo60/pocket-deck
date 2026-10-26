@@ -10,7 +10,7 @@ import { mealTimes } from "../data/meals";
 import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
 import { mealGrams, mealNutrition, targets } from "../core/nutrition";
 import { doneSlots, offPlanSat } from "../core/offplan";
-import { dayBudget, deal, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
+import { dayBudget, deal, eligible, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
 import type { Day, Food, FoodPortion, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
 import { withProducts } from "../core/nutrients";
 import { applyServing } from "../core/serving";
@@ -184,6 +184,33 @@ export function useApp() {
     void saveDay({ ...cur, plan: { ...cur.plan, [slot]: id } });
     return true;
   }, [optionsFor]);
+
+  /** Why swiping a card found nothing else, in words he can act on. */
+  const swapWhy = useCallback((slot: Slot): string => {
+    const { stock: st, prefs: pr, day: cur } = latest.current;
+    if (!cur) return "Nothing else fits right now.";
+    const held = reserved(SLOTS.filter((s) => s !== slot && !doneSlots(cur).includes(s)).map((s) => cur.plan[s]).filter((x): x is string => !!x), mealMap, foodMap);
+    const others = meals.filter((m) => m.slot === slot && m.id !== cur.plan[slot] && eligible(m, pr));
+    if (others.length === 0) return `You have no other ${slot} meals in your rotation. Ones you put away can come back under Kitchen › Unlock.`;
+    if (!others.some((m) => isReady(m, st, held, foodMap))) return `Nothing else for ${slot} can be made from the pantry right now. Kitchen › Unlock shows what each one is missing.`;
+    return `The other ${slot}s you can make would take today over its saturated-fat budget.`;
+  }, []);
+
+  /** Plan again whatever hasn't been eaten, from the pantry and budget as they are now. Returns how many meals changed. */
+  const replanRest = useCallback(async (): Promise<number> => {
+    const { profile: pf, prefs: pr, stock: st, day: cur } = latest.current;
+    if (!cur) return 0;
+    const locked = doneSlots(cur) as Slot[];
+    const b = budgetFor(pf, { lastNight: cur.lastNight, tonight: cur.tonight }).budget - overageOf(cur, latest.current.foodsNow);
+    const r = deal({
+      meals, foods: foodMap, products: new Map(latest.current.products.map((p) => [p.foodId, p])), budget: b, stock: st, prefs: pr,
+      current: Object.fromEntries(locked.map((s) => [s, cur.plan[s]])), locked, today: cur.date,
+    });
+    const open = SLOTS.filter((s) => !locked.includes(s) && r.pick[s]);
+    const changed = open.filter((s) => r.pick[s] !== cur.plan[s]).length;
+    await saveDay({ ...cur, plan: { ...cur.plan, ...Object.fromEntries(open.map((s) => [s, r.pick[s]])) } });
+    return changed;
+  }, []);
 
   const eat = useCallback(async (slot: Slot) => {
     const { stock: st, day: cur } = latest.current;
@@ -801,7 +828,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan, foodsNow) + overageOf(day, foodsNow) : 0,
     dayBudget: whole,
     actions: {
-      submitAnswer, swap, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
+      submitAnswer, swap, swapWhy, replanRest, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
       addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveMed, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },

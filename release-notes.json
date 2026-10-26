@@ -2,6 +2,18 @@
   "title": "What's new",
   "releases": [
     {
+      "id": "2026-10-26-a",
+      "date": "2026-10-26",
+      "notes": [
+        "Shopping list: a short \"Running out\" list at the top (close to gone, or gone before the end of the week), the list sorted By why (for your week, added by you, to unlock a meal) or By aisle, and a note on how soon each thing is needed.",
+        "Adding something to the pantry by hand, scanning it, or importing an order now offers to take it off the shopping list.",
+        "Extras and \"something else\" can be picked from your food list, so psyllium, nuts or fruit count with all their nutrients, fibre included.",
+        "When swiping a card finds nothing else, it says why and offers \"Plan again\" from the pantry as it is now.",
+        "Six new meals to try: shakshuka-style egg and chickpeas, banana oat pancakes, a spiced chickpea and lentil bowl, peri-peri chicken and barley, apple with cinnamon peanut butter, and an orange yoghurt pot with oat bran.",
+        "Me › My diet in plain words: your limits and what to say, to share with anyone who asks."
+      ]
+    },
+    {
       "id": "2026-10-24-d",
       "date": "2026-10-24",
       "notes": [

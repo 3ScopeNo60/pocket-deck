@@ -263,9 +263,17 @@ export default function App() {
     }
   }
 
+  /** Nothing else fits: say why, and offer to plan the rest of the day again from the pantry as it is now. */
+  function offerReplan(why: string) {
+    toast(why, {
+      duration: 7000,
+      action: { label: "Plan again", onClick: () => void actions.replanRest().then((n) => { toast(n ? `Planned again: ${n} ${n === 1 ? "meal" : "meals"} changed` : "That's still the best plan for today"); if (n) { setExit({ kind: "swap", dir: 1 }); setFlipped(null); } }) },
+    });
+  }
+
   function swap(slot: SlotKey, dir: 1 | -1) {
     const ok = actions.swap(slot, dir);
-    if (!ok) toast("That's the only one that fits today's plan");
+    if (!ok) offerReplan(actions.swapWhy(slot));
     else {
       setExit({ kind: "swap", dir });
       setFlipped(null);
@@ -426,7 +434,7 @@ export default function App() {
             setExit({ kind: "swap", dir: 1 });
             setFlipped(null);
             toast("Got it. You'll see that one less often.");
-          } else toast("That's the only one that fits today's plan");
+          } else offerReplan(actions.swapWhy(slot));
         }}
         onSomethingElse={(slot) => {
           setFlipped(null);

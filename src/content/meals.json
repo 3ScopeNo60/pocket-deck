@@ -1321,6 +1321,329 @@
    "boosters": [
     "Try peri-peri spice (salt-free) instead"
    ]
+  },
+  {
+   "id": "shakshuka-beans",
+   "slot": "breakfast",
+   "emoji": "🍳",
+   "name": "Shakshuka-style egg & chickpeas",
+   "cuisine": "Middle Eastern",
+   "items": [
+    [
+     "egg",
+     "1"
+    ],
+    [
+     "tinned-tomatoes",
+     "½ tin"
+    ],
+    [
+     "chickpeas",
+     "¼ cup"
+    ],
+    [
+     "onion",
+     "¼"
+    ],
+    [
+     "garlic",
+     "1 clove"
+    ],
+    [
+     "cumin",
+     "½ tsp"
+    ],
+    [
+     "smoked-paprika",
+     "½ tsp"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ],
+    [
+     "wholewheat-bread",
+     "1 slice"
+    ]
+   ],
+   "tags": [
+    "15 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 19,
+   "steps": [
+    "Soften the chopped onion and garlic in 1 tsp olive oil for 3 minutes",
+    "Add the cumin and paprika, then the tomatoes and chickpeas. Simmer 8 minutes until thick",
+    "Make a dip in the sauce, crack in the egg, cover and cook 4 minutes",
+    "Eat with the toast for dipping"
+   ],
+   "boosters": [
+    "A pinch of chilli flakes",
+    "Fresh coriander or parsley on top",
+    "A squeeze of lemon at the end"
+   ]
+  },
+  {
+   "id": "oat-pancakes",
+   "slot": "breakfast",
+   "emoji": "🥞",
+   "name": "Banana oat pancakes with berries",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "rolled-oats",
+     "½ cup"
+    ],
+    [
+     "banana",
+     "1"
+    ],
+    [
+     "egg",
+     "1"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ],
+    [
+     "blueberries",
+     "⅓ cup"
+    ],
+    [
+     "yoghurt-lowfat",
+     "2 tbsp"
+    ],
+    [
+     "cinnamon",
+     "½ tsp"
+    ]
+   ],
+   "tags": [
+    "10 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 17,
+   "steps": [
+    "Blend the oats, banana, egg and cinnamon into a thick batter",
+    "Heat 1 tsp olive oil in a non-stick pan and cook three small pancakes, 2 minutes a side",
+    "Top with the blueberries and a spoon of yoghurt"
+   ],
+   "boosters": [
+    "A few chopped walnuts on top",
+    "Grated apple in the batter",
+    "A little cinnamon yoghurt instead of syrup"
+   ]
+  },
+  {
+   "id": "chickpea-lentil-bowl",
+   "slot": "lunch",
+   "emoji": "🥙",
+   "name": "Spiced chickpea & lentil bowl",
+   "cuisine": "Middle Eastern",
+   "items": [
+    [
+     "lentils",
+     "½ cup"
+    ],
+    [
+     "chickpeas",
+     "½ cup"
+    ],
+    [
+     "smoked-paprika",
+     "1 tsp"
+    ],
+    [
+     "cumin",
+     "½ tsp"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ],
+    [
+     "spinach",
+     "1 handful"
+    ],
+    [
+     "cucumber",
+     "½ cup"
+    ],
+    [
+     "tomato",
+     "5–6 cherry"
+    ],
+    [
+     "lemon-juice",
+     "1 tbsp"
+    ],
+    [
+     "yoghurt-lowfat",
+     "2 tbsp"
+    ],
+    [
+     "tahini",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "15 minutes",
+    "Great cold"
+   ],
+   "keepsDays": 3,
+   "estCost": 22,
+   "steps": [
+    "Toss the chickpeas in the paprika, cumin and olive oil and crisp in a hot pan for 6 minutes",
+    "Warm the lentils and spoon into a bowl over the spinach",
+    "Add the chickpeas, cucumber and tomatoes",
+    "Stir the tahini, lemon and yoghurt together and drizzle over"
+   ],
+   "boosters": [
+    "A pinch of chilli flakes",
+    "Fresh mint or parsley",
+    "A few pumpkin seeds on top for crunch"
+   ]
+  },
+  {
+   "id": "peri-peri-chicken-barley",
+   "slot": "lunch",
+   "emoji": "🍗",
+   "name": "Peri-peri chicken & barley bowl",
+   "cuisine": "South African",
+   "items": [
+    [
+     "chicken-breast",
+     "1 small"
+    ],
+    [
+     "peri-peri-rub",
+     "1 tsp"
+    ],
+    [
+     "barley-cooked",
+     "¾ cup"
+    ],
+    [
+     "red-pepper",
+     "½"
+    ],
+    [
+     "cucumber",
+     "½ cup"
+    ],
+    [
+     "avocado",
+     "¼"
+    ],
+    [
+     "lemon-juice",
+     "1 tbsp"
+    ],
+    [
+     "olive-oil",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "20 minutes",
+    "Cook a batch Sunday"
+   ],
+   "keepsDays": 3,
+   "estCost": 30,
+   "steps": [
+    "Rub the chicken with the peri-peri rub and grill or pan-cook 5 minutes a side until cooked through",
+    "Slice the chicken and the pepper",
+    "Spoon the barley into a bowl and add the chicken, pepper, cucumber and avocado",
+    "Dress with the lemon juice and olive oil"
+   ],
+   "boosters": [
+    "Extra peri-peri rub on the avocado",
+    "A handful of rocket or baby spinach",
+    "Pack the lemon dressing separately if it's for work"
+   ]
+  },
+  {
+   "id": "apple-pb-cinnamon",
+   "slot": "snack",
+   "emoji": "🍎",
+   "name": "Apple with cinnamon peanut butter",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "apple",
+     "1"
+    ],
+    [
+     "peanut-butter",
+     "1 tbsp"
+    ],
+    [
+     "cinnamon",
+     "½ tsp"
+    ],
+    [
+     "chia",
+     "1 tsp"
+    ]
+   ],
+   "tags": [
+    "2 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 10,
+   "steps": [
+    "Slice the apple",
+    "Stir the cinnamon and chia into the peanut butter",
+    "Dip the slices"
+   ],
+   "boosters": [
+    "A pinch of salt-free peri-peri rub for a savoury twist",
+    "Swap the apple for a pear"
+   ]
+  },
+  {
+   "id": "yoghurt-orange-bran",
+   "slot": "snack",
+   "emoji": "🍊",
+   "name": "Orange yoghurt pot with oat bran & seeds",
+   "cuisine": "Everyday",
+   "items": [
+    [
+     "yoghurt-lowfat",
+     "½ cup"
+    ],
+    [
+     "orange",
+     "1"
+    ],
+    [
+     "oat-bran",
+     "2 tbsp"
+    ],
+    [
+     "pumpkin-seeds",
+     "1 tbsp"
+    ],
+    [
+     "cinnamon",
+     "½ tsp"
+    ]
+   ],
+   "tags": [
+    "3 minutes"
+   ],
+   "keepsDays": 0,
+   "estCost": 12,
+   "steps": [
+    "Peel and chop the orange",
+    "Spoon the yoghurt into a pot and stir in the oat bran and cinnamon",
+    "Top with the orange and the pumpkin seeds"
+   ],
+   "boosters": [
+    "Grated orange zest",
+    "A few chopped almonds instead of the seeds"
+   ]
   }
  ]
 }

@@ -898,3 +898,6 @@ img, svg { -webkit-user-drag: none; }
 .urgent-tag { margin-left: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: #b2412e; background: color-mix(in srgb, #b2412e 12%, transparent); border-radius: 999px; padding: 2px 8px; }
 .urgent-line { margin: 4px 0 8px; color: #b2412e; }
 .seg-slide[aria-label="Sort the list"] { margin: 6px 0 10px; }
+
+/* My diet in plain words. */
+.diet-sec { margin-top: 10px; }

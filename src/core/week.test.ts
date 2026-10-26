@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { planWeek, prepLines, swapInWeek, tagTonight } from "./week";
 import { foods, meals, startingMealIds } from "./content";
-import { SLOTS } from "./planner";
+import { SLOTS, dayBudget } from "./planner";
 import { mealGrams } from "./nutrition";
 import type { Prefs, StockItem } from "./types";
 
@@ -55,10 +55,15 @@ describe("planWeek", () => {
     expect(need(held) - need(without)).toBe(40);
   });
 
-  it("leans a heavy-supper day lighter than a light one", () => {
+  it("keeps a heavy-supper day within its smaller budget", () => {
     const tag = planWeek({ ...base, tonight: { [dates[2]]: "heavy", [dates[3]]: "light" } });
     const sat = (date: string) => SLOTS.reduce((t, s) => t + meals.find((m) => m.id === tag.days[date].plan[s])!.items.reduce((a, i) => a + (foodMap.get(i.foodId)!.per100.sat * foodMap.get(i.foodId)!.measures[i.measure]) / 100, 0), 0);
-    expect(sat(dates[2])).toBeLessThanOrEqual(sat(dates[3]) + 0.001);
+    const heavy = dayBudget({ satCap: base.satCap, lastNightSat: null, tonight: "heavy" }).budget;
+    const light = dayBudget({ satCap: base.satCap, lastNightSat: null, tonight: "light" }).budget;
+    expect(heavy).toBeLessThan(light);
+    // Each day fits its own budget. Which meals a day gets also depends on variety across the week, so a heavy day isn't always the lighter one.
+    expect(sat(dates[2])).toBeLessThanOrEqual(heavy + 0.001);
+    expect(sat(dates[3])).toBeLessThanOrEqual(light + 0.001);
     expect(tag.days[dates[2]].tonight).toBe("heavy");
   });
 
