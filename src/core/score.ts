@@ -88,8 +88,9 @@ export function scoreDay(i: ScoreInput): DayScore {
     for (const it of meal.items) for (const a of i.foods.get(it.foodId)?.anchors ?? []) anchors.add(a);
   }
   // Something else, or an extra, isn't in the library: use the rough estimate for what it was.
-  for (const r of day.replaced ?? []) { const n = replacedNutrition(r); sat += n.sat; na += n.na; }
-  for (const x of day.extras ?? []) { const n = extraNutrition(x); sat += n.sat; na += n.na; }
+  // Food he picked from the food list brings its soluble fibre too; the rough guesses only know saturated fat and sodium.
+  for (const r of day.replaced ?? []) { const n = replacedNutrition(r, i.foods); sat += n.sat; na += n.na; fibre += n.sol ?? 0; }
+  for (const x of day.extras ?? []) { const n = extraNutrition(x, i.foods); sat += n.sat; na += n.na; fibre += n.sol ?? 0; }
 
   const withSupper = !!i.supper;
   const satBudget = withSupper ? i.satCap : Math.max(2.5, i.satCap - NORMAL_SUPPER.sat);

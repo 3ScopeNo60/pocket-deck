@@ -21,6 +21,8 @@ import { NumbersSheet } from "./components/NumbersSheet";
 import { NutrientsSheet } from "./components/NutrientsSheet";
 import { mealTotals, withProducts } from "./core/nutrients";
 import { buildInbox, type InboxItem } from "./core/inbox";
+import { doneSlots } from "./core/offplan";
+import type { PlannedDay } from "./core/urgency";
 import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
 import { tomorrowPlan } from "./core/tomorrow";
 import { addDays } from "./app/history";
@@ -93,6 +95,22 @@ export default function App() {
   const todayIso = iso(new Date());
   // The same food numbers everywhere a day is scored: the list with scanned packs laid over it.
   const foodsNow = useMemo(() => withProducts(histFoods, app.products), [app.products]);
+  // The meals still to be made, day by day: what's left of today, then the week plan. Pantry and shopping look ahead along it.
+  const plans = useMemo(() => {
+    const out: PlannedDay[] = [];
+    if (day) {
+      const done = doneSlots(day);
+      const ids = (["breakfast", "lunch", "snack"] as const).filter((s) => !done.includes(s)).map((s) => day.plan[s]).filter((x): x is string => !!x);
+      if (ids.length) out.push({ date: todayIso, mealIds: ids });
+    }
+    for (let i = 1; i <= 7; i++) {
+      const d = addDays(todayIso, i);
+      const p = app.week?.[d]?.plan;
+      const ids = p ? [p.breakfast, p.lunch, p.snack].filter((x): x is string => !!x) : [];
+      if (ids.length) out.push({ date: d, mealIds: ids });
+    }
+    return out;
+  }, [day, app.week, todayIso]);
   const backlogDue = useMemo(() => backlogNudge(todayIso, app.allDays), [todayIso, app.allDays]);
   const recordedDays = useMemo(() => app.allDays.filter((d) => d.eaten.length > 0 || (d.replaced ?? []).length > 0).length, [app.allDays]);
   const lookBack = useMemo(() => {
@@ -265,6 +283,8 @@ export default function App() {
           prefs={app.prefs}
           actions={actions}
           initial={app.shopping.length ? "list" : "unlock"}
+          plans={plans}
+          today={todayIso}
         />
       )}
 
@@ -629,16 +649,16 @@ export default function App() {
       <OffPlanSheet
         target={offPlan}
         onClose={() => setOffPlan(null)}
-        onSave={(what, size) => {
+        onSave={(what, size, food) => {
           const t = offPlan;
           setOffPlan(null);
           if (!t) return;
           if (t.mode === "replace") {
             setExit({ kind: "eat" });
-            void actions.replaceSlot(t.slot as never, what, size);
+            void actions.replaceSlot(t.slot as never, what, size, food);
             toast(size === "skipped" ? `${t.slotLabel} skipped. The rest of the day carries on.` : "Noted. The rest of the day is rebalanced around it.");
           } else {
-            void actions.addExtra(what, size);
+            void actions.addExtra(what, size, food);
             toast("Noted. The rest of the day is rebalanced.");
           }
         }}

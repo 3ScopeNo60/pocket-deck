@@ -42,7 +42,7 @@ assert.ok(await p.locator(".back-slot[data-done=true]", { hasText: mealName }).i
 // Lunch: something else. Snack: skipped.
 await p.locator(".back-slot", { hasText: "Lunch" }).getByRole("button", { name: "Something else" }).click();
 await p.waitForTimeout(400);
-await p.locator(".checkin-opt").nth(1).click();
+await p.locator(".checkin-opt", { hasText: "Canteen or work lunch" }).click();
 await p.getByRole("button", { name: "Save" }).click();
 await p.waitForTimeout(500);
 await p.locator(".back-slot", { hasText: "Snack" }).getByRole("button", { name: "Skipped" }).click();
@@ -68,7 +68,7 @@ await p.waitForTimeout(400);
 assert.equal((await dayRow(yesterday)).walk, true);
 await p.locator(".back-slot", { hasText: "Extras" }).getByRole("button", { name: "Add" }).click();
 await p.waitForTimeout(400);
-await p.locator(".checkin-opt").first().click();
+await p.locator(".checkin-opt", { hasText: "Cake or sweet things" }).click();
 await p.getByRole("button", { name: "Save" }).click();
 await p.waitForTimeout(500);
 assert.equal((await dayRow(yesterday)).extras.length, 1);

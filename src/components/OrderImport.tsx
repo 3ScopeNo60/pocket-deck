@@ -4,6 +4,7 @@ import { foods } from "../core/content";
 import { matchLine, parseOrder } from "../core/order";
 import { readPlainImage } from "../core/ocr";
 import type { Food } from "../core/types";
+import { foodMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
 
 export interface OrderRow { foodId: string; packs: number; packG: number; price?: number }
@@ -23,15 +24,16 @@ interface Row {
 const money = (n: number | undefined) => (n === undefined ? "" : String(n));
 
 /** "Import an order": paste the cart or order screen, or give screenshots; check each line; restock. */
-export function OrderImportSheet({ open, onClose, onApply }: { open: boolean; onClose: () => void; onApply: (rows: OrderRow[]) => void }) {
+export function OrderImportSheet({ open, onClose, onApply, listFoods }: { open: boolean; onClose: () => void; onApply: (rows: OrderRow[], takeOffList: boolean) => void; /** Foods on the shopping list. */ listFoods: Set<string> }) {
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Import an order">
-      {open && <Flow onApply={onApply} />}
+      {open && <Flow onApply={onApply} listFoods={listFoods} />}
     </Sheet>
   );
 }
 
-function Flow({ onApply }: { onApply: (rows: OrderRow[]) => void }) {
+function Flow({ onApply, listFoods }: { onApply: (rows: OrderRow[], takeOffList: boolean) => void; listFoods: Set<string> }) {
+  const [takeOff, setTakeOff] = useState(true);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -100,6 +102,7 @@ function Flow({ onApply }: { onApply: (rows: OrderRow[]) => void }) {
   const set = (key: number, patch: Partial<Row>) => setRows((all) => all && all.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const ready = rows.filter((r) => r.foodId && r.packs > 0 && Number(r.packG) > 0);
   const unmatched = rows.filter((r) => !r.foodId).length;
+  const onTheList = ready.filter((r) => listFoods.has(r.foodId));
   return (
     <>
       <p className="k-sub">{rows.length} item{rows.length === 1 ? "" : "s"} read. Check what each one is, the pack size and what it cost. Anything left on "Skip" is left out.</p>
@@ -129,13 +132,19 @@ function Flow({ onApply }: { onApply: (rows: OrderRow[]) => void }) {
           </div>
         );
       })}
+      {onTheList.length > 0 && (
+        <button className="switch-row" role="switch" aria-checked={takeOff} onClick={() => setTakeOff(!takeOff)}>
+          <span className="kname">Take {onTheList.length === 1 ? "it" : `${onTheList.length} of them`} off the shopping list<small>{onTheList.map((r) => foodMap.get(r.foodId)?.name).join(", ")}</small></span>
+          <span className="switch" aria-hidden><span className="switch-knob" /></span>
+        </button>
+      )}
       <div className="sheet-actions">
         <button className="btn ghost" onClick={() => setRows(null)}>Back</button>
         <motion.button
           className="btn wide"
           whileTap={{ scale: 0.96 }}
           disabled={ready.length === 0}
-          onClick={() => onApply(ready.map((r) => ({ foodId: r.foodId, packs: r.packs, packG: Number(r.packG), price: r.total ? Number(r.total.replace(",", ".")) || undefined : undefined })))}
+          onClick={() => onApply(ready.map((r) => ({ foodId: r.foodId, packs: r.packs, packG: Number(r.packG), price: r.total ? Number(r.total.replace(",", ".")) || undefined : undefined })), takeOff && onTheList.length > 0)}
         >
           {ready.length === 0 ? "Nothing to add" : `Add ${ready.length} to the pantry${unmatched ? ` · ${unmatched} skipped` : ""}`}
         </motion.button>

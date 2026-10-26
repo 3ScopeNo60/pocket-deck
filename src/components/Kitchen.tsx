@@ -3,10 +3,12 @@ import { LayoutGroup, motion } from "motion/react";
 import { toast } from "sonner";
 import { foods } from "../core/content";
 import { formatAmount, isLow, listTotal, stepGrams, unlockList } from "../core/stock";
+import { GROUP_TITLE, groupOf, projectStock, runningOut, urgencyOf, type PlannedDay, type Projection, type RunOut } from "../core/urgency";
+import { Segmented } from "./Segmented";
 import { meals } from "../core/content";
 import type { Food, Prefs, Product, ShoppingItem, StockItem } from "../core/types";
 import { AISLES, FLAVOUR_KIT, aisleOf } from "../app/aisles";
-import { foodMap } from "../app/viewModel";
+import { foodMap, mealMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
 import { OwnMealSheet } from "./OwnMeal";
 import { LabelScanSheet, type LabelResult } from "./LabelScan";
@@ -43,11 +45,14 @@ interface Props {
   prefs: Prefs;
   actions: KitchenActions;
   initial?: Section;
+  /** The meals still to be made, by day: the rest of today, then the week plan. */
+  plans: PlannedDay[];
+  today: string;
 }
 
 const R = (n: number) => `R${n.toLocaleString("en-ZA")}`;
 
-export function Kitchen({ stock, shopping, products, prefs, actions, initial = "list" }: Props) {
+export function Kitchen({ stock, shopping, products, prefs, actions, initial = "list", plans, today }: Props) {
   const [section, setSection] = useState<Section>(initial);
   const [restock, setRestock] = useState<RestockSeed | null>(null);
   const [adjust, setAdjust] = useState<string | null>(null);
@@ -59,6 +64,10 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
   const go = (s: Section) => { setSection(s); window.scrollTo({ top: 0 }); };
 
   const have = useMemo(() => new Map(stock.filter((s) => s.kind === "food").map((s) => [s.itemId, s.grams])), [stock]);
+  /** Shopping-list row ids by food: what a manual restock can take off the list. */
+  const listRows = useMemo(() => new Map(shopping.map((r) => [r.itemId, r.id])), [shopping]);
+  const proj = useMemo(() => projectStock(stock, plans, mealMap, foodMap), [stock, plans]);
+  const running = useMemo(() => runningOut(stock, proj, foodMap), [stock, proj]);
   const unlock = useMemo(() => unlockList(meals, foodMap, stock, prefs), [stock, prefs]);
   const own = useMemo(() => meals.filter((m) => m.tags.includes(OWN_TAG) && prefs.meals[m.id]?.state !== "hidden"), [prefs]);
   const hidden = useMemo(() => meals.filter((m) => prefs.meals[m.id]?.state === "hidden"), [prefs]);
@@ -92,6 +101,10 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
           shopping={shopping}
           products={products}
           actions={actions}
+          proj={proj}
+          today={today}
+          running={running}
+          onAddRunning={(id) => { const f = foodMap.get(id)!; const short = proj.short.get(id)?.needG ?? 0; actions.addToList([{ foodId: id, needG: Math.max(short, usualPack(f)) }], "low"); toast(`${f.name} is on your list`); }}
           onAdd={() => setPicker("list")}
           onEdit={(r) => setQty({ foodId: r.itemId, packs: r.packs, packG: r.shopUnitG, editing: true })}
           onDone={() => {
@@ -286,6 +299,7 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
       <RestockSheet
         seed={restock}
         products={products}
+        listRows={listRows}
         onClose={() => setRestock(null)}
         onSave={(rows, ids) => {
           actions.restock(rows, ids);
@@ -295,9 +309,10 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
       />
       <OrderImportSheet
         open={orderOpen}
+        listFoods={new Set(listRows.keys())}
         onClose={() => setOrderOpen(false)}
-        onApply={(rows) => {
-          actions.restock(rows, []);
+        onApply={(rows, takeOff) => {
+          actions.restock(rows, takeOff ? rows.map((r) => listRows.get(r.foodId)).filter((x): x is string => !!x) : []);
           setOrderOpen(false);
           toast(`${rows.length} thing${rows.length === 1 ? "" : "s"} added to the pantry`);
         }}
@@ -312,7 +327,7 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
         }}
       />
       <OwnMealSheet open={ownOpen} onClose={() => setOwnOpen(false)} products={products} onNewFood={(r) => actions.saveLabel(r)} onSave={(d) => { setOwnOpen(false); void actions.addOwnMeal(d).then((m) => toast(`${m.name} is in your rotation`)); }} />
-      <LabelScanSheet seed={scan} onClose={() => setScan(null)} onSave={(r) => {
+      <LabelScanSheet seed={scan} listFoods={new Set(listRows.keys())} onClose={() => setScan(null)} onSave={(r) => {
         const id = actions.saveLabel(r);
         setScan(null);
         const name = id ? foodMap.get(id)?.name ?? r.name : r.name;
@@ -324,13 +339,45 @@ export function Kitchen({ stock, shopping, products, prefs, actions, initial = "
 
 /* ── shopping list ─────────────────────────────────────────── */
 
-const REASON: Record<ShoppingItem["reason"], string> = { plan: "For your week", unlock: "To unlock a meal", low: "Running low", manual: "Added by you" };
+type ListView = "why" | "aisle";
 
-function ShoppingList({ shopping, products, actions, onAdd, onDone, onEdit }: {
+interface ListProps {
   shopping: ShoppingItem[]; products: Map<string, Product>; actions: KitchenActions; onAdd: () => void; onDone: () => void; onEdit: (r: ShoppingItem) => void;
-}) {
+  proj: Projection; today: string; running: RunOut[]; onAddRunning: (foodId: string) => void;
+}
+
+const WEEKDAY = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en-ZA", { weekday: "short" });
+function runningWhen(r: RunOut, haveLabel: string): string {
+  return r.kind === "short" ? `Runs out ${WEEKDAY(r.date!)}` : r.kind === "low" ? `Running low, ${haveLabel} left` : "Nearly gone by the end of the week";
+}
+
+function ShoppingList({ shopping, products, actions, onAdd, onDone, onEdit, proj, today, running, onAddRunning }: ListProps) {
   const { total, unpriced } = listTotal(shopping, products);
   const ticked = shopping.filter((r) => r.checked).length;
+  const [view, setView] = useState<ListView>("why");
+  const [allRunning, setAllRunning] = useState(false);
+  const onList = new Set(shopping.map((r) => r.itemId));
+  const urgency = useMemo(() => new Map(shopping.map((r) => [r.id, urgencyOf(r, proj, today)])), [shopping, proj, today]);
+  const byUrgency = (a: ShoppingItem, b: ShoppingItem) => urgency.get(a.id)!.rank - urgency.get(b.id)!.rank || foodMap.get(a.itemId)!.name.localeCompare(foodMap.get(b.itemId)!.name);
+  const urgentCount = shopping.filter((r) => urgency.get(r.id)!.urgent).length;
+  const shownRunning = allRunning ? running : running.slice(0, 5);
+
+  const row = (r: ShoppingItem) => {
+    const f = foodMap.get(r.itemId)!;
+    const u = urgency.get(r.id)!;
+    return (
+      <div key={r.id} className={r.checked ? "krow ticked" : "krow"}>
+        <button className="tickbtn" aria-pressed={r.checked} aria-label={`${f.name} in the trolley`} onClick={() => actions.toggleChecked(r.id)}>
+          <span className="box" />
+        </button>
+        <span className="emoji">{f.emoji}</span>
+        <span className="kname">{f.name}<small className="urg" data-urgent={u.urgent}>{u.label}{view === "aisle" ? ` · ${GROUP_TITLE[groupOf(r)].toLowerCase()}` : ""}</small>{products.get(r.itemId)?.needsRinse && <small className="rinse-hint">{NO_RINSE_HINT}</small>}</span>
+        <button className="pill editable" aria-label={`Change how much ${f.name}`} onClick={() => onEdit(r)}>{r.packs} × {r.shopUnitG} g</button>
+        <button className="link" aria-label={`Remove ${f.name}`} onClick={() => actions.removeFromList(r.id)}>×</button>
+      </div>
+    );
+  };
+
   return (
     <section className="k-section">
       <div className="k-head">
@@ -338,33 +385,52 @@ function ShoppingList({ shopping, products, actions, onAdd, onDone, onEdit }: {
         <button className="btn ghost small" onClick={onAdd}>Add something</button>
       </div>
 
-      {shopping.length === 0 ? (
-        <p className="k-empty">Nothing on the list. Meals you can't make yet are under Unlock, and anything running low shows in Pantry.</p>
-      ) : (
-        <>
-          {AISLES.map((a) => {
-            const rows = shopping.filter((r) => aisleOf(r.itemId) === a);
-            if (!rows.length) return null;
+      {running.length > 0 && (
+        <div className="running" aria-label="Running out">
+          <div className="running-head"><b>Running out</b><span>Close to gone, or gone before the end of the week</span></div>
+          {shownRunning.map((r) => {
+            const f = foodMap.get(r.foodId)!;
+            const listed = onList.has(r.foodId);
             return (
-              <div key={a} className="aisle">
-                <div className="aisle-name">{a}</div>
-                {rows.map((r) => {
-                  const f = foodMap.get(r.itemId)!;
-                  return (
-                    <div key={r.id} className={r.checked ? "krow ticked" : "krow"}>
-                      <button className="tickbtn" aria-pressed={r.checked} aria-label={`${f.name} in the trolley`} onClick={() => actions.toggleChecked(r.id)}>
-                        <span className="box" />
-                      </button>
-                      <span className="emoji">{f.emoji}</span>
-                      <span className="kname">{f.name}<small>{REASON[r.reason]}</small>{products.get(r.itemId)?.needsRinse && <small className="rinse-hint">{NO_RINSE_HINT}</small>}</span>
-                      <button className="pill editable" aria-label={`Change how much ${f.name}`} onClick={() => onEdit(r)}>{r.packs} × {r.shopUnitG} g</button>
-                      <button className="link" aria-label={`Remove ${f.name}`} onClick={() => actions.removeFromList(r.id)}>×</button>
-                    </div>
-                  );
-                })}
+              <div key={r.foodId} className="krow static" data-kind={r.kind}>
+                <span className="emoji">{f.emoji}</span>
+                <span className="kname">{f.name}<small className="urg" data-urgent={r.kind === "short"}>{runningWhen(r, formatAmount(f, r.haveG))}</small></span>
+                {listed ? <span className="pill">On list</span> : <button className="btn small" aria-label={`Add ${f.name} to the list`} onClick={() => onAddRunning(r.foodId)}>Add</button>}
               </div>
             );
           })}
+          {running.length > 5 && <button className="link" onClick={() => setAllRunning(!allRunning)}>{allRunning ? "Show fewer" : `Show ${running.length - 5} more`}</button>}
+        </div>
+      )}
+
+      {shopping.length === 0 ? (
+        <p className="k-empty">Nothing on the list. Meals you can't make yet are under Unlock, and anything running low shows above.</p>
+      ) : (
+        <>
+          {urgentCount > 0 && <p className="k-sub urgent-line"><b>{urgentCount} {urgentCount === 1 ? "thing is" : "things are"} needed today or tomorrow.</b></p>}
+          <Segmented label="Sort the list" value={view} options={[{ value: "why", label: "By why" }, { value: "aisle", label: "By aisle" }]} onChange={setView} />
+          {view === "why"
+            ? (["week", "mine", "unlock"] as const).map((g) => {
+                const rows = shopping.filter((r) => groupOf(r) === g).sort(byUrgency);
+                if (!rows.length) return null;
+                const urgent = rows.filter((r) => urgency.get(r.id)!.urgent).length;
+                return (
+                  <div key={g} className="aisle" data-group={g}>
+                    <div className="aisle-name">{GROUP_TITLE[g]} · {rows.length}{urgent ? <span className="urgent-tag">{urgent} urgent</span> : null}</div>
+                    {rows.map(row)}
+                  </div>
+                );
+              })
+            : AISLES.map((a) => {
+                const rows = shopping.filter((r) => aisleOf(r.itemId) === a).sort(byUrgency);
+                if (!rows.length) return null;
+                return (
+                  <div key={a} className="aisle">
+                    <div className="aisle-name">{a}</div>
+                    {rows.map(row)}
+                  </div>
+                );
+              })}
           <p className="k-sub total">
             {total > 0 ? `About ${R(total)}` : "No prices yet"}
             {unpriced > 0 && total > 0 ? ` · ${unpriced} not priced yet` : ""}
@@ -383,13 +449,13 @@ function ShoppingList({ shopping, products, actions, onAdd, onDone, onEdit }: {
 interface RestockRow { foodId: string; packs: number; packG: number; listId?: string }
 interface RestockSeed { rows: RestockRow[] }
 
-function RestockSheet({ seed, products, onClose, onSave }: {
-  seed: RestockSeed | null; products: Map<string, Product>; onClose: () => void;
+function RestockSheet({ seed, products, listRows, onClose, onSave }: {
+  seed: RestockSeed | null; products: Map<string, Product>; /** Shopping-list row ids by food. */ listRows: Map<string, string>; onClose: () => void;
   onSave: (rows: { foodId: string; packs: number; packG: number; price?: number }[], listIds: string[]) => void;
 }) {
   return (
     <Sheet open={!!seed} onOpenChange={(o) => !o && onClose()} title="What did you get?">
-      {seed && <RestockForm key={seed.rows.map((r) => r.foodId).join(",")} seed={seed} products={products} onSave={onSave} />}
+      {seed && <RestockForm key={seed.rows.map((r) => r.foodId).join(",")} seed={seed} products={products} listRows={listRows} onSave={onSave} />}
     </Sheet>
   );
 }
@@ -416,8 +482,11 @@ function PackSize({ food, value, onChange, label }: { food: Food; value: number;
   );
 }
 
-function RestockForm({ seed, products, onSave }: { seed: RestockSeed; products: Map<string, Product>; onSave: (rows: { foodId: string; packs: number; packG: number; price?: number }[], listIds: string[]) => void }) {
+function RestockForm({ seed, products, listRows, onSave }: { seed: RestockSeed; products: Map<string, Product>; listRows: Map<string, string>; onSave: (rows: { foodId: string; packs: number; packG: number; price?: number }[], listIds: string[]) => void }) {
   const [rows, setRows] = useState(() => seed.rows.map((r) => ({ ...r, price: "" })));
+  // Things being added by hand that are on the shopping list: offer to take them off it.
+  const alsoOnList = seed.rows.filter((r) => !r.listId && listRows.has(r.foodId));
+  const [takeOff, setTakeOff] = useState(true);
   const set = (i: number, patch: Partial<(typeof rows)[number]>) => setRows((all) => all.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   return (
     <>
@@ -442,6 +511,12 @@ function RestockForm({ seed, products, onSave }: { seed: RestockSeed; products: 
           </div>
         );
       })}
+      {alsoOnList.length > 0 && (
+        <button className="switch-row" role="switch" aria-checked={takeOff} onClick={() => setTakeOff(!takeOff)}>
+          <span className="kname">Take {alsoOnList.length === 1 ? "it" : "them"} off the shopping list<small>{alsoOnList.map((r) => foodMap.get(r.foodId)?.name).join(", ")}</small></span>
+          <span className="switch" aria-hidden><span className="switch-knob" /></span>
+        </button>
+      )}
       <div className="sheet-actions">
         <motion.button
           className="btn wide"
@@ -449,7 +524,10 @@ function RestockForm({ seed, products, onSave }: { seed: RestockSeed; products: 
           onClick={() =>
             onSave(
               rows.filter((r) => r.packs > 0).map((r) => ({ foodId: r.foodId, packs: r.packs, packG: r.packG, price: r.price ? Number(r.price.replace(",", ".")) || undefined : undefined })),
-              seed.rows.map((r) => r.listId).filter((x): x is string => !!x),
+              [
+                ...seed.rows.map((r) => r.listId).filter((x): x is string => !!x),
+                ...(takeOff ? alsoOnList.filter((r) => rows.some((x) => x.foodId === r.foodId && x.packs > 0)).map((r) => listRows.get(r.foodId)!) : []),
+              ],
             )
           }
         >

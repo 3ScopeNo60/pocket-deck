@@ -886,3 +886,15 @@ img, svg { -webkit-user-drag: none; }
 .nut-row[data-known="false"] dd { color: var(--muted); font-weight: 500; }
 .nut-pct { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
 .nut-pct[data-over="true"] { color: #b2412e; }
+
+/* Shopping list: running out, sections by why, and how urgent each thing is. */
+.running { background: var(--page); border-radius: 16px; padding: 12px 14px; margin: 6px 0 14px; }
+.running-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+.running-head b { font-size: 1rem; }
+.running-head span { color: var(--muted); font-size: 0.82rem; }
+.running .krow { background: transparent; padding-left: 0; padding-right: 0; }
+.urg { display: block; color: var(--muted); font-weight: 500; }
+.urg[data-urgent="true"] { color: #b2412e; font-weight: 700; }
+.urgent-tag { margin-left: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: #b2412e; background: color-mix(in srgb, #b2412e 12%, transparent); border-radius: 999px; padding: 2px 8px; }
+.urgent-line { margin: 4px 0 8px; color: #b2412e; }
+.seg-slide[aria-label="Sort the list"] { margin: 6px 0 10px; }

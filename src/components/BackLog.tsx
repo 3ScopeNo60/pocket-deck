@@ -5,7 +5,7 @@ import { meals as allMeals } from "../core/content";
 import { SLOTS, slotWords, type BackSlot } from "../core/backfill";
 import { mealNutrition } from "../core/nutrition";
 import { SIZE_LABEL, type OffSize } from "../core/offplan";
-import type { Day, LastNight, Med } from "../core/types";
+import type { Day, FoodPortion, LastNight, Med } from "../core/types";
 import { foodMap, mealMap, supperMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
 import { OffPlanForm } from "./OffPlan";
@@ -13,9 +13,9 @@ import { SupperForm } from "./Tomorrow";
 
 export interface BackLogActions {
   logMealOn: (d: string, slot: BackSlot, mealId: string) => Promise<void>;
-  logElseOn: (d: string, slot: BackSlot, what: string, size: string) => Promise<void>;
+  logElseOn: (d: string, slot: BackSlot, what: string, size: string, food?: FoodPortion) => Promise<void>;
   unlogOn: (d: string, slot: BackSlot) => Promise<void>;
-  addExtraOn: (d: string, kind: string, size: string) => Promise<void>;
+  addExtraOn: (d: string, kind: string, size: string, food?: FoodPortion) => Promise<void>;
   removeExtraOn: (d: string, index: number) => Promise<void>;
   setWalkOn: (d: string, walked: boolean) => Promise<void>;
   setDosesOn: (d: string, count: number) => Promise<void>;
@@ -53,13 +53,13 @@ export function BackLogSheet({ date, today, day, supper, med, actions, onClose }
           {view?.kind === "meal" && <MealPicker slot={view.slot} planned={day?.plan[view.slot] ?? null} onBack={() => setView(null)} onPick={(id) => { void actions.logMealOn(date, view.slot, id); setView(null); }} />}
           {view?.kind === "else" && (
             <>
-              <OffPlanForm target={{ mode: "replace", slot: view.slot, slotLabel: SLOT_LABEL[view.slot] }} onSave={(what, size) => { void actions.logElseOn(date, view.slot, what, size); setView(null); }} />
+              <OffPlanForm target={{ mode: "replace", slot: view.slot, slotLabel: SLOT_LABEL[view.slot] }} onSave={(what, size, food) => { void actions.logElseOn(date, view.slot, what, size, food); setView(null); }} />
               <div className="sheet-actions"><button className="btn ghost" onClick={() => setView(null)}>Back</button></div>
             </>
           )}
           {view?.kind === "extra" && (
             <>
-              <OffPlanForm target={{ mode: "extra" }} onSave={(what, size) => { void actions.addExtraOn(date, what, size); setView(null); }} />
+              <OffPlanForm target={{ mode: "extra" }} onSave={(what, size, food) => { void actions.addExtraOn(date, what, size, food); setView(null); }} />
               <div className="sheet-actions"><button className="btn ghost" onClick={() => setView(null)}>Back</button></div>
             </>
           )}
@@ -103,7 +103,7 @@ function Home({ date, day, supper, med, actions, setView, onDone }: {
               {(e || r) && <button className="link" onClick={() => void actions.unlogOn(date, slot)}>Undo</button>}
             </div>
             {e && <div className="back-what"><span className="emoji">{meal?.emoji}</span>{meal?.name ?? "A meal"}</div>}
-            {r && <div className="back-what"><span className="emoji">{r.size === "skipped" ? "⏭️" : "🍽️"}</span>{r.size === "skipped" ? "Skipped" : `${r.what}${r.size in SIZE_LABEL ? ` · ${SIZE_LABEL[r.size as Exclude<OffSize, "skipped">].toLowerCase()}` : ""}`}</div>}
+            {r && <div className="back-what"><span className="emoji">{r.size === "skipped" ? "⏭️" : "🍽️"}</span>{r.size === "skipped" ? "Skipped" : `${r.what}${!r.food && r.size in SIZE_LABEL ? ` · ${SIZE_LABEL[r.size as Exclude<OffSize, "skipped">].toLowerCase()}` : ""}`}</div>}
             {!e && !r && (
               <>
                 {planned && <div className="back-what muted">Planned: {planned.emoji} {planned.name}</div>}
@@ -146,7 +146,7 @@ function Home({ date, day, supper, med, actions, setView, onDone }: {
         <div className="back-head"><span className="emoji">➕</span><b>Extras</b><button className="link" onClick={() => setView({ kind: "extra" })}>Add</button></div>
         {(day?.extras ?? []).length === 0 && <div className="back-what muted">Nothing extra</div>}
         {(day?.extras ?? []).map((x, i) => (
-          <div key={i} className="back-line"><span>{x.kind}{x.size in SIZE_LABEL ? ` · ${SIZE_LABEL[x.size as Exclude<OffSize, "skipped">].toLowerCase()}` : ""}</span><button className="link" aria-label={`Remove ${x.kind}`} onClick={() => void actions.removeExtraOn(date, i)}>Remove</button></div>
+          <div key={i} className="back-line"><span>{x.kind}{!x.food && x.size in SIZE_LABEL ? ` · ${SIZE_LABEL[x.size as Exclude<OffSize, "skipped">].toLowerCase()}` : ""}</span><button className="link" aria-label={`Remove ${x.kind}`} onClick={() => void actions.removeExtraOn(date, i)}>Remove</button></div>
         ))}
       </section>
       <p className="k-sub">Meals you pick come out of the pantry, and the day's score and the week's numbers update.</p>

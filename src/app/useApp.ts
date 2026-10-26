@@ -11,7 +11,7 @@ import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
 import { mealGrams, mealNutrition, targets } from "../core/nutrition";
 import { doneSlots, offPlanSat } from "../core/offplan";
 import { dayBudget, deal, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
-import type { Day, Food, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
+import type { Day, Food, FoodPortion, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
 import { withProducts } from "../core/nutrients";
 import { applyServing } from "../core/serving";
 import { addNeeds, addToStock, restockGrams, takeStock, withStock, type Need } from "../core/stock";
@@ -42,7 +42,7 @@ function overageOf(d: Day | null, foods: Map<string, Food>): number {
     const id = d.plan[slot as Slot];
     const m = id ? mealMap.get(id) : null;
     return m ? mealNutrition(m, foods).sat : 0;
-  });
+  }, foods);
 }
 
 /** Today's saturated fat for the meals in `plan`, using each meal's real nutrition. */
@@ -337,19 +337,19 @@ export function useApp() {
     void persist(db.put("prefs", next));
   }, []);
   /** "Had something else" for a slot: it counts as done, nothing is taken out of stock. */
-  const replaceSlot = useCallback(async (slot: Slot, what: string, size: string) => {
+  const replaceSlot = useCallback(async (slot: Slot, what: string, size: string, food?: FoodPortion) => {
     const cur = latest.current.day;
     if (!cur || doneSlots(cur).includes(slot)) return;
-    await saveDay({ ...cur, replaced: [...(cur.replaced ?? []), { slot, what, size, at: hhmm() }] });
+    await saveDay({ ...cur, replaced: [...(cur.replaced ?? []), { slot, what, size, at: hhmm(), ...(food ? { food } : {}) }] });
   }, []);
   const undoReplaced = useCallback(async (slot: Slot) => {
     const cur = latest.current.day;
     if (cur) await saveDay({ ...cur, replaced: (cur.replaced ?? []).filter((r) => r.slot !== slot) });
   }, []);
   /** "+ Extra": unplanned food on top of the plan. */
-  const addExtra = useCallback(async (kind: string, size: string) => {
+  const addExtra = useCallback(async (kind: string, size: string, food?: FoodPortion) => {
     const cur = latest.current.day;
-    if (cur) await saveDay({ ...cur, extras: [...(cur.extras ?? []), { kind, size, at: hhmm() }] });
+    if (cur) await saveDay({ ...cur, extras: [...(cur.extras ?? []), { kind, size, at: hhmm(), ...(food ? { food } : {}) }] });
   }, []);
   const removeExtra = useCallback(async (index: number) => {
     const cur = latest.current.day;
@@ -380,10 +380,10 @@ export function useApp() {
     await saveAny({ ...cur, plan: { ...cur.plan, [slot]: cur.plan[slot] ?? mealId }, eaten: [...cur.eaten, { slot, mealId, at, taken: removed }] });
   }, []);
   /** Something else, or nothing, for that slot on that day. */
-  const logElseOn = useCallback(async (d: string, slot: Slot, what: string, size: string) => {
+  const logElseOn = useCallback(async (d: string, slot: Slot, what: string, size: string, food?: FoodPortion) => {
     const cur = dayOn(d);
     if (doneSlots(cur).includes(slot)) return;
-    await saveAny({ ...cur, replaced: [...(cur.replaced ?? []), { slot, what, size, at: mealTimes(latest.current.profile)[slot] }] });
+    await saveAny({ ...cur, replaced: [...(cur.replaced ?? []), { slot, what, size, at: mealTimes(latest.current.profile)[slot], ...(food ? { food } : {}) }] });
   }, []);
   /** Take a logged slot back (a meal eaten goes back into the pantry). */
   const unlogOn = useCallback(async (d: string, slot: Slot) => {
@@ -398,9 +398,9 @@ export function useApp() {
     }
     await saveAny({ ...cur, eaten: cur.eaten.filter((e) => e.slot !== slot), replaced: (cur.replaced ?? []).filter((r) => r.slot !== slot) });
   }, []);
-  const addExtraOn = useCallback(async (d: string, kind: string, size: string) => {
+  const addExtraOn = useCallback(async (d: string, kind: string, size: string, food?: FoodPortion) => {
     const cur = dayOn(d);
-    await saveAny({ ...cur, extras: [...(cur.extras ?? []), { kind, size, at: "" }] });
+    await saveAny({ ...cur, extras: [...(cur.extras ?? []), { kind, size, at: "", ...(food ? { food } : {}) }] });
   }, []);
   const removeExtraOn = useCallback(async (d: string, index: number) => {
     const cur = dayOn(d);
@@ -543,7 +543,7 @@ export function useApp() {
    * added to the pantry.
    */
   const saveLabel = useCallback((r: {
-    foodId: string | null; name: string; packG: number; price?: number; packsBought?: number; serving?: { label: string; g: number };
+    foodId: string | null; name: string; packG: number; price?: number; packsBought?: number; takeOffList?: boolean; serving?: { label: string; g: number };
     newFood?: { emoji: string; aisle: string };
     needsRinse?: boolean;
     per100: { kcal: number; sat: number; na: number; fibre?: number; sol?: number; protein?: number; carbs?: number; sugar?: number; fat?: number; chol?: number; sterols?: number };
@@ -574,6 +574,8 @@ export function useApp() {
       latest.current.stock = added.next;
       setStock(added.next);
       void persist(db.put("stock", added.row));
+      // He asked for it to come off the shopping list now that he has it.
+      if (r.takeOffList) saveShopping(latest.current.shopping.filter((x) => x.itemId !== foodId), latest.current.shopping.filter((x) => x.itemId === foodId).map((x) => x.id));
     }
     return foodId;
   }, []);

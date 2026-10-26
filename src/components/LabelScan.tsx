@@ -24,6 +24,8 @@ export interface LabelResult {
   packsBought?: number;
   /** Needs draining and rinsing before use. */
   needsRinse?: boolean;
+  /** He bought some now and asked for it to come off the shopping list. */
+  takeOffList?: boolean;
   /** What a household measure of it weighs, from the label ("1 tsp" = 5 g). */
   serving?: { label: string; g: number };
   newFood?: { emoji: string; aisle: string };
@@ -59,7 +61,7 @@ export function estimateSoluble(food: Food, fibre: number): number {
 }
 
 /** "Scan a label": pick the food, read a photo or pasted text, confirm the numbers. */
-export function LabelScanSheet({ seed, onClose, onSave }: { seed: Seed | null; onClose: () => void; onSave: (r: LabelResult) => void }) {
+export function LabelScanSheet({ seed, onClose, onSave, listFoods }: { seed: Seed | null; onClose: () => void; onSave: (r: LabelResult) => void; /** Foods on the shopping list. */ listFoods: Set<string> }) {
   // The big plus at the top right starts a new food from wherever the sheet is.
   const [addNew, setAddNew] = useState(0);
   return (
@@ -73,13 +75,13 @@ export function LabelScanSheet({ seed, onClose, onSave }: { seed: Seed | null; o
         </motion.button>
       }
     >
-      {seed && <LabelFlow key={`${seed.foodId ?? "new"}-${seed.newName ?? ""}`} seed={seed} onSave={onSave} addNew={addNew} />}
+      {seed && <LabelFlow key={`${seed.foodId ?? "new"}-${seed.newName ?? ""}`} seed={seed} onSave={onSave} addNew={addNew} listFoods={listFoods} />}
     </Sheet>
   );
 }
 
 /** The scan steps on their own, so another sheet (a meal being built) can run them inline. */
-export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string | null; product?: Product; newName?: string }; onSave: (r: LabelResult) => void; /** Bumped by the sheet's plus button to start a new food. */ addNew?: number }) {
+export function LabelFlow({ seed, onSave, addNew = 0, listFoods }: { seed: { foodId: string | null; product?: Product; newName?: string }; onSave: (r: LabelResult) => void; listFoods?: Set<string>; /** Bumped by the sheet's plus button to start a new food. */ addNew?: number }) {
   const [foodId, setFoodId] = useState<string | null>(seed.foodId);
   const [query, setQuery] = useState("");
   // A food that isn't in the list yet: named here, created when the label is saved.
@@ -87,6 +89,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
   const [naming, setNaming] = useState(seed.newName !== undefined);
   const [price, setPrice] = useState(seed.product?.lastPrice ? String(seed.product.lastPrice) : "");
   const [bought, setBought] = useState(0);
+  const [takeOff, setTakeOff] = useState(true);
   const [values, setValues] = useState<Record<string, string>>((): Record<string, string> => {
     const p = seed.product;
     if (!p) return {};
@@ -305,6 +308,12 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
           <button aria-label="One more" onClick={() => setBought(bought + 1)}>+</button>
         </div>
       </div>
+      {bought > 0 && !!food && !!listFoods?.has(food.id) && (
+        <button className="switch-row" role="switch" aria-checked={takeOff} onClick={() => setTakeOff(!takeOff)}>
+          <span className="kname">Take it off the shopping list<small>It's on your list, and you've just bought some</small></span>
+          <span className="switch" aria-hidden><span className="switch-knob" /></span>
+        </button>
+      )}
       <button className="switch-row" role="switch" aria-checked={needsRinse} onClick={() => setNeedsRinse(!needsRinse)}>
         <span className="kname">Needs rinsing before use<small>Adds a rinse step to meals with it, and suggests a no-rinse one next time</small></span>
         <span className="switch" aria-hidden><span className="switch-knob" /></span>
@@ -321,7 +330,7 @@ export function LabelFlow({ seed, onSave, addNew = 0 }: { seed: { foodId: string
             foodId: food?.id ?? null,
             name: food ? brand.trim() || food.name : subject.name,
             serving: Number(servG.replace(",", ".")) > 0 ? { label: servLabel.trim() || "1 serving", g: Number(servG.replace(",", ".")) } : undefined,
-            packG: drained?.packG ?? packNum, price: priceNum, packsBought: bought || undefined, needsRinse,
+            packG: drained?.packG ?? packNum, price: priceNum, packsBought: bought || undefined, needsRinse, takeOffList: bought > 0 && !!food && !!listFoods?.has(food.id) && takeOff,
             newFood: !food && fresh ? { emoji: fresh.emoji, aisle: fresh.aisle } : undefined,
             per100: {
               kcal: sc(num("kcal"))!, sat: sc(num("sat"))!, na: sc(num("sodium"))!,

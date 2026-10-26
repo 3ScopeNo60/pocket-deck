@@ -2,7 +2,7 @@
 // ingredient had a number for it: a food list gap makes the total a floor ("12 g+"), and a
 // nutrient nothing has a number for is "not known" rather than zero.
 import { replacedNutrition, extraNutrition } from "./offplan";
-import type { Day, Food, Meal, Per100, Product } from "./types";
+import type { Day, Food, FoodPortion, Meal, Per100, Product } from "./types";
 
 export type NKey = "kcal" | "protein" | "carbs" | "sugar" | "fat" | "sat" | "mono" | "poly" | "chol" | "fibre" | "sol" | "betaGlucan" | "na" | "sterols";
 
@@ -88,6 +88,15 @@ export function mealTotals(meal: Meal, foods: Map<string, Food>, products: Map<s
   return t;
 }
 
+/** The totals for `qty` of a food's measure, or null when the food or measure is gone. */
+export function portionTotals(p: FoodPortion, foods: Map<string, Food>, products: Map<string, Product> = new Map()): Totals | null {
+  const f = foods.get(p.foodId);
+  if (!f || f.measures[p.measure] === undefined) return null;
+  const t = mealTotals({ items: [{ foodId: p.foodId, measure: p.measure }] } as Meal, foods, products);
+  for (const k of NKEYS) t.values[k] *= p.qty;
+  return t;
+}
+
 export interface DayExtras {
   /** Supper's saturated fat, sodium and energy where it's recorded. */
   supper?: { sat: number; na: number } | null;
@@ -110,11 +119,14 @@ export function dayTotals(day: Day, meals: Map<string, Meal>, foods: Map<string,
     const meal = meals.get(e.mealId);
     if (meal) add(mealTotals(meal, foods, products));
   }
-  const rough: { sat: number; na: number }[] = [
-    ...(day.replaced ?? []).map((r) => replacedNutrition(r)),
-    ...(day.extras ?? []).map((x) => extraNutrition(x)),
-    ...(extras.supper ? [extras.supper] : []),
-  ];
+  // Food picked from the food list counts in full; swapped meals and extras that aren't known foods, and supper, only for saturated fat and sodium.
+  const rough: { sat: number; na: number }[] = [];
+  for (const e of [...(day.replaced ?? []), ...(day.extras ?? [])]) {
+    const pt = e.food ? portionTotals(e.food, foods, products) : null;
+    if (pt) add(pt);
+    else rough.push("slot" in e ? replacedNutrition(e) : extraNutrition(e));
+  }
+  if (extras.supper) rough.push(extras.supper);
   for (const r of rough) {
     t.values.sat += r.sat; t.values.na += r.na;
     t.known.sat = t.known.na = true;

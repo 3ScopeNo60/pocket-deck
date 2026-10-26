@@ -151,10 +151,19 @@ export interface EatenEntry {
   taken?: Record<string, number>;
 }
 
+/** A portion of a food from the food list: `qty` of `measure` ("2" of "1 tsp"). */
+export interface FoodPortion {
+  foodId: string;
+  measure: string;
+  qty: number;
+}
+
 export interface ExtraEntry {
   kind: string;
   size: string;
   at: string;
+  /** Set when he picked it from the food list: then every nutrient counts, not a rough guess. */
+  food?: FoodPortion;
 }
 
 export interface ReplacedEntry {
@@ -162,6 +171,8 @@ export interface ReplacedEntry {
   what: string;
   size: string;
   at: string;
+  /** Set when he picked it from the food list. */
+  food?: FoodPortion;
 }
 
 export interface Day {

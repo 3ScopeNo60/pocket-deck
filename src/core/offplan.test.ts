@@ -26,3 +26,31 @@ describe("off-plan food", () => {
     expect(offPlanSat({ replaced: [{ slot: "lunch", what: "Pizza", size: "skipped", at: "x" }], extras: [] }, () => 5)).toBe(0);
   });
 });
+
+describe("food picked from the food list", () => {
+  it("counts its real numbers, soluble fibre included", async () => {
+    const { foods } = await import("./content");
+    const fm = new Map(foods.map((f) => [f.id, f]));
+    const psy = fm.get("psyllium")!;
+    const n = extraNutrition({ kind: "2 × 1 tsp psyllium husk", size: "normal", food: { foodId: "psyllium", measure: "1 tsp", qty: 2 } }, fm);
+    expect(n.sol).toBeCloseTo((psy.per100.sol * psy.measures["1 tsp"] * 2) / 100, 1);
+    expect(n.sol!).toBeGreaterThan(5);
+    // without the foods map, or for a food that's gone, it falls back to the rough guess
+    expect(extraNutrition({ kind: "2 × x", size: "normal", food: { foodId: "psyllium", measure: "1 tsp", qty: 2 } }).sol).toBeUndefined();
+    expect(extraNutrition({ kind: "Biscuits", size: "normal" }, fm)).toEqual({ sat: 3, na: 150 });
+  });
+  it("adds its fibre to the day's score and its saturated fat to the budget", async () => {
+    const { foods, meals } = await import("./content");
+    const { scoreDay } = await import("./score");
+    const { blankDay } = await import("./backfill");
+    const fm = new Map(foods.map((f) => [f.id, f])); const mm = new Map(meals.map((m) => [m.id, m]));
+    const day = { ...blankDay("2026-10-25"), eaten: [{ slot: "breakfast" as const, mealId: "egg-toast", at: "08:00" }, { slot: "lunch" as const, mealId: "kauai-falafel", at: "13:00" }] };
+    const base = scoreDay({ day, meals: mm, foods: fm, satCap: 17.5, supper: null, med: null });
+    const plus = scoreDay({ day: { ...day, extras: [{ kind: "2 × 1 tsp psyllium husk", size: "normal", at: "", food: { foodId: "psyllium", measure: "1 tsp", qty: 2 } }] }, meals: mm, foods: fm, satCap: 17.5, supper: null, med: null });
+    expect(plus.fibre).toBeGreaterThan(base.fibre + 5);
+    expect(plus.points!).toBeGreaterThan(base.points!);
+    // and a rough extra (cake) adds no fibre
+    const cake = scoreDay({ day: { ...day, extras: [{ kind: "Cake or sweet things", size: "normal", at: "" }] }, meals: mm, foods: fm, satCap: 17.5, supper: null, med: null });
+    expect(cake.fibre).toBe(base.fibre);
+  });
+});

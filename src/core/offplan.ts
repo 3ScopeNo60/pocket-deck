@@ -1,7 +1,7 @@
 // Food that wasn't on the plan: a meal swapped for something else, or an extra on top.
 // Estimates are deliberately rough and err a little high. They only need to be good enough
 // to rebalance the rest of the day and to colour the day's dot fairly.
-import type { Day, ExtraEntry, ReplacedEntry } from "./types";
+import type { Day, ExtraEntry, Food, FoodPortion, ReplacedEntry } from "./types";
 
 export type OffSize = "small" | "normal" | "big" | "skipped";
 
@@ -48,13 +48,33 @@ export const SIZE_LABEL: Record<Exclude<OffSize, "skipped">, string> = { small: 
 const factor = (size: string) => SIZE_FACTOR[size as OffSize] ?? 1;
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
-export function replacedNutrition(r: Pick<ReplacedEntry, "what" | "size">): { sat: number; na: number } {
+export interface RoughNutrition { sat: number; na: number; /** Soluble fibre and energy, only when it came from the food list. */ sol?: number; kcal?: number }
+
+/** What a portion from the food list gives, from the food's real numbers. Null when the food or its measure is gone. */
+export function portionNutrition(p: FoodPortion, foods: Map<string, Food>): { sat: number; na: number; sol: number; kcal: number } | null {
+  const f = foods.get(p.foodId);
+  const g = f?.measures[p.measure];
+  if (!f || g === undefined) return null;
+  const k = (g * p.qty) / 100;
+  return { sat: f.per100.sat * k, na: f.per100.na * k, sol: f.per100.sol * k, kcal: f.per100.kcal * k };
+}
+
+function fromPortion(p: FoodPortion | undefined, foods: Map<string, Food> | undefined): RoughNutrition | null {
+  const n = p && foods ? portionNutrition(p, foods) : null;
+  return n ? { sat: round1(n.sat), na: Math.round(n.na), sol: round1(n.sol), kcal: Math.round(n.kcal) } : null;
+}
+
+export function replacedNutrition(r: Pick<ReplacedEntry, "what" | "size" | "food">, foods?: Map<string, Food>): RoughNutrition {
+  const real = fromPortion(r.food, foods);
+  if (real) return real;
   const base = REPLACE_OPTIONS.find((o) => o.label === r.what) ?? FALLBACK_REPLACE;
   const f = factor(r.size);
   return { sat: round1(base.sat * f), na: Math.round(base.na * f) };
 }
 
-export function extraNutrition(x: Pick<ExtraEntry, "kind" | "size">): { sat: number; na: number } {
+export function extraNutrition(x: Pick<ExtraEntry, "kind" | "size" | "food">, foods?: Map<string, Food>): RoughNutrition {
+  const real = fromPortion(x.food, foods);
+  if (real) return real;
   const base = EXTRA_OPTIONS.find((o) => o.label === x.kind) ?? FALLBACK_EXTRA;
   const f = factor(x.size);
   return { sat: round1(base.sat * f), na: Math.round(base.na * f) };
@@ -69,9 +89,9 @@ export function doneSlots(d: Pick<Day, "eaten" | "replaced">): string[] {
  * Saturated fat that's now spoken for beyond what the plan already counts. A replaced slot keeps
  * its planned meal in the plan, so only what it went over by counts; skipping doesn't free budget.
  */
-export function offPlanSat(d: Pick<Day, "replaced" | "extras">, plannedSat: (slot: string) => number): number {
+export function offPlanSat(d: Pick<Day, "replaced" | "extras">, plannedSat: (slot: string) => number, foods?: Map<string, Food>): number {
   let over = 0;
-  for (const r of d.replaced ?? []) over += Math.max(0, replacedNutrition(r).sat - plannedSat(r.slot));
-  for (const x of d.extras ?? []) over += extraNutrition(x).sat;
+  for (const r of d.replaced ?? []) over += Math.max(0, replacedNutrition(r, foods).sat - plannedSat(r.slot));
+  for (const x of d.extras ?? []) over += extraNutrition(x, foods).sat;
   return round1(over);
 }
