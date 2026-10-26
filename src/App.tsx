@@ -22,6 +22,8 @@ import { NutrientsSheet } from "./components/NutrientsSheet";
 import { mealTotals, withProducts } from "./core/nutrients";
 import { buildInbox, type InboxItem } from "./core/inbox";
 import { doneSlots } from "./core/offplan";
+import { ownExtras, portionOn, takenOn } from "./core/daily";
+import type { FoodPortion } from "./core/types";
 import type { PlannedDay } from "./core/urgency";
 import { SupperNowSheet, TomorrowPanel } from "./components/Tomorrow";
 import { tomorrowPlan } from "./core/tomorrow";
@@ -101,16 +103,19 @@ export default function App() {
     if (day) {
       const done = doneSlots(day);
       const ids = (["breakfast", "lunch", "snack"] as const).filter((s) => !done.includes(s)).map((s) => day.plan[s]).filter((x): x is string => !!x);
-      if (ids.length) out.push({ date: todayIso, mealIds: ids });
+      // A daily habit not yet ticked today still has to come out of the pantry.
+      const portions = (app.prefs.daily ?? []).filter((it) => !takenOn(day, it.id)).map((it) => portionOn(it, todayIso)?.portion).filter((x): x is FoodPortion => !!x);
+      if (ids.length || portions.length) out.push({ date: todayIso, mealIds: ids, portions });
     }
     for (let i = 1; i <= 7; i++) {
       const d = addDays(todayIso, i);
       const p = app.week?.[d]?.plan;
       const ids = p ? [p.breakfast, p.lunch, p.snack].filter((x): x is string => !!x) : [];
-      if (ids.length) out.push({ date: d, mealIds: ids });
+      const portions = (app.prefs.daily ?? []).map((it) => portionOn(it, d)?.portion).filter((x): x is FoodPortion => !!x);
+      if (ids.length || portions.length) out.push({ date: d, mealIds: ids, portions });
     }
     return out;
-  }, [day, app.week, todayIso]);
+  }, [day, app.week, todayIso, app.prefs.daily]);
   const backlogDue = useMemo(() => backlogNudge(todayIso, app.allDays), [todayIso, app.allDays]);
   const recordedDays = useMemo(() => app.allDays.filter((d) => d.eaten.length > 0 || (d.replaced ?? []).length > 0).length, [app.allDays]);
   const lookBack = useMemo(() => {
@@ -330,6 +335,9 @@ export default function App() {
           onMealTimes={(t) => actions.saveProfile({ ...app.profile, mealTimes: t })}
           med={app.med}
           onSaveMed={actions.saveMed}
+          daily={app.prefs.daily}
+          onDaily={actions.saveDaily}
+          today={todayIso}
           switcher={switcherMode}
           onSwitcher={actions.setSwitcher}
           menuFeel={app.prefs.menuFeel ?? DEFAULT_FEEL}
@@ -548,7 +556,7 @@ export default function App() {
           <div className="also-head">
             <h3 className="section-label">Also today</h3>
             <span className="also-links">
-              <button className="link" onClick={() => setOffPlan({ mode: "extra" })}>+ Extra{(day.extras ?? []).length ? ` (${(day.extras ?? []).length})` : ""}</button>
+              <button className="link" onClick={() => setOffPlan({ mode: "extra" })}>+ Extra{ownExtras(day.extras).length ? ` (${ownExtras(day.extras).length})` : ""}</button>
               <button className="link" onClick={() => setTomorrowOpen(true)}>Tomorrow</button>
             </span>
           </div>
@@ -570,7 +578,23 @@ export default function App() {
               <span className="emoji">{move.emoji}</span>
               <span className="txt"><span className="h1">{move.label}</span><span className="h2">{day.walk ? "Done today" : move.hint}</span></span>
             </motion.button>
-            {(day.extras ?? []).map((x, i) => (
+            {(app.prefs.daily ?? []).map((item) => {
+              const p = portionOn(item, todayIso);
+              const food = foodMap.get(item.foodId);
+              if (!p || !food) return null;
+              const got = takenOn(day, item.id);
+              const phaseDays = item.phases[p.phase]?.days;
+              return (
+                <motion.button key={item.id} className="habit" aria-pressed={!!got} whileTap={{ scale: 0.95 }} onClick={() => void actions.toggleDaily(item.id)}>
+                  <span className="emoji">{food.emoji}</span>
+                  <span className="txt">
+                    <span className="h1">{food.name.replace(/ husk$/i, "")}</span>
+                    <span className="h2">{got ? `Taken · ${p.words}` : phaseDays ? `${p.words} · day ${p.dayNo - (item.phases.slice(0, p.phase).reduce((t, ph) => t + (ph.days ?? 0), 0))} of ${phaseDays}` : `${p.words} a day`}</span>
+                  </span>
+                </motion.button>
+              );
+            })}
+            {(day.extras ?? []).map((x, i) => x.dailyId ? null : (
               <div key={`${x.at}-${i}`} className="extra-row">
                 <span>{x.kind} · {x.size}</span>
                 <button className="link" onClick={() => void actions.removeExtra(i)}>Remove</button>
@@ -590,6 +614,7 @@ export default function App() {
         day={backlogDate ? app.allDays.find((d) => d.date === backlogDate) : undefined}
         supper={backlogDate ? (app.allDays.find((d) => d.date === addDays(backlogDate, 1))?.lastNight ?? (app.prefs.supperTonight?.date === backlogDate ? { supperId: app.prefs.supperTonight.supperId, plate: app.prefs.supperTonight.plate } : null)) : null}
         med={app.med}
+        daily={app.prefs.daily ?? []}
         actions={actions}
         onClose={() => setBacklogDate(null)}
       />

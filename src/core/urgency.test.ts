@@ -50,4 +50,14 @@ describe("urgency of a list row", () => {
   it("groups rows for the week, by him, and for unlocking", () => {
     expect(["plan", "low", "manual", "unlock"].map((r) => groupOf({ reason: r as never }))).toEqual(["week", "week", "mine", "unlock"]);
   });
+
+describe("daily habits in the projection", () => {
+  it("runs a daily portion out of the pantry day after day", () => {
+    const stock = [{ itemId: "psyllium", kind: "food" as const, grams: 12, updatedAt: "" }];
+    const days = ["2026-10-26", "2026-10-27", "2026-10-28"].map((date) => ({ date, mealIds: [], portions: [{ foodId: "psyllium", measure: "1 tsp", qty: 1 }] }));
+    const p = projectStock(stock, days, mm, fm);
+    expect(p.short.get("psyllium")?.date).toBe("2026-10-28"); // 5 g a day from 12 g: gone on the third day
+    expect(runningOut(stock, p, fm).some((r) => r.foodId === "psyllium" && r.kind === "short")).toBe(true);
+  });
 });
+

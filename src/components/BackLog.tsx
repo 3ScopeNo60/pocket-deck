@@ -5,7 +5,8 @@ import { meals as allMeals } from "../core/content";
 import { SLOTS, slotWords, type BackSlot } from "../core/backfill";
 import { mealNutrition } from "../core/nutrition";
 import { SIZE_LABEL, type OffSize } from "../core/offplan";
-import type { Day, FoodPortion, LastNight, Med } from "../core/types";
+import type { DailyItem, Day, FoodPortion, LastNight, Med } from "../core/types";
+import { ownExtras, portionOn, takenOn } from "../core/daily";
 import { foodMap, mealMap, supperMap } from "../app/viewModel";
 import { Sheet } from "./Sheets";
 import { OffPlanForm } from "./OffPlan";
@@ -20,6 +21,7 @@ export interface BackLogActions {
   setWalkOn: (d: string, walked: boolean) => Promise<void>;
   setDosesOn: (d: string, count: number) => Promise<void>;
   setSupperOn: (d: string, s: LastNight | null) => Promise<void>;
+  toggleDailyOn: (d: string, id: string) => Promise<void>;
 }
 
 const SLOT_LABEL: Record<BackSlot, string> = { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack" };
@@ -35,8 +37,8 @@ const longDate = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en
 type View = null | { kind: "meal"; slot: BackSlot } | { kind: "else"; slot: BackSlot } | { kind: "extra" } | { kind: "supper" };
 
 /** Fill in a day that has passed: what was eaten at each meal, supper, the tablet, a walk, extras. */
-export function BackLogSheet({ date, today, day, supper, med, actions, onClose }: {
-  date: string | null; today: string; day: Day | undefined; supper: LastNight | null; med: Med | null; actions: BackLogActions; onClose: () => void;
+export function BackLogSheet({ date, today, day, supper, med, daily, actions, onClose }: {
+  date: string | null; today: string; day: Day | undefined; supper: LastNight | null; med: Med | null; daily: DailyItem[]; actions: BackLogActions; onClose: () => void;
 }) {
   const [view, setView] = useState<View>(null);
   const title =
@@ -49,7 +51,7 @@ export function BackLogSheet({ date, today, day, supper, med, actions, onClose }
     <Sheet open={!!date} onOpenChange={(o) => { if (!o) { setView(null); onClose(); } }} title={title}>
       {date && (
         <div key={view ? view.kind + ("slot" in view ? view.slot : "") : "home"}>
-          {view === null && <Home date={date} day={day} supper={supper} med={med} actions={actions} setView={setView} onDone={(left) => { setView(null); onClose(); toast(left === 0 ? `${dayWords(date, today)[0].toUpperCase()}${dayWords(date, today).slice(1)} is filled in` : "Saved. A meal or two are still blank.") }} />}
+          {view === null && <Home date={date} day={day} supper={supper} med={med} daily={daily} actions={actions} setView={setView} onDone={(left) => { setView(null); onClose(); toast(left === 0 ? `${dayWords(date, today)[0].toUpperCase()}${dayWords(date, today).slice(1)} is filled in` : "Saved. A meal or two are still blank.") }} />}
           {view?.kind === "meal" && <MealPicker slot={view.slot} planned={day?.plan[view.slot] ?? null} onBack={() => setView(null)} onPick={(id) => { void actions.logMealOn(date, view.slot, id); setView(null); }} />}
           {view?.kind === "else" && (
             <>
@@ -75,7 +77,8 @@ export function BackLogSheet({ date, today, day, supper, med, actions, onClose }
   );
 }
 
-function Home({ date, day, supper, med, actions, setView, onDone }: {
+function Home({ date, day, supper, med, daily, actions, setView, onDone }: {
+  daily: DailyItem[];
   onDone: (mealsLeft: number) => void;
   date: string; day: Day | undefined; supper: LastNight | null; med: Med | null; actions: BackLogActions; setView: (v: View) => void;
 }) {
@@ -136,6 +139,18 @@ function Home({ date, day, supper, med, actions, setView, onDone }: {
             </div>
           </div>
         )}
+        {daily.map((item) => {
+          const p = portionOn(item, date);
+          const food = foodMap.get(item.foodId);
+          if (!p || !food) return null;
+          const got = !!takenOn(day, item.id);
+          return (
+            <button key={item.id} className="switch-row" role="switch" aria-checked={got} onClick={() => void actions.toggleDailyOn(date, item.id)}>
+              <span className="kname">{food.name.replace(/ husk$/i, "")}, {p.words}</span>
+              <span className="switch" aria-hidden><span className="switch-knob" /></span>
+            </button>
+          );
+        })}
         <button className="switch-row" role="switch" aria-checked={!!day?.walk} onClick={() => void actions.setWalkOn(date, !day?.walk)}>
           <span className="kname">Walked or moved</span>
           <span className="switch" aria-hidden><span className="switch-knob" /></span>
@@ -144,8 +159,8 @@ function Home({ date, day, supper, med, actions, setView, onDone }: {
 
       <section className="back-slot">
         <div className="back-head"><span className="emoji">➕</span><b>Extras</b><button className="link" onClick={() => setView({ kind: "extra" })}>Add</button></div>
-        {(day?.extras ?? []).length === 0 && <div className="back-what muted">Nothing extra</div>}
-        {(day?.extras ?? []).map((x, i) => (
+        {ownExtras(day?.extras).length === 0 && <div className="back-what muted">Nothing extra</div>}
+        {(day?.extras ?? []).map((x, i) => x.dailyId ? null : (
           <div key={i} className="back-line"><span>{x.kind}{!x.food && x.size in SIZE_LABEL ? ` · ${SIZE_LABEL[x.size as Exclude<OffSize, "skipped">].toLowerCase()}` : ""}</span><button className="link" aria-label={`Remove ${x.kind}`} onClick={() => void actions.removeExtraOn(date, i)}>Remove</button></div>
         ))}
       </section>

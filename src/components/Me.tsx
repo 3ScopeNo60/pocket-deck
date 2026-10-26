@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
-import { Clock, FlaskConical, HardDriveDownload, HeartHandshake, Info, Pill, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
+import { Clock, FlaskConical, HardDriveDownload, HeartHandshake, Info, Pill, Salad, SlidersHorizontal, UserRound, type LucideIcon } from "lucide-react";
 import { dietExplainer } from "../core/diet";
+import { DailyHabit } from "./DailyHabit";
+import type { DailyItem } from "../core/types";
 import type { MenuFeel } from "./RadialMenu";
 import { AnimatePresence, motion } from "motion/react";
 import { Segmented } from "./Segmented";
@@ -52,9 +54,9 @@ const FEEL_HINTS = {
   lean: "A softer lens, and the whole fan tips toward your thumb.",
 } as const;
 
-type Page = null | "you" | "meds" | "times" | "feel" | "backup" | "diet" | "app" | "try";
+type Page = null | "you" | "meds" | "daily" | "times" | "feel" | "backup" | "diet" | "app" | "try";
 
-export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, onNumbers, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed }: { onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots"; onSwitcher?: (m: "off" | "dots") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void}; onNumbers?: () => void; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
+export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSetup, onBackedUp, lastBackupAt, embedded, about, onNumbers, menuFeel, onMenuFeel, switcher, onSwitcher, med, onSaveMed, daily, onDaily, today }: { daily?: DailyItem[]; onDaily?: (d: DailyItem[]) => void; today?: string; onHand?: (h: Profile["hand"]) => void; onMealTimes?: (t: Record<SlotKey, string>) => void; med?: Med | null; onSaveMed?: (m: Med | null) => void; switcher?: "off" | "dots"; onSwitcher?: (m: "off" | "dots") => void; menuFeel?: MenuFeel; onMenuFeel?: (f: MenuFeel) => void; about?: { version: string; onCheck: () => void; onWhatsNew: () => void}; onNumbers?: () => void; profile: Profile; onSave: (p: Profile) => void; onScenario?: (s: Scenario) => void; onRedoSetup?: () => void; onBackedUp?: () => void; lastBackupAt?: string; embedded?: boolean }) {
   const [draft, setDraft] = useState({ h: String(profile.heightCm), w: String(profile.weightKg), a: String(profile.age) });
   const [sex, setSex] = useState(profile.sex);
   const [activity, setActivity] = useState(profile.activity);
@@ -96,6 +98,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
   const TILES: { key: Exclude<Page, null>; Icon: LucideIcon; title: string; status: string; show: boolean; hue: string }[] = [
     { key: "you", Icon: UserRound, title: "About you", status: profile.setUp ? `${profile.heightCm} cm · ${profile.weightKg} kg${t ? ` · ${t.satCap} g sat fat a day` : ""}` : "Add your numbers", show: true, hue: "sage" },
     { key: "meds", Icon: Pill, title: "Medication", status: med ? `${med.name}${med.dose ? ` ${med.dose}` : ""}` : "Not added yet", show: !!onSaveMed, hue: "blush" },
+    { key: "daily", Icon: Salad, title: "Daily psyllium", status: daily?.some((x) => x.foodId === "psyllium") ? "On" : "Not taking it", show: !!onDaily, hue: "mint" },
     { key: "times", Icon: Clock, title: "Meal times", status: Object.values(mealTimes(profile)).join(" · "), show: !!onMealTimes, hue: "peach" },
     { key: "feel", Icon: SlidersHorizontal, title: "Menu and cards", status: `${profile.hand === "right" ? "Right" : "Left"}-handed${menuFeel ? ` · ${FEEL_NAMES[menuFeel.mode]}` : ""}${switcher ? ` · ${switcher === "off" ? "No dots" : "Dots"}` : ""}`, show: !!(menuFeel || switcher), hue: "sand" },
     { key: "diet", Icon: HeartHandshake, title: "My diet in plain words", status: "To share with anyone who asks", show: !embedded, hue: "mint" },
@@ -279,6 +282,7 @@ export function Me({ profile, onSave, onHand, onMealTimes, onScenario, onRedoSet
 
         </>
       )}
+      {page === "daily" && onDaily && <DailyHabit items={daily ?? []} today={today ?? new Date().toLocaleDateString("en-CA")} onSave={onDaily} />}
       {page === "times" && onMealTimes && (
         <>
           <section className="k-section">

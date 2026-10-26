@@ -11,9 +11,10 @@ import { decideMeal, discoverMeals, pendingMeals } from "../core/discover";
 import { mealGrams, mealNutrition, targets } from "../core/nutrition";
 import { doneSlots, offPlanSat } from "../core/offplan";
 import { dayBudget, deal, eligible, isReady, nextFitting, reserved, shortfall, supperSat, SLOTS, type DealOptions, type Slot, type Tonight } from "../core/planner";
-import type { Day, Food, FoodPortion, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
+import type { DailyItem, Day, Food, FoodPortion, LastNight, Lab, Med, Prefs, Product, Profile, ShoppingItem, StockItem, Week } from "../core/types";
 import { withProducts } from "../core/nutrients";
 import { applyServing } from "../core/serving";
+import { portionOn, takenOn } from "../core/daily";
 import { addNeeds, addToStock, restockGrams, takeStock, withStock, type Need } from "../core/stock";
 import { needsFor, planWeek, swapInWeek, tagTonight, type WeekPlan } from "../core/week";
 import { DEFAULT_PROFILE, defaultPrefs, starterStock } from "./defaults";
@@ -466,6 +467,46 @@ export function useApp() {
     await saveAny({ ...dayOn(next), lastNight: s });
   }, []);
 
+  /** Tick a daily habit (psyllium) for a day, or take the tick back. It counts in full and comes out of the pantry. */
+  const toggleDailyOn = useCallback(async (d: string, id: string) => {
+    const item = latest.current.prefs.daily?.find((x) => x.id === id);
+    const food = item ? foodMap.get(item.foodId) : undefined;
+    if (!item || !food) return;
+    const cur = dayOn(d);
+    const done = takenOn(cur, id);
+    if (done) {
+      const grams = done.taken ?? (done.food && food.measures[done.food.measure] !== undefined ? { [item.foodId]: food.measures[done.food.measure] * done.food.qty } : {});
+      const { next, changed } = withStock(latest.current.stock, grams, 1, new Date().toISOString());
+      latest.current.stock = next;
+      setStock(next);
+      await Promise.all(changed.map((row) => persist(db.put("stock", row))));
+      await saveAny({ ...cur, extras: (cur.extras ?? []).filter((x) => x !== done) });
+      return;
+    }
+    const p = portionOn(item, d);
+    if (!p) return;
+    const { next, changed, removed } = takeStock(latest.current.stock, { [item.foodId]: (food.measures[p.portion.measure] ?? 0) * p.portion.qty }, new Date().toISOString());
+    latest.current.stock = next;
+    setStock(next);
+    await Promise.all(changed.map((row) => persist(db.put("stock", row))));
+    await saveAny({ ...cur, extras: [...(cur.extras ?? []), { kind: `${food.name}, ${p.words}`, size: "normal", at: d === date ? hhmm() : "", food: p.portion, dailyId: id, taken: removed }] });
+  }, []);
+  const toggleDaily = useCallback((id: string) => toggleDailyOn(date, id), [toggleDailyOn]);
+
+  /** Set (or clear) the daily habits. Psyllium as a habit replaces the psyllium-in-water snack, which goes out of the rotation while it runs. */
+  const saveDaily = useCallback((items: DailyItem[]) => {
+    const pr = latest.current.prefs;
+    const had = (pr.daily ?? []).some((x) => x.foodId === "psyllium");
+    const has = items.some((x) => x.foodId === "psyllium");
+    let meals_ = pr.meals;
+    if (has && !had) meals_ = { ...meals_, "psyllium-water": { state: "hidden" } };
+    if (!has && had) meals_ = { ...meals_, "psyllium-water": { state: "kept" } };
+    const next: Prefs = { ...pr, meals: meals_, daily: items };
+    latest.current.prefs = next;
+    setPrefs(next);
+    void persist(db.put("prefs", next));
+  }, []);
+
   const toggleWalk = useCallback(async () => {
     const cur = latest.current.day;
     if (cur) await saveDay({ ...cur, walk: !cur.walk });
@@ -828,7 +869,7 @@ export function useApp() {
     daySat: day ? planSat(day.plan, foodsNow) + overageOf(day, foodsNow) : 0,
     dayBudget: whole,
     actions: {
-      submitAnswer, swap, swapWhy, replanRest, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
+      submitAnswer, swap, swapWhy, replanRest, toggleDaily, toggleDailyOn, saveDaily, eat, undo, notFeelingIt, logMealOn, logElseOn, unlogOn, addExtraOn, removeExtraOn, setWalkOn, setDosesOn, setSupperOn, replaceSlot, undoReplaced, addExtra, removeExtra, toggleTablet, toggleWalk,
       addToList, addMealToList, setListItem, toggleChecked, removeFromList, restock, setStockGrams, setMealState, saveProfile, completeSetup, skipSetup, redoSetup, markBackedUp, dismissNudge, addOwnMeal, saveLabel, togglePrep, setSupperTonight, markInboxRead, setMenuFeel, setSwitcher, saveMed, saveLab, deleteLab, decideNewMeal, planTheWeek, tagNight, swapWeek, weekToList,
       devScenario: import.meta.env.MODE === "single" ? devScenario : undefined,
     },

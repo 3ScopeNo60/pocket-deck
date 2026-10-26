@@ -3,9 +3,9 @@
 // day a food is short is the day it's needed by.
 import { mealGrams } from "./nutrition";
 import { isLow } from "./stock";
-import type { Food, Meal, ShoppingItem, StockItem } from "./types";
+import type { Food, FoodPortion, Meal, ShoppingItem, StockItem } from "./types";
 
-export interface PlannedDay { date: string; mealIds: string[] }
+export interface PlannedDay { date: string; mealIds: string[]; /** Daily habits that day (psyllium), taken from the pantry like a meal. */ portions?: FoodPortion[] }
 
 export interface Projection {
   /** First day each food is short for a planned meal, and by how much in all. */
@@ -22,10 +22,17 @@ export function projectStock(stock: StockItem[], plans: PlannedDay[], meals: Map
   const short = new Map<string, { date: string; needG: number }>();
   const used = new Set<string>();
   for (const day of [...plans].sort((a, b) => a.date.localeCompare(b.date))) {
+    const uses: Record<string, number>[] = [];
     for (const id of day.mealIds) {
       const m = meals.get(id);
-      if (!m || m.bought) continue;
-      for (const [foodId, g] of Object.entries(mealGrams(m, foods))) {
+      if (m && !m.bought) uses.push(mealGrams(m, foods));
+    }
+    for (const p of day.portions ?? []) {
+      const g = foods.get(p.foodId)?.measures[p.measure];
+      if (g !== undefined) uses.push({ [p.foodId]: g * p.qty });
+    }
+    for (const use of uses) {
+      for (const [foodId, g] of Object.entries(use)) {
         used.add(foodId);
         const left = (running.get(foodId) ?? 0) - g;
         running.set(foodId, left);

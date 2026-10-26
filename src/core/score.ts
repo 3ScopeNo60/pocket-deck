@@ -128,7 +128,7 @@ export function scoreDay(i: ScoreInput): DayScore {
   const missing = ANCHORS.filter((a) => !anchors.has(a));
   if (missing.length) notes.push(`Missed: ${missing.map((a) => ANCHOR_WORDS[a]).join(", ")}.`);
   for (const r of day.replaced ?? []) notes.push(r.size === "skipped" ? `${cap(r.slot)} was skipped.` : `${cap(r.slot)}: had ${r.what.toLowerCase()} instead.`);
-  for (const x of day.extras ?? []) notes.push(`Extra: ${x.kind.toLowerCase()}.`);
+  for (const x of day.extras ?? []) notes.push(x.dailyId ? `Took ${x.kind.toLowerCase()}.` : `Extra: ${x.kind.toLowerCase()}.`);
   if (!withSupper) notes.push("Supper wasn't logged, so a normal one is assumed.");
 
   return { ...base, state, points, notes };

@@ -119,6 +119,8 @@ export interface Prefs {
   /** When the last backup file was made (ISO). */
   lastBackupAt?: string;
   /** Tonight's supper, told in the evening so tomorrow's check-in is already answered. */
+  /** Things taken every day, like psyllium husk. */
+  daily?: DailyItem[];
   supperTonight?: { date: string; supperId: string; plate: "Small" | "Normal" | "Big" };
   /** Night-before prep ticked off for one date. */
   prepDone?: { date: string; ids: string[] };
@@ -164,6 +166,25 @@ export interface ExtraEntry {
   at: string;
   /** Set when he picked it from the food list: then every nutrient counts, not a rough guess. */
   food?: FoodPortion;
+  /** Set when it is a daily habit being ticked (psyllium): the habit's id, so ticking again takes it back. */
+  dailyId?: string;
+  /** Grams actually taken out of the pantry for it, so taking it back puts back exactly that. */
+  taken?: Record<string, number>;
+}
+
+/**
+ * Something taken every day on a schedule: a food from the food list in phases ("1 tsp for 14 days,
+ * then 1 tbsp"). Ticking it each day counts it in full and takes it out of the pantry.
+ */
+export interface DailyItem {
+  id: string;
+  foodId: string;
+  /** The first day (YYYY-MM-DD). */
+  startDate: string;
+  /** In order. A phase with `days: null` goes on for ever. `qty` is how many of the food's measure. */
+  phases: { days: number | null; qty: number }[];
+  /** Which of the food's measures one `qty` is ("1 tsp"). */
+  measure: string;
 }
 
 export interface ReplacedEntry {
